@@ -116,24 +116,42 @@ void updateBoids(Boid *flock, Vector2 *averageVels){
     }
 }
 
-void align(Boid *flock, Vector2 *averageVels) {
+Vector2 ClampMagnitude(Vector2 v, float maxLength) {
+    float len = Vector2Length(v);
+    if (len > maxLength) {
+        v = Vector2Scale(Vector2Normalize(v), maxLength);
+    }
+    return v;
+}
+
+void calculateSteering(Boid *flock, Vector2 *steerings, Vector2 playerPos) {
     int perceptionRadius = 100;
+
+    const float ALIGN_WEIGHT = 1.0f;
+    const float COHESION_WEIGHT = 1.25f;
+    const float SEPARATION_WEIGHT = 2.0f;
+    const float FOLLOW_PLAYER_WEIGHT = 1.5f;  // Adjust weight as needed
 
     for (int i = 0; i < MAX_BOIDS; i++) {
         Boid *boid = &flock[i];
 
-        Vector2 avgVel = {0, 0}; 
-        Vector2 avgPos = {0, 0}; 
+        Vector2 avgVel = {0, 0};
+        Vector2 avgPos = {0, 0};
+        Vector2 avgSep = {0, 0};
         int total = 0;
 
         for (int j = 0; j < MAX_BOIDS; j++) {
             if (j == i) continue;
 
             float d = Vector2Distance(boid->pos, flock[j].pos);
-            if (d <= perceptionRadius) {
+            if (d <= perceptionRadius && d > 0.0f) {
                 total++;
                 avgVel = Vector2Add(avgVel, flock[j].velocity);
                 avgPos = Vector2Add(avgPos, flock[j].pos);
+
+                Vector2 diff = Vector2Subtract(boid->pos, flock[j].pos);
+                diff = Vector2Scale(diff, 1.0f / (d * d));
+                avgSep = Vector2Add(avgSep, diff);
             }
         }
 
@@ -142,26 +160,76 @@ void align(Boid *flock, Vector2 *averageVels) {
         if (total > 0) {
             // Alignment
             avgVel = Vector2Scale(avgVel, 1.0f / total);
-            avgVel = Vector2Normalize(avgVel);
-            avgVel = Vector2Scale(avgVel, MAX_SPEED);
+            if (Vector2Length(avgVel) > 0.001f) {
+                avgVel = Vector2Normalize(avgVel);
+                avgVel = Vector2Scale(avgVel, MAX_SPEED);
+            }
             Vector2 alignForce = Vector2Subtract(avgVel, boid->velocity);
-            alignForce = Vector2ClampValue(alignForce, 0.0f, MAX_FORCE);
+            alignForce = ClampMagnitude(alignForce, MAX_FORCE);
 
             // Cohesion
             avgPos = Vector2Scale(avgPos, 1.0f / total);
             Vector2 cohVector = Vector2Subtract(avgPos, boid->pos);
-            cohVector = Vector2Normalize(cohVector);
-            cohVector = Vector2Scale(cohVector, MAX_SPEED);
+            if (Vector2Length(cohVector) > 0.001f) {
+                cohVector = Vector2Normalize(cohVector);
+                cohVector = Vector2Scale(cohVector, MAX_SPEED);
+            }
             cohVector = Vector2Subtract(cohVector, boid->velocity);
-            cohVector = Vector2ClampValue(cohVector, 0.0f, MAX_FORCE);
+            cohVector = ClampMagnitude(cohVector, MAX_FORCE);
 
-            // Combine
-            steering = Vector2Add(alignForce, cohVector);
+            // Separation
+            avgSep = Vector2Scale(avgSep, 1.0f / total);
+            Vector2 sepVector = avgSep;
+            if (Vector2Length(sepVector) > 0.001f) {
+                sepVector = Vector2Normalize(sepVector);
+                sepVector = Vector2Scale(sepVector, MAX_SPEED);
+            }
+            sepVector = Vector2Subtract(sepVector, boid->velocity);
+            sepVector = ClampMagnitude(sepVector, MAX_FORCE);
+
+            steering = Vector2Add(
+                Vector2Scale(sepVector, SEPARATION_WEIGHT),
+                Vector2Add(
+                    Vector2Scale(alignForce, ALIGN_WEIGHT),
+                    Vector2Scale(cohVector, COHESION_WEIGHT)
+                )
+            );
         }
 
-        averageVels[i] = steering;
+        const float FOLLOW_RADIUS = 100.0f;
+
+        Vector2 toPlayer = Vector2Subtract(playerPos, boid->pos);
+        float distToPlayer = Vector2Length(toPlayer);
+
+        Vector2 followForce = {0, 0};
+
+        if (distToPlayer > FOLLOW_RADIUS) {
+            // If too far, move toward player
+            Vector2 desired = Vector2Normalize(toPlayer);
+            desired = Vector2Scale(desired, MAX_SPEED);
+
+            followForce = Vector2Subtract(desired, boid->velocity);
+            followForce = ClampMagnitude(followForce, MAX_FORCE);
+            followForce = Vector2Scale(followForce, FOLLOW_PLAYER_WEIGHT);
+
+        } else {
+            // If inside the radius, apply a small force away from player (optional)
+            Vector2 away = Vector2Normalize(Vector2Scale(toPlayer, -1)); // away vector
+            away = Vector2Scale(away, MAX_SPEED);
+
+            followForce = Vector2Subtract(away, boid->velocity);
+            followForce = ClampMagnitude(followForce, MAX_FORCE * 0.5f); // weaker force pushing away
+        }
+
+
+        // Add follow player force
+        steering = Vector2Add(steering, followForce);
+
+        steerings[i] = steering;
     }
 }
+
+
 
 void DrawBoids(Boid *flock){
     for (int i = 0; i < MAX_BOIDS; i++){
@@ -175,12 +243,10 @@ void DrawBoids(Boid *flock){
     }
 }
 
-Vector2 randomVelocity(float min, float max) {
-    Vector2 v;
-    do {
-        v = (Vector2){ randRange(min, max), randRange(min, max) };
-    } while (Vector2Length(v) == 0); // retry if zero-length
-    return v;
+Vector2 randomVelocity(float minSpeed, float maxSpeed) {
+    float angle = ((float)GetRandomValue(0, 360)) * (PI / 180.0f);
+    float speed = randRange(minSpeed, maxSpeed);
+    return (Vector2){ cosf(angle) * speed, sinf(angle) * speed };
 }
 
 int main() {
@@ -208,7 +274,7 @@ int main() {
         playerPos.x += joy.value.x * 5;
         playerPos.y += joy.value.y * 5;
 
-        align(flock, averageVels);
+        calculateSteering(flock, averageVels, playerPos);
         updateBoids(flock, averageVels);
 
         BeginDrawing();
