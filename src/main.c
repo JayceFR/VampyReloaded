@@ -4,6 +4,11 @@
 // #include <math.h>
 
 #define MAX_BOIDS 50
+#define SCREEN_WIDTH 800 
+#define SCREEN_HEIGHT 450 
+
+#define MAX_FORCE 0.04
+#define MAX_SPEED 4 
 
 typedef struct {
     Vector2 basePos;     // Center of joystick base
@@ -74,9 +79,13 @@ float randRange(float min, float max) {
 }
 
 
-void updateBoids(Boid *flock){
+void updateBoids(Boid *flock, Vector2 *averageVels){
     for (int i = 0; i < MAX_BOIDS; i++){
         Boid* b = &flock[i];
+
+        b->acceleration.x = averageVels[i].x;
+        b->acceleration.y = averageVels[i].y;
+
         Vector2 offvel = Vector2Add(b->velocity, b->acceleration);
         b->velocity.x = offvel.x;
         b->velocity.y = offvel.y; 
@@ -85,20 +94,70 @@ void updateBoids(Boid *flock){
         b->pos.x = off.x;
         b->pos.y = off.y;
 
-        // Vector2 off = Vector2Add(b->pos, Vector2Add(b->velocity, b->acceleration));
-        // b->pos.x = off.x; 
-        // b->pos.y = off.y;
+        if (b->pos.x > SCREEN_WIDTH){
+            b->pos.x = 0; 
+        } 
+        else if (b->pos.x < 0){
+            b->pos.x = SCREEN_WIDTH;
+        }
+
+        if (b->pos.y > SCREEN_HEIGHT){
+            b->pos.y = 0;
+        }
+        else if (b->pos.y < 0){
+            b->pos.y = SCREEN_HEIGHT;
+        }
     }
+}
+
+void align(Boid *flock, Vector2 *averageVels){
+    int perceptionRadius = 50; 
+    Boid *boid; 
+    // Get a snapshot and get the average of each boid 
+    for (int i = 0; i < MAX_BOIDS && (boid = &flock[i]); i++){
+        Vector2 avg = {0, 0}; // Average velocity
+        int total = 0;
+        for (int j = 0; j < MAX_BOIDS; j++){
+            if (j != i){
+                // Compute the distance between them 
+                float d = Vector2Distance(boid->pos, flock[j].pos);
+                if (d <= perceptionRadius){
+                    total += 1; 
+                    avg = Vector2Add(avg, flock[j].velocity);
+                }
+            }
+        }
+        if (total > 0){
+            avg = Vector2Scale(avg, 1.0f / (float) total);
+            Vector2 normalised = Vector2Normalize(avg);
+            avg = (Vector2) {normalised.x * MAX_SPEED, normalised.y * MAX_SPEED};
+            avg = Vector2Subtract(avg, boid->velocity);
+            Vector2ClampValue(avg, -100000000, MAX_FORCE);
+        }
+        averageVels[i] = avg;
+    }
+
 }
 
 void DrawBoids(Boid *flock){
     for (int i = 0; i < MAX_BOIDS; i++){
-        DrawCircleV(flock[i].pos, 10, BLUE);
+        float x = flock[i].pos.x;
+        float y = flock[i].pos.y;
+        DrawCircleV(
+            (Vector2) {x, y},
+            5, 
+            BLUE
+        );
     }
 }
 
-#define SCREEN_WIDTH 800 
-#define SCREEN_HEIGHT 450 
+Vector2 randomVelocity(float min, float max) {
+    Vector2 v;
+    do {
+        v = (Vector2){ randRange(min, max), randRange(min, max) };
+    } while (Vector2Length(v) == 0); // retry if zero-length
+    return v;
+}
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "On-Screen Joystick Example");
@@ -111,10 +170,12 @@ int main() {
 
     Boid flock[MAX_BOIDS];
     for (int i = 0; i < MAX_BOIDS; i++){
-        flock[i].pos = (Vector2) {SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2};
-        flock[i].velocity = (Vector2) {randRange(-2, 2), randRange(-2, 2)};
+        flock[i].pos = (Vector2) {GetRandomValue(0, SCREEN_WIDTH), GetRandomValue(0, SCREEN_HEIGHT)};
+        flock[i].velocity = randomVelocity(-2,2);
         flock[i].acceleration = (Vector2) {randRange(-0.5, 0.5), randRange(-0.5, 0.5)};
     }
+
+    Vector2 averageVels[MAX_BOIDS];
 
     while (!WindowShouldClose()) {
         UpdateJoystick(&joy);
@@ -123,7 +184,8 @@ int main() {
         playerPos.x += joy.value.x * 5;
         playerPos.y += joy.value.y * 5;
 
-        updateBoids(flock);
+        align(flock, averageVels);
+        updateBoids(flock, averageVels);
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
