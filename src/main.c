@@ -7,7 +7,7 @@
 #define SCREEN_WIDTH 800 
 #define SCREEN_HEIGHT 450 
 
-#define MAX_FORCE 0.04
+#define MAX_FORCE 0.2
 #define MAX_SPEED 4 
 
 typedef struct {
@@ -89,6 +89,12 @@ void updateBoids(Boid *flock, Vector2 *averageVels){
         Vector2 offvel = Vector2Add(b->velocity, b->acceleration);
         b->velocity.x = offvel.x;
         b->velocity.y = offvel.y; 
+
+        if (Vector2Length(b->velocity) > MAX_SPEED){
+            Vector2 normalised = Vector2Normalize(b->velocity);
+            b->velocity.x = normalised.x * MAX_SPEED;
+            b->velocity.y = normalised.y * MAX_SPEED;
+        }
         
         Vector2 off = Vector2Add(b->pos, b->velocity);
         b->pos.x = off.x;
@@ -110,33 +116,51 @@ void updateBoids(Boid *flock, Vector2 *averageVels){
     }
 }
 
-void align(Boid *flock, Vector2 *averageVels){
-    int perceptionRadius = 50; 
-    Boid *boid; 
-    // Get a snapshot and get the average of each boid 
-    for (int i = 0; i < MAX_BOIDS && (boid = &flock[i]); i++){
-        Vector2 avg = {0, 0}; // Average velocity
+void align(Boid *flock, Vector2 *averageVels) {
+    int perceptionRadius = 100;
+
+    for (int i = 0; i < MAX_BOIDS; i++) {
+        Boid *boid = &flock[i];
+
+        Vector2 avgVel = {0, 0}; 
+        Vector2 avgPos = {0, 0}; 
         int total = 0;
-        for (int j = 0; j < MAX_BOIDS; j++){
-            if (j != i){
-                // Compute the distance between them 
-                float d = Vector2Distance(boid->pos, flock[j].pos);
-                if (d <= perceptionRadius){
-                    total += 1; 
-                    avg = Vector2Add(avg, flock[j].velocity);
-                }
+
+        for (int j = 0; j < MAX_BOIDS; j++) {
+            if (j == i) continue;
+
+            float d = Vector2Distance(boid->pos, flock[j].pos);
+            if (d <= perceptionRadius) {
+                total++;
+                avgVel = Vector2Add(avgVel, flock[j].velocity);
+                avgPos = Vector2Add(avgPos, flock[j].pos);
             }
         }
-        if (total > 0){
-            avg = Vector2Scale(avg, 1.0f / (float) total);
-            Vector2 normalised = Vector2Normalize(avg);
-            avg = (Vector2) {normalised.x * MAX_SPEED, normalised.y * MAX_SPEED};
-            avg = Vector2Subtract(avg, boid->velocity);
-            Vector2ClampValue(avg, -100000000, MAX_FORCE);
-        }
-        averageVels[i] = avg;
-    }
 
+        Vector2 steering = {0, 0};
+
+        if (total > 0) {
+            // Alignment
+            avgVel = Vector2Scale(avgVel, 1.0f / total);
+            avgVel = Vector2Normalize(avgVel);
+            avgVel = Vector2Scale(avgVel, MAX_SPEED);
+            Vector2 alignForce = Vector2Subtract(avgVel, boid->velocity);
+            alignForce = Vector2ClampValue(alignForce, 0.0f, MAX_FORCE);
+
+            // Cohesion
+            avgPos = Vector2Scale(avgPos, 1.0f / total);
+            Vector2 cohVector = Vector2Subtract(avgPos, boid->pos);
+            cohVector = Vector2Normalize(cohVector);
+            cohVector = Vector2Scale(cohVector, MAX_SPEED);
+            cohVector = Vector2Subtract(cohVector, boid->velocity);
+            cohVector = Vector2ClampValue(cohVector, 0.0f, MAX_FORCE);
+
+            // Combine
+            steering = Vector2Add(alignForce, cohVector);
+        }
+
+        averageVels[i] = steering;
+    }
 }
 
 void DrawBoids(Boid *flock){
