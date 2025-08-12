@@ -1,6 +1,9 @@
 #include "raylib.h"
 #include "raymath.h"
+#include "stdio.h"
 // #include <math.h>
+
+#define MAX_BOIDS 50 
 
 typedef struct {
     Vector2 basePos;     // Center of joystick base
@@ -9,8 +12,14 @@ typedef struct {
     float thumbRadius;
     Vector2 value;       // Normalized [-1,1] x/y output
     bool active;         // Is joystick currently touched?
-    float offvalue 
+    float offvalue;
 } Joystick;
+
+typedef struct{
+    Vector2 pos; 
+    Vector2 velocity; 
+    Vector2 acceleration; 
+} Boid; 
 
 Joystick CreateJoystick(Vector2 basePos, float baseRadius) {
     Joystick joy = {0};
@@ -60,14 +69,42 @@ void DrawJoystick(Joystick joy) {
     DrawCircleV(joy.thumbPos, joy.thumbRadius, Fade(LIGHTGRAY, 0.8f));
 }
 
+void updateBoids(Boid *flock){
+    for (int i = 0; i < MAX_BOIDS; i++){
+        Boid* b = &flock[i];
+        printf("old pos value %f, %f \n", b->pos.x, b->pos.y);
+        Vector2 off = Vector2Add(b->pos, Vector2Add(b->velocity, b->acceleration));
+        b->pos.x = off.x; 
+        b->pos.y = off.y;
+        printf("new pos value %f, %f \n", b->pos.x, b->pos.y);
+        printf("--------------\n");
+    }
+}
+
+void DrawBoids(Boid *flock){
+    for (int i = 0; i < MAX_BOIDS; i++){
+        DrawCircleV(flock[i].pos, 10, BLUE);
+    }
+}
+
+#define SCREEN_WIDTH 800 
+#define SCREEN_HEIGHT 450 
+
 int main() {
-    InitWindow(800, 450, "On-Screen Joystick Example");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "On-Screen Joystick Example");
     SetTargetFPS(60);
 
     Joystick joy = CreateJoystick((Vector2){100, 350}, 60);
     Joystick aim = CreateJoystick((Vector2){300, 350}, 60);
 
     Vector2 playerPos = {400, 225};
+
+    Boid flock[MAX_BOIDS];
+    for (int i = 0; i < MAX_BOIDS; i++){
+        flock[i].pos = (Vector2) {SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2};
+        flock[i].velocity = (Vector2) {GetRandomValue(-5, 5), GetRandomValue(-5,5)};
+        flock[i].acceleration = (Vector2) {GetRandomValue(-2,2), GetRandomValue(-2, 2)};
+    }
 
     while (!WindowShouldClose()) {
         UpdateJoystick(&joy);
@@ -76,11 +113,15 @@ int main() {
         playerPos.x += joy.value.x * 5;
         playerPos.y += joy.value.y * 5;
 
+        updateBoids(flock);
+
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
         DrawJoystick(joy);
         DrawCircleV(playerPos, 20, RED);
+
+        DrawBoids(flock);
 
         DrawText(TextFormat("Joystick: (%.2f, %.2f) JoyValue : (%.2f)", joy.value.x, joy.value.y, joy.offvalue), 10, 10, 20, BLACK);
 
