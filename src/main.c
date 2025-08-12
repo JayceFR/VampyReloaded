@@ -3,7 +3,7 @@
 #include "stdio.h"
 // #include <math.h>
 
-#define MAX_BOIDS 50 
+#define MAX_BOIDS 50
 
 typedef struct {
     Vector2 basePos;     // Center of joystick base
@@ -69,15 +69,25 @@ void DrawJoystick(Joystick joy) {
     DrawCircleV(joy.thumbPos, joy.thumbRadius, Fade(LIGHTGRAY, 0.8f));
 }
 
+float randRange(float min, float max) {
+    return min + ((float) GetRandomValue(0, 10000) / 10000.0f) * (max - min);
+}
+
+
 void updateBoids(Boid *flock){
     for (int i = 0; i < MAX_BOIDS; i++){
         Boid* b = &flock[i];
-        printf("old pos value %f, %f \n", b->pos.x, b->pos.y);
-        Vector2 off = Vector2Add(b->pos, Vector2Add(b->velocity, b->acceleration));
-        b->pos.x = off.x; 
+        Vector2 offvel = Vector2Add(b->velocity, b->acceleration);
+        b->velocity.x = offvel.x;
+        b->velocity.y = offvel.y; 
+        
+        Vector2 off = Vector2Add(b->pos, b->velocity);
+        b->pos.x = off.x;
         b->pos.y = off.y;
-        printf("new pos value %f, %f \n", b->pos.x, b->pos.y);
-        printf("--------------\n");
+
+        // Vector2 off = Vector2Add(b->pos, Vector2Add(b->velocity, b->acceleration));
+        // b->pos.x = off.x; 
+        // b->pos.y = off.y;
     }
 }
 
@@ -102,8 +112,8 @@ int main() {
     Boid flock[MAX_BOIDS];
     for (int i = 0; i < MAX_BOIDS; i++){
         flock[i].pos = (Vector2) {SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2};
-        flock[i].velocity = (Vector2) {GetRandomValue(-5, 5), GetRandomValue(-5,5)};
-        flock[i].acceleration = (Vector2) {GetRandomValue(-2,2), GetRandomValue(-2, 2)};
+        flock[i].velocity = (Vector2) {randRange(-2, 2), randRange(-2, 2)};
+        flock[i].acceleration = (Vector2) {randRange(-0.5, 0.5), randRange(-0.5, 0.5)};
     }
 
     while (!WindowShouldClose()) {
