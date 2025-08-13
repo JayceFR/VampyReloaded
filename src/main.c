@@ -1,6 +1,8 @@
 #include "raylib.h"
 #include "raymath.h"
-#include "stdio.h"
+#include <stdio.h>
+
+#include "hash.h"
 // #include <math.h>
 
 #define MAX_BOIDS 30
