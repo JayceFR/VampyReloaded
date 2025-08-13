@@ -3,7 +3,7 @@
 #include "stdio.h"
 // #include <math.h>
 
-#define MAX_BOIDS 700
+#define MAX_BOIDS 30
 #define SCREEN_WIDTH 800 
 #define SCREEN_HEIGHT 450 
 
@@ -100,19 +100,19 @@ void updateBoids(Boid *flock, Vector2 *averageVels){
         b->pos.x = off.x;
         b->pos.y = off.y;
 
-        if (b->pos.x > GetScreenWidth()){
-            b->pos.x = 0; 
-        } 
-        else if (b->pos.x < 0){
-            b->pos.x = GetScreenWidth();
-        }
+        // if (b->pos.x > GetScreenWidth()){
+        //     b->pos.x = 0; 
+        // } 
+        // else if (b->pos.x < 0){
+        //     b->pos.x = GetScreenWidth();
+        // }
 
-        if (b->pos.y > GetScreenHeight()){
-            b->pos.y = 0;
-        }
-        else if (b->pos.y < 0){
-            b->pos.y = GetScreenHeight();
-        }
+        // if (b->pos.y > GetScreenHeight()){
+        //     b->pos.y = 0;
+        // }
+        // else if (b->pos.y < 0){
+        //     b->pos.y = GetScreenHeight();
+        // }
     }
 }
 
@@ -128,9 +128,9 @@ void calculateSteering(Boid *flock, Vector2 *steerings, Vector2 playerPos) {
     int perceptionRadius = 100;
 
     const float ALIGN_WEIGHT = 1.0f;
-    const float COHESION_WEIGHT = 1.25f;
-    const float SEPARATION_WEIGHT = 2.0f;
-    const float FOLLOW_PLAYER_WEIGHT = 1.5f;  // Adjust weight as needed
+    const float COHESION_WEIGHT = 1.0f;
+    const float SEPARATION_WEIGHT = 1.25f;
+    const float FOLLOW_PLAYER_WEIGHT = 0.6f;
 
     for (int i = 0; i < MAX_BOIDS; i++) {
         Boid *boid = &flock[i];
@@ -267,14 +267,29 @@ int main() {
 
     Vector2 averageVels[MAX_BOIDS];
 
+    Vector2 swarmTarget = playerPos;
+    float timeSinceUpdate = 0.0f;
+    float updateInterval = 0.0f; // seconds
+
     while (!WindowShouldClose()) {
+        float delta = GetFrameTime();
         UpdateJoystick(&joy);
 
-        // Apply joystick value to player movement
         playerPos.x += joy.value.x * 5;
         playerPos.y += joy.value.y * 5;
 
-        calculateSteering(flock, averageVels, playerPos);
+        // Update swarm target only every few seconds
+        timeSinceUpdate += delta;
+        if (timeSinceUpdate >= updateInterval) {
+            timeSinceUpdate = 0.0f;
+
+            // Random offset from player's current position
+            // swarmTarget = Vector2Add(playerPos, 
+            //     (Vector2){ GetRandomValue(-50, 50), GetRandomValue(-50, 50) });
+            swarmTarget = playerPos;
+        }
+
+        calculateSteering(flock, averageVels, swarmTarget);
         updateBoids(flock, averageVels);
 
         BeginDrawing();
@@ -282,13 +297,12 @@ int main() {
 
         DrawJoystick(joy);
         DrawCircleV(playerPos, 20, RED);
-
+        DrawCircleV(swarmTarget, 5, GREEN); // visualize swarm target
         DrawBoids(flock);
-
-        DrawText(TextFormat("Joystick: (%.2f, %.2f) JoyValue : (%.2f)", joy.value.x, joy.value.y, joy.offvalue), 10, 10, 20, BLACK);
 
         EndDrawing();
     }
+
 
     CloseWindow();
     return 0;
