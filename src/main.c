@@ -3,7 +3,7 @@
 #include "stdio.h"
 // #include <math.h>
 
-#define MAX_BOIDS 50
+#define MAX_BOIDS 700
 #define SCREEN_WIDTH 800 
 #define SCREEN_HEIGHT 450 
 
@@ -100,18 +100,18 @@ void updateBoids(Boid *flock, Vector2 *averageVels){
         b->pos.x = off.x;
         b->pos.y = off.y;
 
-        if (b->pos.x > SCREEN_WIDTH){
+        if (b->pos.x > GetScreenWidth()){
             b->pos.x = 0; 
         } 
         else if (b->pos.x < 0){
-            b->pos.x = SCREEN_WIDTH;
+            b->pos.x = GetScreenWidth();
         }
 
-        if (b->pos.y > SCREEN_HEIGHT){
+        if (b->pos.y > GetScreenHeight()){
             b->pos.y = 0;
         }
         else if (b->pos.y < 0){
-            b->pos.y = SCREEN_HEIGHT;
+            b->pos.y = GetScreenHeight();
         }
     }
 }
@@ -218,7 +218,7 @@ void calculateSteering(Boid *flock, Vector2 *steerings, Vector2 playerPos) {
             away = Vector2Scale(away, MAX_SPEED);
 
             followForce = Vector2Subtract(away, boid->velocity);
-            followForce = ClampMagnitude(followForce, MAX_FORCE * 0.5f); // weaker force pushing away
+            followForce = ClampMagnitude(followForce, MAX_FORCE * 0.7f); // weaker force pushing away
         }
 
 
