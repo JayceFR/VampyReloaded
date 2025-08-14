@@ -1,13 +1,19 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <string.h>
 
 #include "hash.h"
+#include "dynarray.h"
 // #include <math.h>
 
 #define MAX_BOIDS 30
 #define SCREEN_WIDTH 800 
 #define SCREEN_HEIGHT 450 
+
+#define GRID_SIZE 40
 
 #define MAX_FORCE 0.2
 #define MAX_SPEED 4 
@@ -22,11 +28,20 @@ typedef struct {
     float offvalue;
 } Joystick;
 
-typedef struct{
+// typedef struct{
+//     Vector2 pos; 
+//     Vector2 velocity; 
+//     Vector2 acceleration; 
+// } Boid; 
+
+struct boid{
     Vector2 pos; 
+    Vector2 cell; 
     Vector2 velocity; 
     Vector2 acceleration; 
-} Boid; 
+    bool broken; 
+};
+typedef struct boid *boid;
 
 Joystick CreateJoystick(Vector2 basePos, float baseRadius) {
     Joystick joy = {0};
@@ -81,12 +96,15 @@ float randRange(float min, float max) {
 }
 
 
-void updateBoids(Boid *flock, Vector2 *averageVels){
-    for (int i = 0; i < MAX_BOIDS; i++){
-        Boid* b = &flock[i];
-
-        b->acceleration.x = averageVels[i].x;
-        b->acceleration.y = averageVels[i].y;
+void updateForEachBoid(hashkey k, hashvalue v, void * arg){
+    char *key = (char *) k; 
+    dynarray arr = (dynarray) v; 
+    dynarray toChange = (dynarray) arg; 
+    for (int i = 0; i < arr->len; i++){
+        boid b = arr->data[i];
+        
+        // b->acceleration.x = averageVels[i].x;
+        // b->acceleration.y = averageVels[i].y;
 
         Vector2 offvel = Vector2Add(b->velocity, b->acceleration);
         b->velocity.x = offvel.x;
@@ -102,20 +120,72 @@ void updateBoids(Boid *flock, Vector2 *averageVels){
         b->pos.x = off.x;
         b->pos.y = off.y;
 
-        // if (b->pos.x > GetScreenWidth()){
-        //     b->pos.x = 0; 
-        // } 
-        // else if (b->pos.x < 0){
-        //     b->pos.x = GetScreenWidth();
-        // }
+        int newCX = b->pos.x / GRID_SIZE;
+        int newCY = b->pos.y / GRID_SIZE;
 
-        // if (b->pos.y > GetScreenHeight()){
-        //     b->pos.y = 0;
-        // }
-        // else if (b->pos.y < 0){
-        //     b->pos.y = GetScreenHeight();
-        // }
+        if (newCX != b->cell.x || newCY != b->cell.y){
+            // Need to update 
+            b->broken = true;
+            add_dynarray(toChange, strdup(key));
+        }
+
     }
+}
+
+void printToChange(FILE *out, DA_ELEMENT el, int n){
+    char *arg = (char *) el; 
+    fprintf(out, "key : %s", arg);
+}
+
+void freeToChange(DA_ELEMENT el){
+    char *arg = (char *) el; 
+    free(arg);
+}
+
+void updateBoids(hash flockGrid, Vector2 *averageVels){
+    dynarray toChange = create_dynarray(&freeToChange, &printToChange);
+    hashForeach(flockGrid, &updateForEachBoid, toChange);
+
+    for (int i = 0; i < toChange->len; i++){
+        char *key = toChange->data[i];
+        dynarray arr = hashFind(flockGrid, key);
+
+        int j = 0;
+        while (j < arr->len){
+            boid old = arr->data[j];
+            if (!old->broken){
+                j += 1;
+                continue; 
+            }
+            // delete the boid from the list
+            remove_dynarray(arr, j);
+            // update the boid 
+            int newCX = old->pos.x / GRID_SIZE;
+            int newCY = old->pos.y / GRID_SIZE;
+            old->cell.x = newCX;
+            old->cell.y = newCY;
+            old->broken = false;
+
+            // insert the new boid into the hashmap
+            char buffer[25]; 
+            
+            dynarray array;
+
+            sprintf(buffer, "(%d, %d)", old->cell.x, old->cell.y);
+            if ( (array = hashFind(flockGrid, buffer)) != NULL){
+                // Then append it to the list 
+                add_dynarray(array, old);
+            }
+            else{
+                array = create_dynarray(NULL, NULL);
+                add_dynarray(array, old);
+                hashSet(flockGrid, buffer, array);
+            }
+
+        }
+    }
+
+    free_dynarray(toChange);
 }
 
 Vector2 ClampMagnitude(Vector2 v, float maxLength) {
@@ -126,123 +196,135 @@ Vector2 ClampMagnitude(Vector2 v, float maxLength) {
     return v;
 }
 
-void calculateSteering(Boid *flock, Vector2 *steerings, Vector2 playerPos) {
-    int perceptionRadius = 100;
+struct steeringData{
+    Vector2 playerPos; 
+    hash cache; // Map from grid to average 
+};
+typedef struct steeringData *steeringData; 
 
-    const float ALIGN_WEIGHT = 1.0f;
-    const float COHESION_WEIGHT = 1.0f;
-    const float SEPARATION_WEIGHT = 1.25f;
-    const float FOLLOW_PLAYER_WEIGHT = 0.6f;
-
-    for (int i = 0; i < MAX_BOIDS; i++) {
-        Boid *boid = &flock[i];
-
-        Vector2 avgVel = {0, 0};
-        Vector2 avgPos = {0, 0};
-        Vector2 avgSep = {0, 0};
-        int total = 0;
-
-        for (int j = 0; j < MAX_BOIDS; j++) {
-            if (j == i) continue;
-
-            float d = Vector2Distance(boid->pos, flock[j].pos);
-            if (d <= perceptionRadius && d > 0.0f) {
-                total++;
-                avgVel = Vector2Add(avgVel, flock[j].velocity);
-                avgPos = Vector2Add(avgPos, flock[j].pos);
-
-                Vector2 diff = Vector2Subtract(boid->pos, flock[j].pos);
-                diff = Vector2Scale(diff, 1.0f / (d * d));
-                avgSep = Vector2Add(avgSep, diff);
-            }
-        }
-
-        Vector2 steering = {0, 0};
-
-        if (total > 0) {
-            // Alignment
-            avgVel = Vector2Scale(avgVel, 1.0f / total);
-            if (Vector2Length(avgVel) > 0.001f) {
-                avgVel = Vector2Normalize(avgVel);
-                avgVel = Vector2Scale(avgVel, MAX_SPEED);
-            }
-            Vector2 alignForce = Vector2Subtract(avgVel, boid->velocity);
-            alignForce = ClampMagnitude(alignForce, MAX_FORCE);
-
-            // Cohesion
-            avgPos = Vector2Scale(avgPos, 1.0f / total);
-            Vector2 cohVector = Vector2Subtract(avgPos, boid->pos);
-            if (Vector2Length(cohVector) > 0.001f) {
-                cohVector = Vector2Normalize(cohVector);
-                cohVector = Vector2Scale(cohVector, MAX_SPEED);
-            }
-            cohVector = Vector2Subtract(cohVector, boid->velocity);
-            cohVector = ClampMagnitude(cohVector, MAX_FORCE);
-
-            // Separation
-            avgSep = Vector2Scale(avgSep, 1.0f / total);
-            Vector2 sepVector = avgSep;
-            if (Vector2Length(sepVector) > 0.001f) {
-                sepVector = Vector2Normalize(sepVector);
-                sepVector = Vector2Scale(sepVector, MAX_SPEED);
-            }
-            sepVector = Vector2Subtract(sepVector, boid->velocity);
-            sepVector = ClampMagnitude(sepVector, MAX_FORCE);
-
-            steering = Vector2Add(
-                Vector2Scale(sepVector, SEPARATION_WEIGHT),
-                Vector2Add(
-                    Vector2Scale(alignForce, ALIGN_WEIGHT),
-                    Vector2Scale(cohVector, COHESION_WEIGHT)
-                )
-            );
-        }
-
-        const float FOLLOW_RADIUS = 100.0f;
-
-        Vector2 toPlayer = Vector2Subtract(playerPos, boid->pos);
-        float distToPlayer = Vector2Length(toPlayer);
-
-        Vector2 followForce = {0, 0};
-
-        if (distToPlayer > FOLLOW_RADIUS) {
-            // If too far, move toward player
-            Vector2 desired = Vector2Normalize(toPlayer);
-            desired = Vector2Scale(desired, MAX_SPEED);
-
-            followForce = Vector2Subtract(desired, boid->velocity);
-            followForce = ClampMagnitude(followForce, MAX_FORCE);
-            followForce = Vector2Scale(followForce, FOLLOW_PLAYER_WEIGHT);
-
-        } else {
-            // If inside the radius, apply a small force away from player (optional)
-            Vector2 away = Vector2Normalize(Vector2Scale(toPlayer, -1)); // away vector
-            away = Vector2Scale(away, MAX_SPEED);
-
-            followForce = Vector2Subtract(away, boid->velocity);
-            followForce = ClampMagnitude(followForce, MAX_FORCE * 0.7f); // weaker force pushing away
-        }
-
-
-        // Add follow player force
-        steering = Vector2Add(steering, followForce);
-
-        steerings[i] = steering;
-    }
+void calculateSteeringForEach(hashkey k, hashvalue v, void *arg){
+    
 }
 
+// void calculateSteering(Boid *flock, Vector2 *steerings, Vector2 playerPos) {
+//     int perceptionRadius = 100;
+
+//     const float ALIGN_WEIGHT = 1.0f;
+//     const float COHESION_WEIGHT = 1.0f;
+//     const float SEPARATION_WEIGHT = 1.25f;
+//     const float FOLLOW_PLAYER_WEIGHT = 0.6f;
+
+//     for (int i = 0; i < MAX_BOIDS; i++) {
+//         Boid *boid = &flock[i];
+
+//         Vector2 avgVel = {0, 0};
+//         Vector2 avgPos = {0, 0};
+//         Vector2 avgSep = {0, 0};
+//         int total = 0;
+
+//         for (int j = 0; j < MAX_BOIDS; j++) {
+//             if (j == i) continue;
+
+//             float d = Vector2Distance(boid->pos, flock[j].pos);
+//             if (d <= perceptionRadius && d > 0.0f) {
+//                 total++;
+//                 avgVel = Vector2Add(avgVel, flock[j].velocity);
+//                 avgPos = Vector2Add(avgPos, flock[j].pos);
+
+//                 Vector2 diff = Vector2Subtract(boid->pos, flock[j].pos);
+//                 diff = Vector2Scale(diff, 1.0f / (d * d));
+//                 avgSep = Vector2Add(avgSep, diff);
+//             }
+//         }
+
+//         Vector2 steering = {0, 0};
+
+//         if (total > 0) {
+//             // Alignment
+//             avgVel = Vector2Scale(avgVel, 1.0f / total);
+//             if (Vector2Length(avgVel) > 0.001f) {
+//                 avgVel = Vector2Normalize(avgVel);
+//                 avgVel = Vector2Scale(avgVel, MAX_SPEED);
+//             }
+//             Vector2 alignForce = Vector2Subtract(avgVel, boid->velocity);
+//             alignForce = ClampMagnitude(alignForce, MAX_FORCE);
+
+//             // Cohesion
+//             avgPos = Vector2Scale(avgPos, 1.0f / total);
+//             Vector2 cohVector = Vector2Subtract(avgPos, boid->pos);
+//             if (Vector2Length(cohVector) > 0.001f) {
+//                 cohVector = Vector2Normalize(cohVector);
+//                 cohVector = Vector2Scale(cohVector, MAX_SPEED);
+//             }
+//             cohVector = Vector2Subtract(cohVector, boid->velocity);
+//             cohVector = ClampMagnitude(cohVector, MAX_FORCE);
+
+//             // Separation
+//             avgSep = Vector2Scale(avgSep, 1.0f / total);
+//             Vector2 sepVector = avgSep;
+//             if (Vector2Length(sepVector) > 0.001f) {
+//                 sepVector = Vector2Normalize(sepVector);
+//                 sepVector = Vector2Scale(sepVector, MAX_SPEED);
+//             }
+//             sepVector = Vector2Subtract(sepVector, boid->velocity);
+//             sepVector = ClampMagnitude(sepVector, MAX_FORCE);
+
+//             steering = Vector2Add(
+//                 Vector2Scale(sepVector, SEPARATION_WEIGHT),
+//                 Vector2Add(
+//                     Vector2Scale(alignForce, ALIGN_WEIGHT),
+//                     Vector2Scale(cohVector, COHESION_WEIGHT)
+//                 )
+//             );
+//         }
+
+//         const float FOLLOW_RADIUS = 100.0f;
+
+//         Vector2 toPlayer = Vector2Subtract(playerPos, boid->pos);
+//         float distToPlayer = Vector2Length(toPlayer);
+
+//         Vector2 followForce = {0, 0};
+
+//         if (distToPlayer > FOLLOW_RADIUS) {
+//             // If too far, move toward player
+//             Vector2 desired = Vector2Normalize(toPlayer);
+//             desired = Vector2Scale(desired, MAX_SPEED);
+
+//             followForce = Vector2Subtract(desired, boid->velocity);
+//             followForce = ClampMagnitude(followForce, MAX_FORCE);
+//             followForce = Vector2Scale(followForce, FOLLOW_PLAYER_WEIGHT);
+
+//         } else {
+//             // If inside the radius, apply a small force away from player (optional)
+//             Vector2 away = Vector2Normalize(Vector2Scale(toPlayer, -1)); // away vector
+//             away = Vector2Scale(away, MAX_SPEED);
+
+//             followForce = Vector2Subtract(away, boid->velocity);
+//             followForce = ClampMagnitude(followForce, MAX_FORCE * 0.7f); // weaker force pushing away
+//         }
 
 
-void DrawBoids(Boid *flock){
-    for (int i = 0; i < MAX_BOIDS; i++){
-        float x = flock[i].pos.x;
-        float y = flock[i].pos.y;
+//         // Add follow player force
+//         steering = Vector2Add(steering, followForce);
+
+//         steerings[i] = steering;
+//     }
+// }
+
+void drawForEachBoid(hashkey k, hashvalue v, void * arg){
+    dynarray arr = (dynarray) v; 
+    for (int i = 0; i < arr->len; i++){
+        boid b = arr->data[i];
         DrawCircleV(
-            (Vector2) {x, y},
-            5, 
+            (Vector2) {b->pos.x, b->pos.y},
+            5,
             BLUE
         );
     }
+}
+
+void DrawBoids(hash flockGrid){
+    hashForeach(flockGrid, &drawForEachBoid, NULL);
 }
 
 Vector2 randomVelocity(float minSpeed, float maxSpeed) {
@@ -260,11 +342,35 @@ int main() {
 
     Vector2 playerPos = {400, 225};
 
-    Boid flock[MAX_BOIDS];
+    hash flockGrid = hashCreate(NULL, &free_dynarray, NULL); 
+
     for (int i = 0; i < MAX_BOIDS; i++){
-        flock[i].pos = (Vector2) {GetRandomValue(0, SCREEN_WIDTH), GetRandomValue(0, SCREEN_HEIGHT)};
-        flock[i].velocity = randomVelocity(-2,2);
-        flock[i].acceleration = (Vector2) {randRange(-0.5, 0.5), randRange(-0.5, 0.5)};
+
+        boid b = malloc(sizeof(struct boid));
+        assert(b != NULL);
+
+        
+        b->pos = (Vector2) {GetRandomValue(0, SCREEN_WIDTH), GetRandomValue(0, SCREEN_HEIGHT)};
+        b->cell = (Vector2) {b->pos.x / GRID_SIZE, b->pos.y / GRID_SIZE};
+        b->velocity = randomVelocity(-2,2);
+        b->acceleration = (Vector2) {randRange(-0.5, 0.5), randRange(-0.5, 0.5)};
+
+
+        char buffer[25];
+
+        dynarray arr; 
+
+        sprintf(buffer, "(%d, %d)", b->cell.x, b->cell.y);
+        if ( (arr = hashFind(flockGrid, buffer)) != NULL){
+            // Then append it to the list 
+            add_dynarray(arr, b);
+        }
+        else{
+            arr = create_dynarray(NULL, NULL);
+            add_dynarray(arr, b);
+            hashSet(flockGrid, buffer, arr);
+        }
+
     }
 
     Vector2 averageVels[MAX_BOIDS];
@@ -291,8 +397,8 @@ int main() {
             swarmTarget = playerPos;
         }
 
-        calculateSteering(flock, averageVels, swarmTarget);
-        updateBoids(flock, averageVels);
+        // calculateSteering(flock, averageVels, swarmTarget);
+        updateBoids(flockGrid, averageVels);
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
@@ -300,7 +406,7 @@ int main() {
         DrawJoystick(joy);
         DrawCircleV(playerPos, 20, RED);
         DrawCircleV(swarmTarget, 5, GREEN); // visualize swarm target
-        DrawBoids(flock);
+        DrawBoids(flockGrid);
 
         EndDrawing();
     }
