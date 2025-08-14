@@ -9,11 +9,11 @@
 #include "dynarray.h"
 // #include <math.h>
 
-#define MAX_BOIDS 30
+#define MAX_BOIDS 50
 #define SCREEN_WIDTH 800 
 #define SCREEN_HEIGHT 450 
 
-#define GRID_SIZE 40
+#define GRID_SIZE 20
 
 #define MAX_FORCE 0.2
 #define MAX_SPEED 4 
@@ -212,7 +212,6 @@ void calculateSteeringForEach(hashkey k, hashvalue v, void *arg){
     }
     
     char buffer[25];
-    int total = 0;
 
     for (int i = 0; i < arr->len; i++){
         boid boi = arr->data[i];
@@ -222,9 +221,10 @@ void calculateSteeringForEach(hashkey k, hashvalue v, void *arg){
         Vector2 avgPos = {0, 0};
         Vector2 avgSep = {0, 0};
 
+        int total = 0;
 
-        for (int x = boi->cellX - 1; x < boi->cellX + 1; x++){
-            for (int y = boi->cellY - 1; y < boi->cellY + 1; y++){
+        for (int x = boi->cellX - 1; x <= boi->cellX + 1; x++){
+            for (int y = boi->cellY - 1; y <= boi->cellY + 1; y++){
                 
                 sprintf(buffer, "%d:%d", x, y);
                 dynarray array;
@@ -348,8 +348,13 @@ void DrawBoids(hash flockGrid){
     hashForeach(flockGrid, &drawForEachBoid, NULL);
 }
 
+float randFloat(float min, float max) {
+    return min + ((float)rand() / (float)RAND_MAX) * (max - min);
+}
+
+
 Vector2 randomVelocity(float minSpeed, float maxSpeed) {
-    float angle = ((float)GetRandomValue(0, 360)) * (PI / 180.0f);
+    float angle = ((float)randFloat(0, 360)) * (PI / 180.0f);
     float speed = randRange(minSpeed, maxSpeed);
     return (Vector2){ cosf(angle) * speed, sinf(angle) * speed };
 }
@@ -379,7 +384,7 @@ int main() {
         b->cellX = (int) b->pos.x / GRID_SIZE; 
         b->cellY = (int) b->pos.y / GRID_SIZE;
         b->velocity = randomVelocity(-2,2);
-        b->acceleration = (Vector2) {randRange(-0.5, 0.5), randRange(-0.5, 0.5)};
+        b->acceleration = (Vector2) {0,0};
 
 
         char buffer[25];

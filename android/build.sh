@@ -107,7 +107,7 @@ mv -f $NAME.final.apk $NAME.apk
 
 $BUILD_TOOLS/apksigner sign \
   --ks /home/jayce/android/game.keystore \
-  /home/jayce/gxbuild/game.apk
+  /home/jayce/Vampy-reloaded/game.apk
 
 # Install to device or emulator if -r was specified
 [[ "$1" = "-r" ]] && /mnt/c/Users/jayce/AppData/Local/Android/Sdk/platform-tools/adb.exe install -r $NAME.apk
