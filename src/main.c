@@ -375,6 +375,12 @@ int main() {
     data->flockGrid = flockGrid;
     data->playerPos = playerPos;
 
+    Camera2D camera = {0};
+    camera.target = playerPos;
+    camera.offset = (Vector2) {GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f};
+    camera.rotation = 1.0f; 
+    camera.zoom = 1.0f; 
+
     for (int i = 0; i < MAX_BOIDS; i++){
 
         boid b = malloc(sizeof(struct boid));
@@ -438,15 +444,29 @@ int main() {
         calculateSteering(flockGrid, data);
         updateBoids(flockGrid, averageVels);
 
+        float followSpeed = 4.0f; 
+        Vector2 diff = {
+            playerPos.x - camera.target.x,
+            playerPos.y - camera.target.y
+        };
+
+        camera.target.x += diff.x * followSpeed * GetFrameTime();
+        camera.target.y += diff.y * followSpeed * GetFrameTime(); 
+
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
+        BeginMode2D(camera);
+
         mapDraw(map, playerPos);
 
-        DrawJoystick(joy);
         DrawCircleV(playerPos, 20, RED);
         DrawCircleV(swarmTarget, 5, GREEN); // visualize swarm target
         DrawBoids(flockGrid);
+
+        EndMode2D();
+
+        DrawJoystick(joy);
 
         EndDrawing();
     }
