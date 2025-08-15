@@ -441,6 +441,8 @@ int main() {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
+        mapDraw(map, playerPos);
+
         DrawJoystick(joy);
         DrawCircleV(playerPos, 20, RED);
         DrawCircleV(swarmTarget, 5, GREEN); // visualize swarm target
