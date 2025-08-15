@@ -61,16 +61,19 @@ void mapDraw(hash map, Vector2 player_pos){
   // Init the map for 3 grids around the player first 
   char buffer[22];
   int **arr;
-  for (int x = gx - 1; x <= gx + 1; x++){
-    for (int y = gy - 1; y <= gy + 1; y++){
+  for (int x = gx - 2; x <= gx + 2; x++){
+    for (int y = gy - 2; y <= gy + 2; y++){
       sprintf(buffer, "%d:%d", x, y);
-      if ((arr = hashFind(map, buffer)) != NULL){
-        for (int cx = 0; cx < TILE_SIZE; cx++){
-          for (int cy = 0; cy < TILE_SIZE; cy++){
-            int worldX = (x * TILE_SIZE * TILE_SIZE) + (cx * TILE_SIZE);
-            int worldY = (y * TILE_SIZE * TILE_SIZE) + (cy * TILE_SIZE);
-            DrawRectangle(worldX, worldY, TILE_SIZE, TILE_SIZE, YELLOW);
-          }
+      if (hashFind(map, buffer) == NULL){
+        arr = arrayEmpty(16, 16);
+        hashSet(map, buffer, arr);
+      }
+      arr = hashFind(map, buffer);
+      for (int cx = 0; cx < TILE_SIZE; cx++){
+        for (int cy = 0; cy < TILE_SIZE; cy++){
+          int worldX = (x * TILE_SIZE * TILE_SIZE) + (cx * TILE_SIZE);
+          int worldY = (y * TILE_SIZE * TILE_SIZE) + (cy * TILE_SIZE);
+          DrawRectangle(worldX, worldY, TILE_SIZE, TILE_SIZE, YELLOW);
         }
       }
     }
