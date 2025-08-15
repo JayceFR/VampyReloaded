@@ -7,6 +7,7 @@
 
 #include "hash.h"
 #include "dynarray.h"
+#include "map.h"
 // #include <math.h>
 
 #define MAX_BOIDS 50
@@ -411,6 +412,8 @@ int main() {
     Vector2 swarmTarget = playerPos;
     float timeSinceUpdate = 0.0f;
     float updateInterval = 0.0f; // seconds
+
+    hash map = mapCreate(playerPos);
 
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
