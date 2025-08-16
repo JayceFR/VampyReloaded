@@ -379,7 +379,7 @@ int main() {
     float timeSinceUpdate = 0.0f;
     float updateInterval = 0.0f; // seconds
 
-    hash map = mapCreate(playerPos);
+    hash map = mapCreate();
 
     Image noise = GenImagePerlinNoise(256, 256, 50, 50, 0.4f);
 
@@ -426,8 +426,8 @@ int main() {
         mapDraw(map, playerPos);
 
         DrawCircleV(playerPos, 20, RED);
-        DrawCircleV(swarmTarget, 5, GREEN); // visualize swarm target
-        DrawBoids(flockGrid);
+        // DrawCircleV(swarmTarget, 5, GREEN); // visualize swarm target
+        // DrawBoids(flockGrid);
 
         EndMode2D();
 
