@@ -61,8 +61,8 @@ void mapDraw(hash map, Vector2 player_pos){
   // Init the map for 3 grids around the player first 
   char buffer[22];
   int **arr;
-  for (int x = gx - 2; x <= gx + 2; x++){
-    for (int y = gy - 2; y <= gy + 2; y++){
+  for (int x = gx - 4; x <= gx + 4; x++){
+    for (int y = gy - 4; y <= gy + 4; y++){
       sprintf(buffer, "%d:%d", x, y);
       if (hashFind(map, buffer) == NULL){
         arr = arrayEmpty(16, 16);

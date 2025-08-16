@@ -10,14 +10,14 @@
 #include "map.h"
 // #include <math.h>
 
-#define MAX_BOIDS 50
+#define MAX_BOIDS 30
 #define SCREEN_WIDTH 800 
 #define SCREEN_HEIGHT 450 
 
 #define GRID_SIZE 20
 
 #define MAX_FORCE 0.2
-#define MAX_SPEED 4 
+#define MAX_SPEED 5
 
 typedef struct {
     Vector2 basePos;     // Center of joystick base
@@ -36,6 +36,8 @@ struct boid{
     Vector2 velocity; 
     Vector2 acceleration; 
     bool broken; 
+    float moveTimer;
+    bool isMoving; 
 };
 typedef struct boid *boid;
 
@@ -200,51 +202,39 @@ typedef struct steeringData *steeringData;
 
 #define ALIGN_WEIGHT 1.0f
 #define COHESION_WEIGHT 1.0f
-#define SEPARATION_WEIGHT 1.25f
+#define SEPARATION_WEIGHT 1.45f
 #define FOLLOW_PLAYER_WEIGHT 0.6f
 
-void calculateSteeringForEach(hashkey k, hashvalue v, void *arg){
-
-    dynarray arr = (dynarray) v; 
-    steeringData data = (steeringData) arg; 
-
-    if (arr->len == 0){
-        return; 
-    }
+void calculateSteeringForEach(hashkey k, hashvalue v, void *arg) {
+    dynarray arr = (dynarray)v; 
+    steeringData data = (steeringData)arg; 
+    if (arr->len == 0) return; 
     
     char buffer[25];
 
-    for (int i = 0; i < arr->len; i++){
+    for (int i = 0; i < arr->len; i++) {
         boid boi = arr->data[i];
 
-        // Compute avgVel, avgPos and avgSep for the 9 neighbors 
-        Vector2 avgVel = {0, 0};
-        Vector2 avgPos = {0, 0};
-        Vector2 avgSep = {0, 0};
-
+        // --- Neighbor averaging for flocking ---
+        Vector2 avgVel = {0, 0}, avgPos = {0, 0}, avgSep = {0, 0};
         int total = 0;
 
-        for (int x = boi->cellX - 1; x <= boi->cellX + 1; x++){
-            for (int y = boi->cellY - 1; y <= boi->cellY + 1; y++){
-                
+        for (int x = boi->cellX - 1; x <= boi->cellX + 1; x++) {
+            for (int y = boi->cellY - 1; y <= boi->cellY + 1; y++) {
                 sprintf(buffer, "%d:%d", x, y);
-                dynarray array;
-                if ((array = hashFind(data->flockGrid, buffer)) == NULL){
-                    continue;
-                }
-                for (int z = 0; z < array->len; z++){
-                    if (x == boi->cellX && y == boi->cellY && z == i){ // Its the current boi
-                        continue;
-                    }
+                dynarray array = hashFind(data->flockGrid, buffer);
+                if (!array) continue;
+
+                for (int z = 0; z < array->len; z++) {
+                    if (x == boi->cellX && y == boi->cellY && z == i) continue; 
                     boid b = array->data[z];
                     total++;
                     avgVel = Vector2Add(avgVel, b->velocity);
                     avgPos = Vector2Add(avgPos, b->pos);
 
                     float d = Vector2Distance(boi->pos, b->pos);
-
-                    Vector2 diff = Vector2Subtract(boi->pos, b->pos);
                     if (d > 0.001f) {
+                        Vector2 diff = Vector2Subtract(boi->pos, b->pos);
                         diff = Vector2Scale(diff, 1.0f / (d * d));
                         avgSep = Vector2Add(avgSep, diff);
                     }
@@ -253,7 +243,6 @@ void calculateSteeringForEach(hashkey k, hashvalue v, void *arg){
         }
 
         Vector2 steering = {0, 0};
-
         if (total > 0) {
             // Alignment
             avgVel = Vector2Scale(avgVel, 1.0f / total);
@@ -261,8 +250,7 @@ void calculateSteeringForEach(hashkey k, hashvalue v, void *arg){
                 avgVel = Vector2Normalize(avgVel);
                 avgVel = Vector2Scale(avgVel, MAX_SPEED);
             }
-            Vector2 alignForce = Vector2Subtract(avgVel, boi->velocity);
-            alignForce = ClampMagnitude(alignForce, MAX_FORCE);
+            Vector2 alignForce = ClampMagnitude(Vector2Subtract(avgVel, boi->velocity), MAX_FORCE);
 
             // Cohesion
             avgPos = Vector2Scale(avgPos, 1.0f / total);
@@ -271,8 +259,7 @@ void calculateSteeringForEach(hashkey k, hashvalue v, void *arg){
                 cohVector = Vector2Normalize(cohVector);
                 cohVector = Vector2Scale(cohVector, MAX_SPEED);
             }
-            cohVector = Vector2Subtract(cohVector, boi->velocity);
-            cohVector = ClampMagnitude(cohVector, MAX_FORCE);
+            cohVector = ClampMagnitude(Vector2Subtract(cohVector, boi->velocity), MAX_FORCE);
 
             // Separation
             avgSep = Vector2Scale(avgSep, 1.0f / total);
@@ -281,53 +268,82 @@ void calculateSteeringForEach(hashkey k, hashvalue v, void *arg){
                 sepVector = Vector2Normalize(sepVector);
                 sepVector = Vector2Scale(sepVector, MAX_SPEED);
             }
-            sepVector = Vector2Subtract(sepVector, boi->velocity);
-            sepVector = ClampMagnitude(sepVector, MAX_FORCE);
+            sepVector = ClampMagnitude(Vector2Subtract(sepVector, boi->velocity), MAX_FORCE);
 
             steering = Vector2Add(
                 Vector2Scale(sepVector, SEPARATION_WEIGHT),
-                Vector2Add(
-                    Vector2Scale(alignForce, ALIGN_WEIGHT),
-                    Vector2Scale(cohVector, COHESION_WEIGHT)
-                )
+                Vector2Add(Vector2Scale(alignForce, ALIGN_WEIGHT),
+                           Vector2Scale(cohVector, COHESION_WEIGHT))
             );
         }
 
-        const float FOLLOW_RADIUS = 100.0f;
+        // --- Follow / repulsion from player ---
+        const float STOP_RADIUS = 60.0f;
+        const float SLOW_RADIUS = 150.0f;
+        const float ORBIT_FORCE = 0.5f;
 
         Vector2 toPlayer = Vector2Subtract(data->playerPos, boi->pos);
         float distToPlayer = Vector2Length(toPlayer);
 
         Vector2 followForce = {0, 0};
 
-        if (distToPlayer > FOLLOW_RADIUS) {
-            // If too far, move toward player
+        if (distToPlayer > STOP_RADIUS) {
+            // normal arrival steering
             Vector2 desired = Vector2Normalize(toPlayer);
-            desired = Vector2Scale(desired, MAX_SPEED);
+            float speed = MAX_SPEED;
+            if (distToPlayer < SLOW_RADIUS) {
+                speed = MAX_SPEED * ((distToPlayer - STOP_RADIUS) / (SLOW_RADIUS - STOP_RADIUS));
+            }
+            desired = Vector2Scale(desired, speed);
 
-            followForce = Vector2Subtract(desired, boi->velocity);
-            followForce = ClampMagnitude(followForce, MAX_FORCE);
+            followForce = ClampMagnitude(Vector2Subtract(desired, boi->velocity), MAX_FORCE);
             followForce = Vector2Scale(followForce, FOLLOW_PLAYER_WEIGHT);
 
+            // orbiting
+            if (distToPlayer < SLOW_RADIUS) {
+                Vector2 perp = (Vector2){ -toPlayer.y, toPlayer.x };
+                perp = Vector2Normalize(perp);
+                perp = Vector2Scale(perp, ORBIT_FORCE);
+                followForce = Vector2Add(followForce, perp);
+            }
         } else {
-            // If inside the radius, apply a small force away from player (optional)
-            Vector2 away = Vector2Normalize(Vector2Scale(toPlayer, -1)); // away vector
-            away = Vector2Scale(away, MAX_SPEED);
-
-            followForce = Vector2Subtract(away, boi->velocity);
-            followForce = ClampMagnitude(followForce, MAX_FORCE * 0.7f); // weaker force pushing away
+            // inside stop radius -> repulsion so they don't overlap
+            Vector2 repel = Vector2Normalize(Vector2Negate(toPlayer));
+            repel = Vector2Scale(repel, MAX_SPEED);
+            followForce = ClampMagnitude(Vector2Subtract(repel, boi->velocity), MAX_FORCE);
+            followForce = Vector2Scale(followForce, 2.0f); // stronger push away
         }
 
+        // --- Movement phase switching ---
+        boi->moveTimer -= GetFrameTime();
+        if (boi->moveTimer <= 0.0f) {
+            boi->isMoving = !boi->isMoving;
+            boi->moveTimer = boi->isMoving 
+                ? 0.5f + ((float)rand() / RAND_MAX) * 0.5f
+                : 1.0f + ((float)rand() / RAND_MAX) * 1.0f;
+        }
 
-        // Add follow player force
-        steering = Vector2Add(steering, followForce);
-
-        boi->acceleration.x = steering.x;
-        boi->acceleration.y = steering.y;
-
+        // Apply forces
+        if (distToPlayer < 150){
+            if (boi->isMoving) {
+                boi->acceleration = Vector2Add(steering, followForce);
+            } else {
+                // idle = just tiny orbit jitter if outside stop radius
+                boi->acceleration.x = 0;
+                boi->acceleration.y = 0;
+                boi->velocity.x = 0;
+                boi->velocity.y = 0;
+            }
+        }
+        else{
+            boi->acceleration = Vector2Add(steering, followForce);
+        }
+        
     }
-
 }
+
+
+
 
 void calculateSteering(hash flock ,steeringData data) {
     hashForeach(flock, &calculateSteeringForEach, data);
@@ -392,6 +408,8 @@ int main() {
         b->cellY = (int) b->pos.y / GRID_SIZE;
         b->velocity = randomVelocity(-2,2);
         b->acceleration = (Vector2) {0,0};
+        b->isMoving = true;
+        b->moveTimer = randFloat(0.5, 1);
 
 
         char buffer[25];
@@ -421,9 +439,14 @@ int main() {
 
     hash map = mapCreate(playerPos);
 
+    Image noise = GenImagePerlinNoise(256, 256, 50, 50, 0.4f);
+
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
         UpdateJoystick(&joy);
+
+        char buffer[22];
+        sprintf(buffer, "fps : %d", GetFPS());
 
         playerPos.x += joy.value.x * 5;
         playerPos.y += joy.value.y * 5;
@@ -465,6 +488,9 @@ int main() {
         DrawBoids(flockGrid);
 
         EndMode2D();
+
+
+        DrawText(buffer, 10, 10, 10, RED);
 
         DrawJoystick(joy);
 
