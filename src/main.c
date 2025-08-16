@@ -10,14 +10,14 @@
 #include "map.h"
 // #include <math.h>
 
-#define MAX_BOIDS 30
+#define MAX_BOIDS 100
 #define SCREEN_WIDTH 800 
 #define SCREEN_HEIGHT 450 
 
 #define GRID_SIZE 20
 
-#define MAX_FORCE 0.2
-#define MAX_SPEED 5
+#define MAX_FORCE 0.4
+#define MAX_SPEED 6
 
 typedef struct {
     Vector2 basePos;     // Center of joystick base
@@ -203,7 +203,6 @@ typedef struct steeringData *steeringData;
 #define ALIGN_WEIGHT 1.0f
 #define COHESION_WEIGHT 1.0f
 #define SEPARATION_WEIGHT 1.45f
-#define FOLLOW_PLAYER_WEIGHT 0.6f
 
 void calculateSteeringForEach(hashkey k, hashvalue v, void *arg) {
     dynarray arr = (dynarray)v; 
@@ -215,7 +214,6 @@ void calculateSteeringForEach(hashkey k, hashvalue v, void *arg) {
     for (int i = 0; i < arr->len; i++) {
         boid boi = arr->data[i];
 
-        // --- Neighbor averaging for flocking ---
         Vector2 avgVel = {0, 0}, avgPos = {0, 0}, avgSep = {0, 0};
         int total = 0;
 
@@ -277,67 +275,11 @@ void calculateSteeringForEach(hashkey k, hashvalue v, void *arg) {
             );
         }
 
-        // --- Follow / repulsion from player ---
-        const float STOP_RADIUS = 60.0f;
-        const float SLOW_RADIUS = 150.0f;
-        const float ORBIT_FORCE = 0.5f;
+        Vector2 goal = (Vector2) {SCREEN_WIDTH / 2, SCREEN_HEIGHT/ 2};
+        Vector2 toGoal = Vector2Subtract(goal, boi->pos);
+        toGoal = Vector2Scale(Vector2Normalize(toGoal), 0.3f);
 
-        Vector2 toPlayer = Vector2Subtract(data->playerPos, boi->pos);
-        float distToPlayer = Vector2Length(toPlayer);
-
-        Vector2 followForce = {0, 0};
-
-        if (distToPlayer > STOP_RADIUS) {
-            // normal arrival steering
-            Vector2 desired = Vector2Normalize(toPlayer);
-            float speed = MAX_SPEED;
-            if (distToPlayer < SLOW_RADIUS) {
-                speed = MAX_SPEED * ((distToPlayer - STOP_RADIUS) / (SLOW_RADIUS - STOP_RADIUS));
-            }
-            desired = Vector2Scale(desired, speed);
-
-            followForce = ClampMagnitude(Vector2Subtract(desired, boi->velocity), MAX_FORCE);
-            followForce = Vector2Scale(followForce, FOLLOW_PLAYER_WEIGHT);
-
-            // orbiting
-            if (distToPlayer < SLOW_RADIUS) {
-                Vector2 perp = (Vector2){ -toPlayer.y, toPlayer.x };
-                perp = Vector2Normalize(perp);
-                perp = Vector2Scale(perp, ORBIT_FORCE);
-                followForce = Vector2Add(followForce, perp);
-            }
-        } else {
-            // inside stop radius -> repulsion so they don't overlap
-            Vector2 repel = Vector2Normalize(Vector2Negate(toPlayer));
-            repel = Vector2Scale(repel, MAX_SPEED);
-            followForce = ClampMagnitude(Vector2Subtract(repel, boi->velocity), MAX_FORCE);
-            followForce = Vector2Scale(followForce, 2.0f); // stronger push away
-        }
-
-        // --- Movement phase switching ---
-        boi->moveTimer -= GetFrameTime();
-        if (boi->moveTimer <= 0.0f) {
-            boi->isMoving = !boi->isMoving;
-            boi->moveTimer = boi->isMoving 
-                ? 0.5f + ((float)rand() / RAND_MAX) * 0.5f
-                : 1.0f + ((float)rand() / RAND_MAX) * 1.0f;
-        }
-
-        // Apply forces
-        if (distToPlayer < 150){
-            if (boi->isMoving) {
-                boi->acceleration = Vector2Add(steering, followForce);
-            } else {
-                // idle = just tiny orbit jitter if outside stop radius
-                boi->acceleration.x = 0;
-                boi->acceleration.y = 0;
-                boi->velocity.x = 0;
-                boi->velocity.y = 0;
-            }
-        }
-        else{
-            boi->acceleration = Vector2Add(steering, followForce);
-        }
+        boi->acceleration = Vector2Add(steering, toGoal);
         
     }
 }
