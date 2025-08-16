@@ -439,6 +439,7 @@ int main() {
         EndDrawing();
     }
 
+    mapFree(map);
 
     CloseWindow();
     return 0;

@@ -21,5 +21,6 @@ typedef struct rect *rect;
 extern hash mapCreate(void);
 extern void mapDraw(hash map, Vector2 player_pos);
 extern dynarray rectsAround(hash map, Vector2 player_pos);
+extern void mapFree(hash map);
 
 #endif
