@@ -5,13 +5,8 @@
 #include "raylib.h"
 
 #include "hash.h"
-
-typedef enum{
-  DIRT,
-  STONE
-} TILES; 
-
-#define TILE_SIZE 16 
+#include "dynarray.h"
+#include "map.h"
 
 void tilesFree(hashvalue val){
   TILES *tile = (TILES *) val; 
@@ -43,6 +38,33 @@ hash mapCreate(){
   }
   hashDump(stdout, map);
   return map; 
+}
+
+void rectFree(DA_ELEMENT el){
+  rect r = (rect) el; 
+  free(r);
+}
+
+dynarray rectsAround(hash map, Vector2 player_pos){
+  int gx = ((int) player_pos.x) / TILE_SIZE;
+  int gy = ((int) player_pos.y) / TILE_SIZE;
+  char buffer[22];
+  dynarray arr = create_dynarray(&rectFree, NULL); 
+  for (int x = gx - 3; x <= gx + 3; x++){
+    for (int y = gy - 3; y <= gy + 3; y++){
+      sprintf(buffer, "%d:%d", x * TILE_SIZE, y * TILE_SIZE);
+      TILES* tile; 
+      if ((tile = hashFind(map, buffer)) != NULL){
+        if (*tile == STONE){
+          rect r = malloc(sizeof(struct rect));
+          r->tile = *tile; 
+          r->rectange = (Rectangle) {x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE};
+          add_dynarray(arr, r);
+        }
+      }
+    }
+  }
+  return arr; 
 }
 
 void mapDraw(hash map, Vector2 player_pos){
