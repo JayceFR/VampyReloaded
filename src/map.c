@@ -28,11 +28,16 @@ hash mapCreate(){
   hash map = hashCreate(&tilesPrint, &tilesFree, NULL);
   // Init the map for 3 grids around the player first 
   char buffer[22];
-  for (int x = 0; x <= 16; x++){
-    for (int y = 0; y <= 16; y++){
-      sprintf(buffer, "%d:%d", x * TILE_SIZE, y * TILE_SIZE);
+  for (int x = 0; x <= 36; x++){
+    for (int y = 0; y <= 36; y++){
       TILES* tile = malloc(sizeof(TILES));
-      *tile = DIRT;
+      sprintf(buffer, "%d:%d", x * TILE_SIZE, y * TILE_SIZE);
+      if (x == 0 || y == 0 || x == 36 || y == 36){
+        *tile = STONE;
+      }
+      else{
+        *tile = DIRT;
+      }
       hashSet(map, buffer, tile);
     }
   }
@@ -52,7 +57,12 @@ void mapDraw(hash map, Vector2 player_pos){
       if ((tile = hashFind(map, buffer)) != NULL){
         int worldX = (x * TILE_SIZE);
         int worldY = (y * TILE_SIZE);
-        DrawRectangle(worldX, worldY, TILE_SIZE, TILE_SIZE, YELLOW);
+        if (*tile == DIRT){
+          DrawRectangle(worldX, worldY, TILE_SIZE, TILE_SIZE, YELLOW);
+        }
+        if (*tile == STONE){
+          DrawRectangle(worldX, worldY, TILE_SIZE, TILE_SIZE, GRAY);
+        }
       }
     }
   }
