@@ -319,12 +319,45 @@ Vector2 randomVelocity(float minSpeed, float maxSpeed) {
     return (Vector2){ cosf(angle) * speed, sinf(angle) * speed };
 }
 
-Vector2 computeVelOfEnemy(entity enemy, entity player){
-    Vector2 vel = (Vector2) {0, 0};
-    vel = Vector2Subtract(player->pos, enemy->pos);
-    vel = Vector2Scale(Vector2Normalize(vel), 3);
-    return vel; 
+Vector2 computeVelOfEnemy(entity enemy, entity player, hash map) {
+    Vector2 dir = Vector2Normalize(Vector2Subtract(player->pos, enemy->pos));
+    Vector2 step = Vector2Scale(dir, 2.0f); 
+    Vector2 ray = enemy->pos;
+    float maxDist = Vector2Distance(enemy->pos, player->pos);
+
+    dynarray rects = rectsAround(map, enemy->pos);
+
+    float distTravelled = 0;
+    bool blocked = false;
+
+    while (distTravelled < maxDist) {
+        // hit player
+        if (CheckCollisionPointRec(ray, player->rect)) break;
+
+        // hit a wall
+        for (int i = 0; i < rects->len; i++) {
+            rect r = rects->data[i];
+            if (CheckCollisionPointRec(ray, r->rectange)) {
+                blocked = true;
+                break;
+            }
+        }
+        if (blocked) break;
+
+        // step forward
+        ray = Vector2Add(ray, step);
+        distTravelled += Vector2Length(step);
+    }
+
+    free_dynarray(rects);
+
+    if (blocked) {
+        return (Vector2){0, 0}; // LoS blocked
+    } else {
+        return Vector2Scale(dir, 2.0f); // chase
+    }
 }
+
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Vampy Reloaded");
@@ -409,7 +442,7 @@ int main() {
 
         update(player, map, offset);
 
-        update(enemy, map, computeVelOfEnemy(enemy, player)); 
+        update(enemy, map, computeVelOfEnemy(enemy, player, map)); 
 
         // Update swarm target only every few seconds
         timeSinceUpdate += delta;
