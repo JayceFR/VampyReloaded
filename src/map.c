@@ -26,7 +26,7 @@ hash mapCreate(){
   for (int x = 0; x <= 36; x++){
     for (int y = 0; y <= 36; y++){
       TILES* tile = malloc(sizeof(TILES));
-      sprintf(buffer, "%d:%d", x * TILE_SIZE, y * TILE_SIZE);
+      sprintf(buffer, "%d:%d", x, y );
       if (x == 0 || y == 0 || x == 36 || y == 36 || x == 1 || y == 1 || x == 35 || y == 35){
         *tile = STONE;
       }
@@ -52,7 +52,7 @@ dynarray rectsAround(hash map, Vector2 player_pos){
   dynarray arr = create_dynarray(&rectFree, NULL); 
   for (int x = gx - 5; x <= gx + 5; x++){
     for (int y = gy - 5; y <= gy + 5; y++){
-      sprintf(buffer, "%d:%d", x * TILE_SIZE, y * TILE_SIZE);
+      sprintf(buffer, "%d:%d", x, y);
       TILES* tile; 
       if ((tile = hashFind(map, buffer)) != NULL){
         if (*tile == STONE){
@@ -74,7 +74,7 @@ void mapDraw(hash map, Vector2 player_pos){
   char buffer[22];
   for (int x = gx - 32; x <= gx + 32; x++){
     for (int y = gy - 32; y <= gy + 32; y++){
-      sprintf(buffer, "%d:%d", x * TILE_SIZE, y * TILE_SIZE);
+      sprintf(buffer, "%d:%d", x, y);
       TILES* tile; 
       if ((tile = hashFind(map, buffer)) != NULL){
         int worldX = (x * TILE_SIZE);

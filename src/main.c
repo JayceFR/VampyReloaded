@@ -338,7 +338,7 @@ int main() {
     Camera2D camera = {0};
     camera.target = player->pos;
     camera.offset = (Vector2) {GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f};
-    camera.rotation = 1.0f; 
+    camera.rotation = 0.0f; 
     camera.zoom = 1.0f; 
 
     for (int i = 0; i < MAX_BOIDS; i++){
