@@ -8,11 +8,11 @@
 #include "physics.h"
 
 
-entity entityCreate(Vector2 startPos, Rectangle rect){
+entity entityCreate(float startX, float startY, int width, int height){
   entity e = malloc(sizeof(struct entity));
   assert(e != NULL);
-  e->pos = startPos;
-  e->rect = rect;
+  e->pos = (Vector2) {startX, startY};
+  e->rect = (Rectangle) {startX, startY, width, height};
   return e; 
 }
 

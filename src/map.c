@@ -27,7 +27,7 @@ hash mapCreate(){
     for (int y = 0; y <= 36; y++){
       TILES* tile = malloc(sizeof(TILES));
       sprintf(buffer, "%d:%d", x, y );
-      if (x == 0 || y == 0 || x == 36 || y == 36 || x == 1 || y == 1 || x == 35 || y == 35){
+      if (x == 0 || y == 0 || x == 36 || y == 36 || x == 1 || y == 1 || x == 35 || y == 35 || (x == 15 && y == 15)){
         *tile = STONE;
       }
       else{

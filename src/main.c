@@ -319,6 +319,13 @@ Vector2 randomVelocity(float minSpeed, float maxSpeed) {
     return (Vector2){ cosf(angle) * speed, sinf(angle) * speed };
 }
 
+Vector2 computeVelOfEnemy(entity enemy, entity player){
+    Vector2 vel = (Vector2) {0, 0};
+    vel = Vector2Subtract(player->pos, enemy->pos);
+    vel = Vector2Scale(Vector2Normalize(vel), 3);
+    return vel; 
+}
+
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Vampy Reloaded");
     SetTargetFPS(60);
@@ -328,7 +335,7 @@ int main() {
 
     hash flockGrid = hashCreate(NULL, &free_dynarray, NULL); 
 
-    entity player = entityCreate((Vector2) {400, 225}, (Rectangle) {400, 225, 15, 15});
+    entity player = entityCreate(400, 225, 15, 15);
     Vector2 offset = {0, 0};
 
     steeringData data = malloc(sizeof(struct steeringData));
@@ -385,6 +392,8 @@ int main() {
 
     Image noise = GenImagePerlinNoise(256, 256, 50, 50, 0.4f);
 
+    entity enemy = entityCreate(50, 60, 15, 15);
+
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
         UpdateJoystick(&joy);
@@ -399,6 +408,8 @@ int main() {
         offset.y += joy.value.y * 5;
 
         update(player, map, offset);
+
+        update(enemy, map, computeVelOfEnemy(enemy, player)); 
 
         // Update swarm target only every few seconds
         timeSinceUpdate += delta;
@@ -433,7 +444,8 @@ int main() {
         mapDraw(map, player->pos);
 
         // DrawCircleV(playerPos, 20, RED);
-        DrawRectangleRec(player->rect, RED);
+        DrawRectangleRec(enemy->rect, RED);
+        DrawRectangleRec(player->rect, BLUE);
         // DrawCircleV(swarmTarget, 5, GREEN); // visualize swarm target
         // DrawBoids(flockGrid);
 
