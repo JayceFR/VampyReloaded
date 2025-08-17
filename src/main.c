@@ -8,6 +8,7 @@
 #include "hash.h"
 #include "dynarray.h"
 #include "map.h"
+#include "physics.h"
 // #include <math.h>
 
 #define MAX_BOIDS 100
@@ -319,7 +320,7 @@ Vector2 randomVelocity(float minSpeed, float maxSpeed) {
 }
 
 int main() {
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "On-Screen Joystick Example");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Vampy Reloaded");
     SetTargetFPS(60);
 
     Joystick joy = CreateJoystick((Vector2){100, 350}, 60);
@@ -383,6 +384,8 @@ int main() {
 
     Image noise = GenImagePerlinNoise(256, 256, 50, 50, 0.4f);
 
+    entity e = entityCreate(playerPos, (Rectangle) {playerPos.x, playerPos.y, 15, 15});
+
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
         UpdateJoystick(&joy);
@@ -390,8 +393,13 @@ int main() {
         char buffer[22];
         sprintf(buffer, "fps : %d", GetFPS());
 
+        playerPos.x = 0;
+        playerPos.y = 0;
+
         playerPos.x += joy.value.x * 5;
         playerPos.y += joy.value.y * 5;
+
+        update(e, map, playerPos);
 
         // Update swarm target only every few seconds
         timeSinceUpdate += delta;
@@ -401,18 +409,18 @@ int main() {
             // Random offset from player's current position
             // swarmTarget = Vector2Add(playerPos, 
             //     (Vector2){ GetRandomValue(-50, 50), GetRandomValue(-50, 50) });
-            swarmTarget = playerPos;
+            swarmTarget = e->pos;
         }
 
         // calculateSteering(flock, averageVels, swarmTarget);
-        data->playerPos = playerPos;
+        data->playerPos = e->pos;
         calculateSteering(flockGrid, data);
         updateBoids(flockGrid, averageVels);
 
         float followSpeed = 4.0f; 
         Vector2 diff = {
-            playerPos.x - camera.target.x,
-            playerPos.y - camera.target.y
+            e->pos.x - camera.target.x,
+            e->pos.y - camera.target.y
         };
 
         camera.target.x += diff.x * followSpeed * GetFrameTime();
@@ -423,9 +431,10 @@ int main() {
 
         BeginMode2D(camera);
 
-        mapDraw(map, playerPos);
+        mapDraw(map, e->pos);
 
-        DrawCircleV(playerPos, 20, RED);
+        // DrawCircleV(playerPos, 20, RED);
+        DrawRectangleRec(e->rect, RED);
         // DrawCircleV(swarmTarget, 5, GREEN); // visualize swarm target
         // DrawBoids(flockGrid);
 

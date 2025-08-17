@@ -27,7 +27,7 @@ hash mapCreate(){
     for (int y = 0; y <= 36; y++){
       TILES* tile = malloc(sizeof(TILES));
       sprintf(buffer, "%d:%d", x * TILE_SIZE, y * TILE_SIZE);
-      if (x == 0 || y == 0 || x == 36 || y == 36){
+      if (x == 0 || y == 0 || x == 36 || y == 36 || x == 1 || y == 1 || x == 35 || y == 35){
         *tile = STONE;
       }
       else{
@@ -50,8 +50,8 @@ dynarray rectsAround(hash map, Vector2 player_pos){
   int gy = ((int) player_pos.y) / TILE_SIZE;
   char buffer[22];
   dynarray arr = create_dynarray(&rectFree, NULL); 
-  for (int x = gx - 3; x <= gx + 3; x++){
-    for (int y = gy - 3; y <= gy + 3; y++){
+  for (int x = gx - 5; x <= gx + 5; x++){
+    for (int y = gy - 5; y <= gy + 5; y++){
       sprintf(buffer, "%d:%d", x * TILE_SIZE, y * TILE_SIZE);
       TILES* tile; 
       if ((tile = hashFind(map, buffer)) != NULL){
