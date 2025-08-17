@@ -326,16 +326,17 @@ int main() {
     Joystick joy = CreateJoystick((Vector2){100, 350}, 60);
     Joystick aim = CreateJoystick((Vector2){300, 350}, 60);
 
-    Vector2 playerPos = {400, 225};
-
     hash flockGrid = hashCreate(NULL, &free_dynarray, NULL); 
+
+    entity player = entityCreate((Vector2) {400, 225}, (Rectangle) {400, 225, 15, 15});
+    Vector2 offset = {0, 0};
 
     steeringData data = malloc(sizeof(struct steeringData));
     data->flockGrid = flockGrid;
-    data->playerPos = playerPos;
+    data->playerPos = player->pos;
 
     Camera2D camera = {0};
-    camera.target = playerPos;
+    camera.target = player->pos;
     camera.offset = (Vector2) {GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f};
     camera.rotation = 1.0f; 
     camera.zoom = 1.0f; 
@@ -376,15 +377,13 @@ int main() {
 
     Vector2 averageVels[MAX_BOIDS];
 
-    Vector2 swarmTarget = playerPos;
+    Vector2 swarmTarget = player->pos;
     float timeSinceUpdate = 0.0f;
     float updateInterval = 0.0f; // seconds
 
     hash map = mapCreate();
 
     Image noise = GenImagePerlinNoise(256, 256, 50, 50, 0.4f);
-
-    entity e = entityCreate(playerPos, (Rectangle) {playerPos.x, playerPos.y, 15, 15});
 
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
@@ -393,13 +392,13 @@ int main() {
         char buffer[22];
         sprintf(buffer, "fps : %d", GetFPS());
 
-        playerPos.x = 0;
-        playerPos.y = 0;
+        offset.x = 0;
+        offset.y = 0;
 
-        playerPos.x += joy.value.x * 5;
-        playerPos.y += joy.value.y * 5;
+        offset.x += joy.value.x * 5;
+        offset.y += joy.value.y * 5;
 
-        update(e, map, playerPos);
+        update(player, map, offset);
 
         // Update swarm target only every few seconds
         timeSinceUpdate += delta;
@@ -409,18 +408,18 @@ int main() {
             // Random offset from player's current position
             // swarmTarget = Vector2Add(playerPos, 
             //     (Vector2){ GetRandomValue(-50, 50), GetRandomValue(-50, 50) });
-            swarmTarget = e->pos;
+            swarmTarget = player->pos;
         }
 
         // calculateSteering(flock, averageVels, swarmTarget);
-        data->playerPos = e->pos;
+        data->playerPos = player->pos;
         calculateSteering(flockGrid, data);
         updateBoids(flockGrid, averageVels);
 
         float followSpeed = 4.0f; 
         Vector2 diff = {
-            e->pos.x - camera.target.x,
-            e->pos.y - camera.target.y
+            player->pos.x - camera.target.x,
+            player->pos.y - camera.target.y
         };
 
         camera.target.x += diff.x * followSpeed * GetFrameTime();
@@ -431,10 +430,10 @@ int main() {
 
         BeginMode2D(camera);
 
-        mapDraw(map, e->pos);
+        mapDraw(map, player->pos);
 
         // DrawCircleV(playerPos, 20, RED);
-        DrawRectangleRec(e->rect, RED);
+        DrawRectangleRec(player->rect, RED);
         // DrawCircleV(swarmTarget, 5, GREEN); // visualize swarm target
         // DrawBoids(flockGrid);
 
