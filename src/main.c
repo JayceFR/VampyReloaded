@@ -444,6 +444,11 @@ int main() {
 
     Enemy enemy = enemyCreate(50, 60, 15, 15);
 
+    TILES mappy[HEIGHT][WIDTH];
+    srand(time(NULL));
+    generateRandomWalkerMap(mappy);
+    printMap(mappy);
+
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
         UpdateJoystick(&joy);
