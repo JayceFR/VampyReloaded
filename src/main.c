@@ -323,20 +323,6 @@ Vector2 randomVelocity(float minSpeed, float maxSpeed) {
 
 
 // Vector2 computeVelOfEnemy(entity enemy, entity player, hash map) {
-//     dynarray path = pathFinding(player->pos, enemy->pos, map);
-//     if (path != NULL){
-//         if (path->len > 1){  // at least start + one step
-//             pathNode nextNode = path->data[1]; // 👈 not the last
-//             Vector2 nextPos = {nextNode->x * TILE_SIZE, nextNode->y * TILE_SIZE};
-//             Vector2 dir = Vector2Normalize(Vector2Subtract(nextPos, enemy->pos));
-//             return Vector2Scale(dir, 2.0f);
-//         }
-//     }
-//     return (Vector2) {0, 0};
-// }
-
-
-// Vector2 computeVelOfEnemy(entity enemy, entity player, hash map) {
 
 //     dynarray path = pathFinding(player->pos, enemy->pos, map);
 //     if (path != NULL){
@@ -456,11 +442,7 @@ int main() {
 
     Image noise = GenImagePerlinNoise(256, 256, 50, 50, 0.4f);
 
-    Enemy enemy; 
-    enemy.e = entityCreate(50, 60, 15, 15);
-    enemy.path = NULL;
-    // entity enemy = entityCreate(50, 60, 15, 15);
-    // EnemyAI ai; 
+    Enemy enemy = enemyCreate(50, 60, 15, 15);
 
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
@@ -477,7 +459,7 @@ int main() {
 
         update(player, map, offset);
 
-        update(enemy.e, map, computeVelOfEnemy(enemy, player, map)); 
+        update(enemy->e, map, computeVelOfEnemy(enemy, player, map)); 
 
         // Update swarm target only every few seconds
         timeSinceUpdate += delta;
@@ -512,8 +494,8 @@ int main() {
         mapDraw(map, player->pos);
 
         // DrawCircleV(playerPos, 20, RED);
-        DrawRectangleRec(enemy.e->rect, RED);
         DrawRectangleRec(player->rect, BLUE);
+        DrawRectangleRec(enemy->e->rect, RED);
         // DrawCircleV(swarmTarget, 5, GREEN); // visualize swarm target
         // DrawBoids(flockGrid);
 

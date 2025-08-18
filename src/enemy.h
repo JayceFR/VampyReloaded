@@ -5,14 +5,16 @@
 #include "map.h"
 #include "physics.h"
 
-typedef struct{
+struct Enemy{
     dynarray path;
     int targetTileX;
     int targetTileY;
     int currentStep;
     entity e; 
-} Enemy; 
+};
+typedef struct Enemy *Enemy;  
 
 extern Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map);
+extern Enemy enemyCreate(int startX, int startY, int width, int height);
 
 #endif

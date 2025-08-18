@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <limits.h>
+#include <stdlib.h>
+#include <assert.h>
 
 #include "raylib.h"
 #include "raymath.h"
@@ -159,52 +161,60 @@ static dynarray pathFinding(Vector2 playerPos, Vector2 enemyPos, hash map){
 Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
     int playerTileX = (int)(player->pos.x / TILE_SIZE);
     int playerTileY = (int)(player->pos.y / TILE_SIZE);
-    int enemyTileX  = (int)(enemy.e->pos.x  / TILE_SIZE);
-    int enemyTileY  = (int)(enemy.e->pos.y  / TILE_SIZE);
+    int enemyTileX  = (int)(enemy->e->pos.x  / TILE_SIZE);
+    int enemyTileY  = (int)(enemy->e->pos.y  / TILE_SIZE);
 
     bool needRecompute = false;
 
     // recompute if path not set
-    if (enemy.path == NULL) {
+    if (enemy->path == NULL) {
         needRecompute = true;
     }
     // recompute if player moved tiles
-    else if (enemy.targetTileX != playerTileX || enemy.targetTileY != playerTileY) {
+    else if (enemy->targetTileX != playerTileX || enemy->targetTileY != playerTileY) {
         needRecompute = true;
     }
     // recompute if finished path
-    else if (enemy.currentStep >= enemy.path->len) {
+    else if (enemy->currentStep >= enemy->path->len) {
         needRecompute = true;
     }
 
     if (needRecompute) {
-        if (enemy.path != NULL) {
-            free_dynarray(enemy.path);
+        if (enemy->path != NULL) {
+            free_dynarray(enemy->path);
         }
-        enemy.path = pathFinding(player->pos, enemy.e->pos, map);
-        enemy.targetTileX = playerTileX;
-        enemy.targetTileY = playerTileY;
-        enemy.currentStep = 1; // step 0 is the start (enemy pos), so step 1 is the first move
+        enemy->path = pathFinding(player->pos, enemy->e->pos, map);
+        enemy->targetTileX = playerTileX;
+        enemy->targetTileY = playerTileY;
+        enemy->currentStep = 1; // step 0 is the start (enemy pos), so step 1 is the first move
     }
 
-    if (enemy.path != NULL && enemy.currentStep < enemy.path->len) {
-        pathNode nextNode = enemy.path->data[enemy.currentStep];
+    if (enemy->path != NULL && enemy->currentStep < enemy->path->len) {
+        pathNode nextNode = enemy->path->data[enemy->currentStep];
         Vector2 nextPos = { nextNode->x * TILE_SIZE, nextNode->y * TILE_SIZE };
-        Vector2 toTarget = Vector2Subtract(nextPos, enemy.e->pos);
+        Vector2 toTarget = Vector2Subtract(nextPos, enemy->e->pos);
 
         // If close enough to next node → advance to next step
         if (Vector2Length(toTarget) < 2.0f) {
-            enemy.currentStep++;
+            enemy->currentStep++;
         }
 
         // Move toward current node
-        if (enemy.currentStep < enemy.path->len) {
-            nextNode = enemy.path->data[enemy.currentStep];
+        if (enemy->currentStep < enemy->path->len) {
+            nextNode = enemy->path->data[enemy->currentStep];
             nextPos = (Vector2){ nextNode->x * TILE_SIZE, nextNode->y * TILE_SIZE };
-            Vector2 dir = Vector2Normalize(Vector2Subtract(nextPos, enemy.e->pos));
+            Vector2 dir = Vector2Normalize(Vector2Subtract(nextPos, enemy->e->pos));
             return Vector2Scale(dir, 2.0f);
         }
     }
 
     return (Vector2){0, 0};
+}
+
+Enemy enemyCreate(int startX, int startY, int width, int height){
+    Enemy enemy = malloc(sizeof(struct Enemy));
+    assert(enemy != NULL);
+    enemy->e = entityCreate(startX, startY, width, height);
+    enemy->path = NULL;
+    return enemy;
 }
