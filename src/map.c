@@ -38,7 +38,7 @@ hash mapCreate(){
       r->tile = AIR;
       // TILES* tile = malloc(sizeof(TILES));
       sprintf(buffer, "%d:%d", x, y );
-      if (x == 0 || y == 0 || x == 36 || y == 36 || x == 1 || y == 1 || x == 35 || y == 35 || (x == 15 && y == 15)){
+      if (x == 0 || y == 0 || x == 36 || y == 36 || x == 1 || y == 1 || x == 35 || y == 35 || (x == 15 && y == 15) || (x == 16 && y == 15) || (x == 17 && y == 15) || (x == 15 && y == 16) || (x == 16 && y == 16) || (x == 17 && y == 16)){
         r->tile = STONE;
       }
       else{
@@ -52,6 +52,12 @@ hash mapCreate(){
       r->node->prev = NULL;
       r->node->x = x;
       r->node->y = y; 
+      if (r->tile == DIRT){
+        r->node->isWalkable = true;
+      }
+      else{
+        r->node->isWalkable = false;
+      }
       hashSet(map, buffer, r);
     }
   }

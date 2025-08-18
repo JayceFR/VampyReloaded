@@ -24,6 +24,8 @@ struct pathNode{
   int hCost; 
   int fCost;
   pathNode prev; 
+
+  bool isWalkable;
 };
 
 struct rect{
