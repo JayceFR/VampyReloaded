@@ -59,15 +59,32 @@ static dynarray calculatePath(pathNode endNode){
 
 static dynarray getNeighbourList(pathNode currentNode, hash map){
     dynarray neighbourList = create_dynarray(NULL, NULL);
-    int offset[8][2] = {{1,0}, {0,-1}, {-1, 0}, {0, 1}, {1, -1}, {1, 1}, {-1, -1}, {-1, 1}};
+    int offset[8][2] = {
+        { 1,  0}, { 0, -1}, {-1,  0}, { 0,  1}, // Cardinal
+        { 1, -1}, { 1,  1}, {-1, -1}, {-1,  1}  // Diagonal
+    };
+
     for (int i = 0; i < 8; i++){
-        rect r = mapGetRecAt(map, currentNode->x + offset[i][0], currentNode->y + offset[i][1]);
-        if (r != NULL){
-            add_dynarray(neighbourList, r->node);
+        int nx = currentNode->x + offset[i][0];
+        int ny = currentNode->y + offset[i][1];
+
+        rect r = mapGetRecAt(map, nx, ny);
+        if (!r || !r->node->isWalkable) continue;
+
+        // Prevent diagonal corner-cutting
+        if (offset[i][0] != 0 && offset[i][1] != 0) {
+            rect r1 = mapGetRecAt(map, currentNode->x + offset[i][0], currentNode->y);     // Horizontal neighbor
+            rect r2 = mapGetRecAt(map, currentNode->x, currentNode->y + offset[i][1]);     // Vertical neighbor
+            if (!r1 || !r1->node->isWalkable || !r2 || !r2->node->isWalkable) {
+                continue; // If either is blocked, skip this diagonal
+            }
         }
+
+        add_dynarray(neighbourList, r->node);
     }
     return neighbourList;
 }
+
 
 static bool isIn(dynarray list, pathNode p){
     for (int i = 0; i < list->len; i++){
@@ -202,7 +219,11 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
         // Move toward current node
         if (enemy->currentStep < enemy->path->len) {
             nextNode = enemy->path->data[enemy->currentStep];
-            nextPos = (Vector2){ nextNode->x * TILE_SIZE, nextNode->y * TILE_SIZE };
+            Vector2 nextPos = {
+                nextNode->x * TILE_SIZE + TILE_SIZE / 2 - enemy->e->rect.width / 2,
+                nextNode->y * TILE_SIZE + TILE_SIZE / 2 - enemy->e->rect.height / 2
+            };
+
             Vector2 dir = Vector2Normalize(Vector2Subtract(nextPos, enemy->e->pos));
             return Vector2Scale(dir, 2.0f);
         }
