@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
+#include <limits.h>
 
 #include "raylib.h"
 
@@ -9,14 +11,20 @@
 #include "map.h"
 
 void tilesFree(hashvalue val){
-  TILES *tile = (TILES *) val; 
-  free(tile);
+  rect r = (rect) val; 
+  free(r);
 }
 
 void tilesPrint(FILE *out, hashkey key, hashvalue val){
   char *k = (char *)key;
-  TILES *tile = (TILES *)val;
-  printf("key : %s, tile : %d\n", k, *tile);
+  rect r = (rect)val; 
+  printf("key : %s, tile : %d\n", k, r->tile);
+}
+
+rect mapGetRecAt(hash map, int x, int y){
+  char buffer[22];
+  sprintf(buffer, "%d:%d", x, y);
+  return hashFind(map, buffer);
 }
 
 hash mapCreate(){
@@ -25,15 +33,26 @@ hash mapCreate(){
   char buffer[22];
   for (int x = 0; x <= 36; x++){
     for (int y = 0; y <= 36; y++){
-      TILES* tile = malloc(sizeof(TILES));
+      rect r = malloc(sizeof(struct rect));
+      r->rectange = (Rectangle) {x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE};
+      r->tile = AIR;
+      // TILES* tile = malloc(sizeof(TILES));
       sprintf(buffer, "%d:%d", x, y );
       if (x == 0 || y == 0 || x == 36 || y == 36 || x == 1 || y == 1 || x == 35 || y == 35 || (x == 15 && y == 15)){
-        *tile = STONE;
+        r->tile = STONE;
       }
       else{
-        *tile = DIRT;
+        r->tile = DIRT;
       }
-      hashSet(map, buffer, tile);
+      r->node = malloc(sizeof(struct pathNode));
+      assert(r->node != NULL);
+      r->node->hCost = 0;
+      r->node->gCost = INT_MAX;
+      r->node->fCost = INT_MAX;
+      r->node->prev = NULL;
+      r->node->x = x;
+      r->node->y = y; 
+      hashSet(map, buffer, r);
     }
   }
   hashDump(stdout, map);
@@ -53,11 +72,11 @@ dynarray rectsAround(hash map, Vector2 player_pos){
   for (int x = gx - 5; x <= gx + 5; x++){
     for (int y = gy - 5; y <= gy + 5; y++){
       sprintf(buffer, "%d:%d", x, y);
-      TILES* tile; 
-      if ((tile = hashFind(map, buffer)) != NULL){
-        if (*tile == STONE){
+      rect rec; 
+      if ((rec = hashFind(map, buffer)) != NULL){
+        if (rec->tile == STONE){
           rect r = malloc(sizeof(struct rect));
-          r->tile = *tile; 
+          r->tile = rec->tile; 
           r->rectange = (Rectangle) {x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE};
           add_dynarray(arr, r);
         }
