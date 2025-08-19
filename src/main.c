@@ -446,8 +446,8 @@ int main() {
 
     TILES mappy[HEIGHT][WIDTH];
     srand(time(NULL));
-    generateRandomWalkerMap(mappy);
-    printMap(mappy);
+    // generateRandomWalkerMap(mappy);
+    // printMap(mappy);
 
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();

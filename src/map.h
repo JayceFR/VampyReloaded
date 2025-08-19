@@ -7,7 +7,7 @@
 
 #define TILE_SIZE 16 
 
-#define WIDTH  120
+#define WIDTH  64
 #define HEIGHT 64
 
 typedef enum{
@@ -43,7 +43,7 @@ extern void mapDraw(hash map, Vector2 player_pos);
 extern dynarray rectsAround(hash map, Vector2 player_pos);
 extern void mapFree(hash map);
 extern rect mapGetRecAt(hash map, int x, int y);
-extern void generateRandomWalkerMap(TILES map[HEIGHT][WIDTH]);
+// extern void generateRandomWalkerMap(TILES map[HEIGHT][WIDTH]);
 extern void printMap(TILES map[HEIGHT][WIDTH]);
 
 #endif

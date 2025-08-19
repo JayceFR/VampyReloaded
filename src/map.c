@@ -27,34 +27,85 @@ rect mapGetRecAt(hash map, int x, int y){
   return hashFind(map, buffer);
 }
 
-void generateRandomWalkerMap(TILES map[HEIGHT][WIDTH]) {
-    // Fill with walls first
+typedef struct {
+    int x, y, w, h;
+} Room;
+
+#define MAX_ROOMS 20
+
+void carveCorridor(TILES map[HEIGHT][WIDTH], int x1, int y1, int x2, int y2, int corridorWidth) {
+    // L-shaped corridor with thickness
+    if (rand() % 2) {
+        // horizontal first
+        for (int x = (x1<x2?x1:x2); x <= (x1>x2?x1:x2); x++) {
+            for (int w = -corridorWidth/2; w <= corridorWidth/2; w++) {
+                if (y1+w > 0 && y1+w < HEIGHT-1)
+                    map[y1+w][x] = DIRT;
+            }
+        }
+        for (int y = (y1<y2?y1:y2); y <= (y1>y2?y1:y2); y++) {
+            for (int w = -corridorWidth/2; w <= corridorWidth/2; w++) {
+                if (x2+w > 0 && x2+w < WIDTH-1)
+                    map[y][x2+w] = DIRT;
+            }
+        }
+    } else {
+        // vertical first
+        for (int y = (y1<y2?y1:y2); y <= (y1>y2?y1:y2); y++) {
+            for (int w = -corridorWidth/2; w <= corridorWidth/2; w++) {
+                if (x1+w > 0 && x1+w < WIDTH-1)
+                    map[y][x1+w] = DIRT;
+            }
+        }
+        for (int x = (x1<x2?x1:x2); x <= (x1>x2?x1:x2); x++) {
+            for (int w = -corridorWidth/2; w <= corridorWidth/2; w++) {
+                if (y2+w > 0 && y2+w < HEIGHT-1)
+                    map[y2+w][x] = DIRT;
+            }
+        }
+    }
+}
+
+void generatePuzzleMap(TILES map[HEIGHT][WIDTH]) {
+    // Step 1: Fill with walls
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH; x++) {
             map[y][x] = STONE;
         }
     }
 
-    int x = WIDTH / 2;
-    int y = HEIGHT / 2;
+    Room rooms[MAX_ROOMS];
+    int roomCount = 0;
 
-    int floorCount = 0;
-    int targetFloorCount = (WIDTH * HEIGHT) / 2; // carve ~50% floor
+    // Step 2: Place random rooms
+    for (int i = 0; i < MAX_ROOMS; i++) {
+        int w = 6 + rand() % 6; // room width 6–11
+        int h = 6 + rand() % 6; // room height 6–11
+        int x = 2 + rand() % (WIDTH - w - 2);
+        int y = 2 + rand() % (HEIGHT - h - 2);
 
-    while (floorCount < targetFloorCount) {
-        if (map[y][x] == STONE) {
-            map[y][x] = DIRT;
-            floorCount++;
+        // carve room
+        for (int yy = y; yy < y + h; yy++) {
+            for (int xx = x; xx < x + w; xx++) {
+                map[yy][xx] = DIRT;
+            }
         }
 
-        int dir = rand() % 4;
-        if (dir == 0 && x > 1) x--;               // left
-        if (dir == 1 && x < WIDTH - 2) x++;       // right
-        if (dir == 2 && y > 1) y--;               // up
-        if (dir == 3 && y < HEIGHT - 2) y++;      // down
+        rooms[roomCount++] = (Room){x, y, w, h};
     }
 
-    // Put a stone border so things are closed off
+    // Step 3: Connect rooms with wider corridors
+    int corridorWidth = 3;  // adjust this (2, 3, 4…) for thicker paths
+    for (int i = 1; i < roomCount; i++) {
+        int x1 = rooms[i-1].x + rooms[i-1].w/2;
+        int y1 = rooms[i-1].y + rooms[i-1].h/2;
+        int x2 = rooms[i].x + rooms[i].w/2;
+        int y2 = rooms[i].y + rooms[i].h/2;
+
+        carveCorridor(map, x1, y1, x2, y2, corridorWidth);
+    }
+
+    // Step 4: Outer border
     for (int i = 0; i < WIDTH; i++) {
         map[0][i] = STONE;
         map[HEIGHT - 1][i] = STONE;
@@ -64,6 +115,44 @@ void generateRandomWalkerMap(TILES map[HEIGHT][WIDTH]) {
         map[i][WIDTH - 1] = STONE;
     }
 }
+
+// void generateRandomWalkerMap(TILES map[HEIGHT][WIDTH]) {
+//     // Fill with walls first
+//     for (int y = 0; y < HEIGHT; y++) {
+//         for (int x = 0; x < WIDTH; x++) {
+//             map[y][x] = STONE;
+//         }
+//     }
+
+//     int x = WIDTH / 2;
+//     int y = HEIGHT / 2;
+
+//     int floorCount = 0;
+//     int targetFloorCount = (WIDTH * HEIGHT) / 2; // carve ~50% floor
+
+//     while (floorCount < targetFloorCount) {
+//         if (map[y][x] == STONE) {
+//             map[y][x] = DIRT;
+//             floorCount++;
+//         }
+
+//         int dir = rand() % 4;
+//         if (dir == 0 && x > 1) x--;               // left
+//         if (dir == 1 && x < WIDTH - 2) x++;       // right
+//         if (dir == 2 && y > 1) y--;               // up
+//         if (dir == 3 && y < HEIGHT - 2) y++;      // down
+//     }
+
+//     // Put a stone border so things are closed off
+//     for (int i = 0; i < WIDTH; i++) {
+//         map[0][i] = STONE;
+//         map[HEIGHT - 1][i] = STONE;
+//     }
+//     for (int i = 0; i < HEIGHT; i++) {
+//         map[i][0] = STONE;
+//         map[i][WIDTH - 1] = STONE;
+//     }
+// }
 
 // --- Simple ASCII preview ---
 void printMap(TILES map[HEIGHT][WIDTH]) {
@@ -82,7 +171,7 @@ hash mapCreate(){
 
   TILES mappy[HEIGHT][WIDTH];
   srand(time(NULL));
-  generateRandomWalkerMap(mappy);
+  generatePuzzleMap(mappy);
   for (int y = 0; y < HEIGHT; y++){
     for (int x = 0; x < WIDTH; x++){
       rect r = malloc(sizeof(struct rect));
@@ -103,40 +192,6 @@ hash mapCreate(){
       hashSet(map, buffer, r);
     }
   }
-
-  // Init the map for 3 grids around the player first 
-  // char buffer[22];
-  // for (int x = 0; x <= 36; x++){
-  //   for (int y = 0; y <= 36; y++){
-  //     rect r = malloc(sizeof(struct rect));
-  //     r->rectange = (Rectangle) {x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE};
-  //     r->tile = AIR;
-  //     // TILES* tile = malloc(sizeof(TILES));
-  //     sprintf(buffer, "%d:%d", x, y );
-  //     if (x == 0 || y == 0 || x == 36 || y == 36 || x == 1 || y == 1 || x == 35 || y == 35 || (x == 15 && y == 15) || (x == 16 && y == 15) || (x == 17 && y == 15) || (x == 15 && y == 16) || (x == 16 && y == 16) || (x == 17 && y == 16)){
-  //       r->tile = STONE;
-  //     }
-  //     else{
-  //       r->tile = DIRT;
-  //     }
-  //     r->node = malloc(sizeof(struct pathNode));
-  //     assert(r->node != NULL);
-  //     r->node->hCost = 0;
-  //     r->node->gCost = INT_MAX;
-  //     r->node->fCost = INT_MAX;
-  //     r->node->prev = NULL;
-  //     r->node->x = x;
-  //     r->node->y = y; 
-  //     if (r->tile == DIRT){
-  //       r->node->isWalkable = true;
-  //     }
-  //     else{
-  //       r->node->isWalkable = false;
-  //     }
-  //     hashSet(map, buffer, r);
-  //   }
-  // }
-  // hashDump(stdout, map);
   return map; 
 }
 
