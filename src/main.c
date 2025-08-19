@@ -438,16 +438,14 @@ int main() {
     float timeSinceUpdate = 0.0f;
     float updateInterval = 0.0f; // seconds
 
-    hash map = mapCreate();
+    mapData mData = mapCreate();
+    hash map = mData.map;
 
     Image noise = GenImagePerlinNoise(256, 256, 50, 50, 0.4f);
 
     Enemy enemy = enemyCreate(50, 60, 15, 15);
-
-    TILES mappy[HEIGHT][WIDTH];
+    
     srand(time(NULL));
-    // generateRandomWalkerMap(mappy);
-    // printMap(mappy);
 
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
@@ -497,6 +495,12 @@ int main() {
         BeginMode2D(camera);
 
         mapDraw(map, player->pos);
+
+        for (int i = 0; i < mData.doors->len; i++){
+            // printf("Door is being drawn at pos")
+            Door door = mData.doors->data[i];
+            DrawRectangle((int)door->pos.x,(int) door->pos.y, 15, 15, GREEN);
+        }
 
         // DrawCircleV(playerPos, 20, RED);
         DrawRectangleRec(player->rect, BLUE);

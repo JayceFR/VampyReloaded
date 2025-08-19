@@ -38,7 +38,20 @@ struct rect{
 };
 typedef struct rect *rect;
 
-extern hash mapCreate(void);
+struct Door{
+  Vector2 pos; 
+  int ax, ay;
+  int bx, by;
+  bool locked;
+};
+typedef struct Door *Door;
+
+typedef struct{
+  hash map;
+  dynarray doors; 
+} mapData;
+
+extern mapData mapCreate(void);
 extern void mapDraw(hash map, Vector2 player_pos);
 extern dynarray rectsAround(hash map, Vector2 player_pos);
 extern void mapFree(hash map);

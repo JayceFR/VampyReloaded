@@ -29,7 +29,8 @@ rect mapGetRecAt(hash map, int x, int y){
 
 #define CHUNK_SIZE 64   // one puzzle map
 #define WORLD_W 3
-#define WORLD_H 3
+#define WORLD_H 1
+#define DOORS_SIZE (((WORLD_W - 1) * WORLD_H) + ((WORLD_H - 1) * WORLD_W))
 #define GAME_WIDTH (WORLD_W * CHUNK_SIZE)
 #define GAME_HEIGHT (WORLD_H * CHUNK_SIZE)
 #define MAX_ROOMS 8
@@ -143,32 +144,100 @@ static Room* pick_northmost(Room *rs, int n) {
 static void connect_room_centers_world(TILES *world, int W, int H,
                                        Room *a, int ax, int ay,
                                        Room *b, int bx, int by,
-                                       int corridorWidth)
+                                       int corridorWidth, dynarray doors)
 {
-    int x1 = a->x + a->w/2 + ax*CHUNK_SIZE;
-    int y1 = a->y + a->h/2 + ay*CHUNK_SIZE;
-    int x2 = b->x + b->w/2 + bx*CHUNK_SIZE;
-    int y2 = b->y + b->h/2 + by*CHUNK_SIZE;
-    carve_corridor_grid(world, W, H, x1,y1,x2,y2, corridorWidth);
-}
-
-
-// -------- connect neighbors ----------
-void connectRooms(TILES world[GAME_HEIGHT][GAME_WIDTH],
-                  Room *a, int ax, int ay,
-                  Room *b, int bx, int by)
-{
+    // room centers in *world tile* coords
     int x1 = a->x + a->w/2 + ax*CHUNK_SIZE;
     int y1 = a->y + a->h/2 + ay*CHUNK_SIZE;
     int x2 = b->x + b->w/2 + bx*CHUNK_SIZE;
     int y2 = b->y + b->h/2 + by*CHUNK_SIZE;
 
-    carveCorridor(world, x1, y1, x2, y2, 3);
+    // 1) carve the corridor (random L orientation inside)
+    carve_corridor_grid(world, W, H, x1, y1, x2, y2, corridorWidth);
+
+    // 2) find crossing tile on the chunk boundary
+    int doorTileX = -1, doorTileY = -1;
+
+    if (ay == by && ax + 1 == bx) {
+        // ---- horizontal neighbors: boundary is a vertical line ----
+        int boundaryX = bx * CHUNK_SIZE; // leftmost column of the right chunk
+
+        // Try both possible L-crossing rows (y1 for H-first, y2 for V-first),
+        // widened by corridorWidth.
+        int ys[2] = { y1, y2 };
+        for (int i = 0; i < 2 && doorTileX == -1; ++i) {
+            for (int dy = -corridorWidth/2; dy <= corridorWidth/2 && doorTileX == -1; ++dy) {
+                int yy = ys[i] + dy;
+                if (IN_BOUNDS(boundaryX, yy, W, H) && CELL(world, W, boundaryX, yy) == DIRT) {
+                    doorTileX = boundaryX;
+                    doorTileY = yy;
+                }
+            }
+        }
+        // Fallback: scan a small vertical band between y1..y2 on the boundary
+        if (doorTileX == -1) {
+            int ya = (y1 < y2 ? y1 : y2), yb = (y1 > y2 ? y1 : y2);
+            for (int yy = ya; yy <= yb && doorTileX == -1; ++yy) {
+                if (IN_BOUNDS(boundaryX, yy, W, H) && CELL(world, W, boundaryX, yy) == DIRT) {
+                    doorTileX = boundaryX;
+                    doorTileY = yy;
+                }
+            }
+        }
+    } else if (ax == bx && ay + 1 == by) {
+        // ---- vertical neighbors: boundary is a horizontal line ----
+        int boundaryY = by * CHUNK_SIZE; // top row of the bottom chunk
+
+        // Try both possible L-crossing columns (x1 for V-first, x2 for H-first),
+        // widened by corridorWidth.
+        int xs[2] = { x1, x2 };
+        for (int i = 0; i < 2 && doorTileY == -1; ++i) {
+            for (int dx = -corridorWidth/2; dx <= corridorWidth/2 && doorTileY == -1; ++dx) {
+                int xx = xs[i] + dx;
+                if (IN_BOUNDS(xx, boundaryY, W, H) && CELL(world, W, xx, boundaryY) == DIRT) {
+                    doorTileX = xx;
+                    doorTileY = boundaryY;
+                }
+            }
+        }
+        // Fallback: scan a small horizontal band between x1..x2 on the boundary
+        if (doorTileY == -1) {
+            int xa = (x1 < x2 ? x1 : x2), xb = (x1 > x2 ? x1 : x2);
+            for (int xx = xa; xx <= xb && doorTileY == -1; ++xx) {
+                if (IN_BOUNDS(xx, boundaryY, W, H) && CELL(world, W, xx, boundaryY) == DIRT) {
+                    doorTileX = xx;
+                    doorTileY = boundaryY;
+                }
+            }
+        }
+    } else {
+        // Not direct neighbors (shouldn't happen in your calls) — fallback to midpoint
+        doorTileX = (x1 + x2) / 2;
+        doorTileY = (y1 + y2) / 2;
+    }
+
+    // 3) store door in pixel coords (top-left of tile)
+    if (doorTileX != -1) {
+        Door door = malloc(sizeof(struct Door));
+        door->ax = x1;
+        door->ay = y1;
+        door->bx = x2;
+        door->by = y2;
+        door->locked = true;
+
+        door->pos = (Vector2){
+            doorTileX * TILE_SIZE,
+            doorTileY * TILE_SIZE
+        };
+        add_dynarray(doors, door);
+    }
 }
 
-void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH]) {
+
+dynarray generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH]) {
     Room worldRooms[WORLD_H][WORLD_W][MAX_ROOMS];
     int roomCount[WORLD_H][WORLD_W];
+    dynarray doors = create_dynarray(NULL, NULL);
 
     // fill with stone
     for (int y=0;y<GAME_HEIGHT;y++)
@@ -193,12 +262,12 @@ void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH]) {
             if (roomCount[cy][cx] && roomCount[cy][cx+1]){
                 Room *leftA  = pick_eastmost(worldRooms[cy][cx],   roomCount[cy][cx]);
                 Room *rightB = pick_westmost(worldRooms[cy][cx+1], roomCount[cy][cx+1]);
-                if (leftA && rightB) connect_room_centers_world(&world[0][0], GAME_WIDTH, GAME_HEIGHT, leftA, cx, cy, rightB, cx+1, cy, 3);
+                if (leftA && rightB) connect_room_centers_world(&world[0][0], GAME_WIDTH, GAME_HEIGHT, leftA, cx, cy, rightB, cx+1, cy, 3, doors);
 
                 // second redundancy: random rooms
                 Room *ra = &worldRooms[cy][cx][rand()%roomCount[cy][cx]];
                 Room *rb = &worldRooms[cy][cx+1][rand()%roomCount[cy][cx+1]];
-                connect_room_centers_world(&world[0][0], GAME_WIDTH, GAME_HEIGHT, ra, cx, cy, rb, cx+1, cy, 3);
+                connect_room_centers_world(&world[0][0], GAME_WIDTH, GAME_HEIGHT, ra, cx, cy, rb, cx+1, cy, 3, doors);
             }
         }
     }
@@ -209,14 +278,16 @@ void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH]) {
             if (roomCount[cy][cx] && roomCount[cy+1][cx]){
                 Room *topA  = pick_southmost(worldRooms[cy][cx],     roomCount[cy][cx]);
                 Room *botB  = pick_northmost(worldRooms[cy+1][cx],   roomCount[cy+1][cx]);
-                if (topA && botB) connect_room_centers_world(&world[0][0], GAME_WIDTH, GAME_HEIGHT, topA, cx, cy, botB, cx, cy+1, 3);
+                if (topA && botB) connect_room_centers_world(&world[0][0], GAME_WIDTH, GAME_HEIGHT, topA, cx, cy, botB, cx, cy+1, 3, doors);
 
                 Room *ra = &worldRooms[cy][cx][rand()%roomCount[cy][cx]];
                 Room *rb = &worldRooms[cy+1][cx][rand()%roomCount[cy+1][cx]];
-                connect_room_centers_world(&world[0][0], GAME_WIDTH, GAME_HEIGHT, ra, cx, cy, rb, cx, cy+1, 3);
+                connect_room_centers_world(&world[0][0], GAME_WIDTH, GAME_HEIGHT, ra, cx, cy, rb, cx, cy+1, 3, doors);
             }
         }
     }
+
+    return doors;
 
     // (optional but recommended) flood-fill connectivity fixup:
     // If some DIRT is isolated, punch a minimal corridor through the nearest wall.
@@ -237,13 +308,14 @@ void printMap(TILES map[HEIGHT][WIDTH]) {
   }
 }
 
-hash mapCreate(){
-  hash map = hashCreate(&tilesPrint, &tilesFree, NULL);
+mapData mapCreate(){
+  mapData data; 
+  data.map = hashCreate(&tilesPrint, &tilesFree, NULL);
 
   TILES mappy[GAME_HEIGHT][GAME_WIDTH];
   srand(time(NULL));
   // generatePuzzleMap(mappy);
-  generateWorld(mappy);
+  data.doors = generateWorld(mappy);
   for (int y = 0; y < GAME_HEIGHT; y++){
     for (int x = 0; x < GAME_WIDTH; x++){
       rect r = malloc(sizeof(struct rect));
@@ -261,10 +333,10 @@ hash mapCreate(){
 
       char buffer[22];
       sprintf(buffer, "%d:%d", x, y);
-      hashSet(map, buffer, r);
+      hashSet(data.map, buffer, r);
     }
   }
-  return map; 
+  return data; 
 }
 
 void rectFree(DA_ELEMENT el){
