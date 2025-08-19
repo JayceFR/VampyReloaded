@@ -27,132 +27,203 @@ rect mapGetRecAt(hash map, int x, int y){
   return hashFind(map, buffer);
 }
 
+#define CHUNK_SIZE 64   // one puzzle map
+#define WORLD_W 3
+#define WORLD_H 3
+#define GAME_WIDTH (WORLD_W * CHUNK_SIZE)
+#define GAME_HEIGHT (WORLD_H * CHUNK_SIZE)
+#define MAX_ROOMS 8
+
 typedef struct {
     int x, y, w, h;
 } Room;
 
-#define MAX_ROOMS 20
+// typedef enum { STONE, DIRT } TILES;
 
-void carveCorridor(TILES map[HEIGHT][WIDTH], int x1, int y1, int x2, int y2, int corridorWidth) {
-    // L-shaped corridor with thickness
-    if (rand() % 2) {
+// -------- corridor carving ----------
+#define IN_BOUNDS(nx,ny,W,H) ((nx) >= 0 && (nx) < (W) && (ny) >= 0 && (ny) < (H))
+#define CELL(grid,W,x,y)     (grid[(y)*(W) + (x)])
+
+// dimension-agnostic corridor carving (L-first or V-first, widened)
+static void carve_corridor_grid(TILES *grid, int W, int H,
+                                int x1, int y1, int x2, int y2, int width)
+{
+    if (rand() & 1) {
         // horizontal first
-        for (int x = (x1<x2?x1:x2); x <= (x1>x2?x1:x2); x++) {
-            for (int w = -corridorWidth/2; w <= corridorWidth/2; w++) {
-                if (y1+w > 0 && y1+w < HEIGHT-1)
-                    map[y1+w][x] = DIRT;
+        int xa = (x1 < x2 ? x1 : x2), xb = (x1 > x2 ? x1 : x2);
+        for (int x = xa; x <= xb; x++)
+            for (int dy = -width/2; dy <= width/2; dy++) {
+                int ny = y1 + dy;
+                if (IN_BOUNDS(x, ny, W, H)) CELL(grid, W, x, ny) = DIRT;
             }
-        }
-        for (int y = (y1<y2?y1:y2); y <= (y1>y2?y1:y2); y++) {
-            for (int w = -corridorWidth/2; w <= corridorWidth/2; w++) {
-                if (x2+w > 0 && x2+w < WIDTH-1)
-                    map[y][x2+w] = DIRT;
+        int ya = (y1 < y2 ? y1 : y2), yb = (y1 > y2 ? y1 : y2);
+        for (int y = ya; y <= yb; y++)
+            for (int dx = -width/2; dx <= width/2; dx++) {
+                int nx = x2 + dx;
+                if (IN_BOUNDS(nx, y, W, H)) CELL(grid, W, nx, y) = DIRT;
             }
-        }
     } else {
         // vertical first
-        for (int y = (y1<y2?y1:y2); y <= (y1>y2?y1:y2); y++) {
-            for (int w = -corridorWidth/2; w <= corridorWidth/2; w++) {
-                if (x1+w > 0 && x1+w < WIDTH-1)
-                    map[y][x1+w] = DIRT;
+        int ya = (y1 < y2 ? y1 : y2), yb = (y1 > y2 ? y1 : y2);
+        for (int y = ya; y <= yb; y++)
+            for (int dx = -width/2; dx <= width/2; dx++) {
+                int nx = x1 + dx;
+                if (IN_BOUNDS(nx, y, W, H)) CELL(grid, W, nx, y) = DIRT;
             }
-        }
-        for (int x = (x1<x2?x1:x2); x <= (x1>x2?x1:x2); x++) {
-            for (int w = -corridorWidth/2; w <= corridorWidth/2; w++) {
-                if (y2+w > 0 && y2+w < HEIGHT-1)
-                    map[y2+w][x] = DIRT;
+        int xa = (x1 < x2 ? x1 : x2), xb = (x1 > x2 ? x1 : x2);
+        for (int x = xa; x <= xb; x++)
+            for (int dy = -width/2; dy <= width/2; dy++) {
+                int ny = y2 + dy;
+                if (IN_BOUNDS(x, ny, W, H)) CELL(grid, W, x, ny) = DIRT;
             }
-        }
     }
 }
 
-void generatePuzzleMap(TILES map[HEIGHT][WIDTH]) {
-    // Step 1: Fill with walls
-    for (int y = 0; y < HEIGHT; y++) {
-        for (int x = 0; x < WIDTH; x++) {
-            map[y][x] = STONE;
-        }
-    }
 
-    Room rooms[MAX_ROOMS];
+// -------- generate one chunk ----------
+int generatePuzzleMap(TILES chunk[CHUNK_SIZE][CHUNK_SIZE], Room rooms[MAX_ROOMS]) {
+    // fill
+    for (int y=0; y<CHUNK_SIZE; ++y)
+        for (int x=0; x<CHUNK_SIZE; ++x)
+            chunk[y][x] = STONE;
+
+    // rooms (keep your overlap logic if you want)
     int roomCount = 0;
-
-    // Step 2: Place random rooms
-    for (int i = 0; i < MAX_ROOMS; i++) {
-        int w = 6 + rand() % 6; // room width 6–11
-        int h = 6 + rand() % 6; // room height 6–11
-        int x = 2 + rand() % (WIDTH - w - 2);
-        int y = 2 + rand() % (HEIGHT - h - 2);
-
-        // carve room
-        for (int yy = y; yy < y + h; yy++) {
-            for (int xx = x; xx < x + w; xx++) {
-                map[yy][xx] = DIRT;
-            }
-        }
-
-        rooms[roomCount++] = (Room){x, y, w, h};
+    for (int i=0; i<MAX_ROOMS; ++i) {
+        int w = 6 + rand()%6, h = 6 + rand()%6;
+        int x = 2 + rand()%(CHUNK_SIZE - w - 2);
+        int y = 2 + rand()%(CHUNK_SIZE - h - 2);
+        for (int yy=y; yy<y+h; ++yy)
+            for (int xx=x; xx<x+w; ++xx)
+                chunk[yy][xx] = DIRT;
+        rooms[roomCount++] = (Room){x,y,w,h};
     }
 
-    // Step 3: Connect rooms with wider corridors
-    int corridorWidth = 3;  // adjust this (2, 3, 4…) for thicker paths
-    for (int i = 1; i < roomCount; i++) {
+    // connect rooms in-chunk (spanning path + occasional extra)
+    int corridorWidth = 3;
+    for (int i=1; i<roomCount; ++i) {
         int x1 = rooms[i-1].x + rooms[i-1].w/2;
         int y1 = rooms[i-1].y + rooms[i-1].h/2;
-        int x2 = rooms[i].x + rooms[i].w/2;
-        int y2 = rooms[i].y + rooms[i].h/2;
+        int x2 = rooms[i].x   + rooms[i].w/2;
+        int y2 = rooms[i].y   + rooms[i].h/2;
+        carve_corridor_grid(&chunk[0][0], CHUNK_SIZE, CHUNK_SIZE, x1,y1,x2,y2,corridorWidth);
 
-        carveCorridor(map, x1, y1, x2, y2, corridorWidth);
+        if ((rand()%3)==0) { // an extra loop edge
+            int j = rand()%i;
+            int rx = rooms[j].x + rooms[j].w/2;
+            int ry = rooms[j].y + rooms[j].h/2;
+            carve_corridor_grid(&chunk[0][0], CHUNK_SIZE, CHUNK_SIZE, x1,y1,rx,ry,corridorWidth);
+        }
     }
 
-    // Step 4: Outer border
-    for (int i = 0; i < WIDTH; i++) {
-        map[0][i] = STONE;
-        map[HEIGHT - 1][i] = STONE;
-    }
-    for (int i = 0; i < HEIGHT; i++) {
-        map[i][0] = STONE;
-        map[i][WIDTH - 1] = STONE;
-    }
+    return roomCount;
 }
 
-// void generateRandomWalkerMap(TILES map[HEIGHT][WIDTH]) {
-//     // Fill with walls first
-//     for (int y = 0; y < HEIGHT; y++) {
-//         for (int x = 0; x < WIDTH; x++) {
-//             map[y][x] = STONE;
-//         }
-//     }
+static Room* pick_eastmost(Room *rs, int n) {
+    Room *best = NULL; int bestX = -1;
+    for (int i=0;i<n;i++){ int rx = rs[i].x + rs[i].w; if (rx > bestX){bestX=rx; best=&rs[i];}}
+    return best;
+}
+static Room* pick_westmost(Room *rs, int n) {
+    Room *best = NULL; int bestX = INT_MAX;
+    for (int i=0;i<n;i++){ int rx = rs[i].x; if (rx < bestX){bestX=rx; best=&rs[i];}}
+    return best;
+}
+static Room* pick_southmost(Room *rs, int n) {
+    Room *best = NULL; int bestY = -1;
+    for (int i=0;i<n;i++){ int ry = rs[i].y + rs[i].h; if (ry > bestY){bestY=ry; best=&rs[i];}}
+    return best;
+}
+static Room* pick_northmost(Room *rs, int n) {
+    Room *best = NULL; int bestY = INT_MAX;
+    for (int i=0;i<n;i++){ int ry = rs[i].y; if (ry < bestY){bestY=ry; best=&rs[i];}}
+    return best;
+}
 
-//     int x = WIDTH / 2;
-//     int y = HEIGHT / 2;
+static void connect_room_centers_world(TILES *world, int W, int H,
+                                       Room *a, int ax, int ay,
+                                       Room *b, int bx, int by,
+                                       int corridorWidth)
+{
+    int x1 = a->x + a->w/2 + ax*CHUNK_SIZE;
+    int y1 = a->y + a->h/2 + ay*CHUNK_SIZE;
+    int x2 = b->x + b->w/2 + bx*CHUNK_SIZE;
+    int y2 = b->y + b->h/2 + by*CHUNK_SIZE;
+    carve_corridor_grid(world, W, H, x1,y1,x2,y2, corridorWidth);
+}
 
-//     int floorCount = 0;
-//     int targetFloorCount = (WIDTH * HEIGHT) / 2; // carve ~50% floor
 
-//     while (floorCount < targetFloorCount) {
-//         if (map[y][x] == STONE) {
-//             map[y][x] = DIRT;
-//             floorCount++;
-//         }
+// -------- connect neighbors ----------
+void connectRooms(TILES world[GAME_HEIGHT][GAME_WIDTH],
+                  Room *a, int ax, int ay,
+                  Room *b, int bx, int by)
+{
+    int x1 = a->x + a->w/2 + ax*CHUNK_SIZE;
+    int y1 = a->y + a->h/2 + ay*CHUNK_SIZE;
+    int x2 = b->x + b->w/2 + bx*CHUNK_SIZE;
+    int y2 = b->y + b->h/2 + by*CHUNK_SIZE;
 
-//         int dir = rand() % 4;
-//         if (dir == 0 && x > 1) x--;               // left
-//         if (dir == 1 && x < WIDTH - 2) x++;       // right
-//         if (dir == 2 && y > 1) y--;               // up
-//         if (dir == 3 && y < HEIGHT - 2) y++;      // down
-//     }
+    carveCorridor(world, x1, y1, x2, y2, 3);
+}
 
-//     // Put a stone border so things are closed off
-//     for (int i = 0; i < WIDTH; i++) {
-//         map[0][i] = STONE;
-//         map[HEIGHT - 1][i] = STONE;
-//     }
-//     for (int i = 0; i < HEIGHT; i++) {
-//         map[i][0] = STONE;
-//         map[i][WIDTH - 1] = STONE;
-//     }
-// }
+void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH]) {
+    Room worldRooms[WORLD_H][WORLD_W][MAX_ROOMS];
+    int roomCount[WORLD_H][WORLD_W];
+
+    // fill with stone
+    for (int y=0;y<GAME_HEIGHT;y++)
+        for (int x=0;x<GAME_WIDTH;x++)
+            world[y][x]=STONE;
+
+    // generate chunks and paste
+    for (int cy=0; cy<WORLD_H; cy++){
+        for (int cx=0; cx<WORLD_W; cx++){
+            TILES chunk[CHUNK_SIZE][CHUNK_SIZE];
+            int cnt = generatePuzzleMap(chunk, worldRooms[cy][cx]);
+            roomCount[cy][cx] = cnt;
+            for (int y=0; y<CHUNK_SIZE; y++)
+                for (int x=0; x<CHUNK_SIZE; x++)
+                    world[cy*CHUNK_SIZE+y][cx*CHUNK_SIZE+x] = chunk[y][x];
+        }
+    }
+
+    // connect horizontally (two connectors per border)
+    for (int cy=0; cy<WORLD_H; cy++){
+        for (int cx=0; cx<WORLD_W-1; cx++){
+            if (roomCount[cy][cx] && roomCount[cy][cx+1]){
+                Room *leftA  = pick_eastmost(worldRooms[cy][cx],   roomCount[cy][cx]);
+                Room *rightB = pick_westmost(worldRooms[cy][cx+1], roomCount[cy][cx+1]);
+                if (leftA && rightB) connect_room_centers_world(&world[0][0], GAME_WIDTH, GAME_HEIGHT, leftA, cx, cy, rightB, cx+1, cy, 3);
+
+                // second redundancy: random rooms
+                Room *ra = &worldRooms[cy][cx][rand()%roomCount[cy][cx]];
+                Room *rb = &worldRooms[cy][cx+1][rand()%roomCount[cy][cx+1]];
+                connect_room_centers_world(&world[0][0], GAME_WIDTH, GAME_HEIGHT, ra, cx, cy, rb, cx+1, cy, 3);
+            }
+        }
+    }
+
+    // connect vertically (two connectors per border)
+    for (int cy=0; cy<WORLD_H-1; cy++){
+        for (int cx=0; cx<WORLD_W; cx++){
+            if (roomCount[cy][cx] && roomCount[cy+1][cx]){
+                Room *topA  = pick_southmost(worldRooms[cy][cx],     roomCount[cy][cx]);
+                Room *botB  = pick_northmost(worldRooms[cy+1][cx],   roomCount[cy+1][cx]);
+                if (topA && botB) connect_room_centers_world(&world[0][0], GAME_WIDTH, GAME_HEIGHT, topA, cx, cy, botB, cx, cy+1, 3);
+
+                Room *ra = &worldRooms[cy][cx][rand()%roomCount[cy][cx]];
+                Room *rb = &worldRooms[cy+1][cx][rand()%roomCount[cy+1][cx]];
+                connect_room_centers_world(&world[0][0], GAME_WIDTH, GAME_HEIGHT, ra, cx, cy, rb, cx, cy+1, 3);
+            }
+        }
+    }
+
+    // (optional but recommended) flood-fill connectivity fixup:
+    // If some DIRT is isolated, punch a minimal corridor through the nearest wall.
+    // Implementing a full BFS + component-merge is ~50 lines; shout if you want me to drop that in.
+}
+
+
 
 // --- Simple ASCII preview ---
 void printMap(TILES map[HEIGHT][WIDTH]) {
@@ -169,11 +240,12 @@ void printMap(TILES map[HEIGHT][WIDTH]) {
 hash mapCreate(){
   hash map = hashCreate(&tilesPrint, &tilesFree, NULL);
 
-  TILES mappy[HEIGHT][WIDTH];
+  TILES mappy[GAME_HEIGHT][GAME_WIDTH];
   srand(time(NULL));
-  generatePuzzleMap(mappy);
-  for (int y = 0; y < HEIGHT; y++){
-    for (int x = 0; x < WIDTH; x++){
+  // generatePuzzleMap(mappy);
+  generateWorld(mappy);
+  for (int y = 0; y < GAME_HEIGHT; y++){
+    for (int x = 0; x < GAME_WIDTH; x++){
       rect r = malloc(sizeof(struct rect));
       r->rectange = (Rectangle){ x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE };
       r->tile = mappy[y][x];
