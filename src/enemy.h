@@ -22,6 +22,9 @@ struct Enemy{
     int currentStep;
     entity e; 
     State state;
+    Vector2 idleTarget; 
+    float idleTimer; 
+    bool movingIdle;
 };
 typedef struct Enemy *Enemy;  
 

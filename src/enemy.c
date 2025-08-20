@@ -281,7 +281,47 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
         return (Vector2){0, 0};
     }
     if (enemy->state == IDLE){
-        return (Vector2) {0,0};
+        // Pick random spots in LOS and move to them 
+        // need to take in angle into account 
+        if (enemy->idleTimer <= 0) {
+            // switch between waiting and moving
+            if (enemy->movingIdle) {
+                // just finished moving → start waiting
+                enemy->movingIdle = false;
+                enemy->idleTimer = GetRandomValue(30, 90) / 60.0f; // wait 0.5s–1.5s
+                return (Vector2){0, 0};
+            } else {
+                // just finished waiting → pick a new target
+                enemy->movingIdle = true;
+                enemy->idleTimer = GetRandomValue(60, 180) / 60.0f; // move 1–3s
+
+                // Pick a random target nearby
+                float angle = GetRandomValue(0, 360) * DEG2RAD;
+                float dist = GetRandomValue(20, 80); // wander radius
+                enemy->idleTarget = Vector2Add(enemy->e->pos,
+                    (Vector2){ cosf(angle) * dist, sinf(angle) * dist });
+            }
+        }
+
+        // Decrease timer
+        enemy->idleTimer -= GetFrameTime();
+
+        if (enemy->movingIdle) {
+            Vector2 toTarget = Vector2Subtract(enemy->idleTarget, enemy->e->pos);
+
+            // If reached target, stop early
+            if (Vector2Length(toTarget) < 2.0f) {
+                enemy->movingIdle = false;
+                enemy->idleTimer = GetRandomValue(30, 90) / 60.0f; // wait again
+                return (Vector2){0, 0};
+            }
+
+            Vector2 dir = Vector2Normalize(toTarget);
+            return Vector2Scale(dir, 1.0f); // slower than chasing
+        }
+
+        return (Vector2){0,0};
+
     }
 }
 
@@ -292,5 +332,6 @@ Enemy enemyCreate(int startX, int startY, int width, int height){
     enemy->e = entityCreate(startX, startY, width, height);
     enemy->path = NULL;
     enemy->state = IDLE;
+    enemy->idleTimer = 0;
     return enemy;
 }
