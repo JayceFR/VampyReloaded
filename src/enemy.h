@@ -13,7 +13,7 @@
 typedef enum {
     IDLE, 
     ACTIVE,
-} State; 
+} State;
 
 struct Enemy{
     dynarray path;
