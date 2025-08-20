@@ -28,7 +28,7 @@ rect mapGetRecAt(hash map, int x, int y){
 }
 
 #define CHUNK_SIZE 64   // one puzzle map
-#define WORLD_W 3
+#define WORLD_W 2
 #define WORLD_H 1
 #define DOORS_SIZE (((WORLD_W - 1) * WORLD_H) + ((WORLD_H - 1) * WORLD_W))
 #define GAME_WIDTH (WORLD_W * CHUNK_SIZE)
@@ -219,10 +219,15 @@ static void connect_room_centers_world(TILES *world, int W, int H,
     // 3) store door in pixel coords (top-left of tile)
     if (doorTileX != -1) {
         Door door = malloc(sizeof(struct Door));
-        door->ax = x1;
-        door->ay = y1;
-        door->bx = x2;
-        door->by = y2;
+        door->ax = ax * CHUNK_SIZE;
+        door->ay = ay * CHUNK_SIZE;
+        door->aw = CHUNK_SIZE; 
+        door->ah = CHUNK_SIZE; 
+
+        door->bx = bx * CHUNK_SIZE;
+        door->by = by * CHUNK_SIZE;
+        door->bw = CHUNK_SIZE; 
+        door->bh = CHUNK_SIZE;
         door->locked = true;
 
         door->pos = (Vector2){
@@ -293,6 +298,26 @@ dynarray generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH]) {
     // If some DIRT is isolated, punch a minimal corridor through the nearest wall.
     // Implementing a full BFS + component-merge is ~50 lines; shout if you want me to drop that in.
 }
+
+Door getPlayerRoomDoor(dynarray doors, Vector2 playerPos) {
+    for (int i = 0; i < doors->len; i++) {
+        Door door = doors->data[i];
+
+        // check room A bounds
+        if (playerPos.x >= door->ax*TILE_SIZE && playerPos.x < (door->ax + door->aw)*TILE_SIZE &&
+            playerPos.y >= door->ay*TILE_SIZE && playerPos.y < (door->ay + door->ah)*TILE_SIZE) {
+            return door; // in room A
+        }
+
+        // check room B bounds
+        if (playerPos.x >= door->bx*TILE_SIZE && playerPos.x < (door->bx + door->bw)*TILE_SIZE &&
+            playerPos.y >= door->by*TILE_SIZE && playerPos.y < (door->by + door->bh)*TILE_SIZE) {
+            return door; // in room B
+        }
+    }
+    return NULL; // not in any room
+}
+
 
 
 

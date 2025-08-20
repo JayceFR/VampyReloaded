@@ -496,11 +496,17 @@ int main() {
 
         mapDraw(map, player->pos);
 
-        for (int i = 0; i < mData.doors->len; i++){
-            // printf("Door is being drawn at pos")
-            Door door = mData.doors->data[i];
-            DrawRectangle((int)door->pos.x,(int) door->pos.y, 15, 15, GREEN);
+        Door door = getPlayerRoomDoor(mData.doors, player->pos);
+        if (door != NULL){
+            DrawRectangle((int)door->pos.x,(int) door->pos.y, 15, 15, GREEN);   
         }
+
+        // for (int i = 0; i < mData.doors->len; i++){
+        //     Door door = mData.doors->data[i];
+        //     if (player->pos.x > door->ax && player->pos.x < door->bx && player->pos.y > door->ay && player->pos.y < door->by){
+        //         DrawRectangle((int)door->pos.x,(int) door->pos.y, 15, 15, GREEN);
+        //     }
+        // }
 
         // DrawCircleV(playerPos, 20, RED);
         DrawRectangleRec(player->rect, BLUE);

@@ -42,6 +42,8 @@ struct Door{
   Vector2 pos; 
   int ax, ay;
   int bx, by;
+  int aw, bw; 
+  int ah, bh; 
   bool locked;
 };
 typedef struct Door *Door;
@@ -58,5 +60,6 @@ extern void mapFree(hash map);
 extern rect mapGetRecAt(hash map, int x, int y);
 // extern void generateRandomWalkerMap(TILES map[HEIGHT][WIDTH]);
 extern void printMap(TILES map[HEIGHT][WIDTH]);
+extern Door getPlayerRoomDoor(dynarray doors, Vector2 playerPos);
 
 #endif
