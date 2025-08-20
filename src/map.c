@@ -27,7 +27,6 @@ rect mapGetRecAt(hash map, int x, int y){
   return hashFind(map, buffer);
 }
 
-#define CHUNK_SIZE 64   // one puzzle map
 #define WORLD_W 2
 #define WORLD_H 1
 #define DOORS_SIZE (((WORLD_W - 1) * WORLD_H) + ((WORLD_H - 1) * WORLD_W))
@@ -396,8 +395,8 @@ void mapDraw(hash map, Vector2 player_pos){
   int gy = ((int) player_pos.y) / TILE_SIZE;
   // Init the map for 3 grids around the player first 
   char buffer[22];
-  for (int x = gx - 32; x <= gx + 32; x++){
-    for (int y = gy - 32; y <= gy + 32; y++){
+  for (int x = gx - 64; x <= gx + 64; x++){
+    for (int y = gy - 64; y <= gy + 64; y++){
       sprintf(buffer, "%d:%d", x, y);
       TILES* tile; 
       if ((tile = hashFind(map, buffer)) != NULL){

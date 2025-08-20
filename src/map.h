@@ -5,7 +5,10 @@
 #include "hash.h"
 #include "dynarray.h"
 
+
 #define TILE_SIZE 16 
+#define CHUNK_SIZE 64   // one puzzle map
+#define ROOM_SIZE (TILE_SIZE * CHUNK_SIZE)
 
 #define WIDTH  64
 #define HEIGHT 64

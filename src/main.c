@@ -11,6 +11,7 @@
 #include "map.h"
 #include "physics.h"
 #include "enemy.h"
+#include "camera.h"
 // #include <math.h>
 
 #define MAX_BOIDS 100
@@ -375,6 +376,10 @@ Vector2 randomVelocity(float minSpeed, float maxSpeed) {
     // }
 // }
 
+// float Lerp(float a, float b, float t) {
+//     return a + (b - a) * t;
+// }
+
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Vampy Reloaded");
@@ -480,14 +485,16 @@ int main() {
         calculateSteering(flockGrid, data);
         updateBoids(flockGrid, averageVels);
 
-        float followSpeed = 4.0f; 
-        Vector2 diff = {
-            player->pos.x - camera.target.x,
-            player->pos.y - camera.target.y
-        };
+        // float followSpeed = 4.0f; 
+        // Vector2 diff = {
+        //     player->pos.x - camera.target.x,
+        //     player->pos.y - camera.target.y
+        // };
 
-        camera.target.x += diff.x * followSpeed * GetFrameTime();
-        camera.target.y += diff.y * followSpeed * GetFrameTime(); 
+        // camera.target.x += diff.x * followSpeed * GetFrameTime();
+        // camera.target.y += diff.y * followSpeed * GetFrameTime(); 
+
+        UpdateCameraRoom(&camera, player);
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
