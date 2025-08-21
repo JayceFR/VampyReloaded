@@ -25,10 +25,13 @@ struct Enemy{
     Vector2 idleTarget; 
     float idleTimer; 
     bool movingIdle;
+    float angle; 
 };
 typedef struct Enemy *Enemy;  
 
 extern Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map);
 extern Enemy enemyCreate(int startX, int startY, int width, int height);
+extern void updateAngle(Enemy e, Vector2 vel);
+extern void enemyDraw(Enemy e);
 
 #endif

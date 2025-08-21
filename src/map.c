@@ -428,10 +428,10 @@ void mapDraw(hash map, Vector2 player_pos){
         int worldX = (x * TILE_SIZE);
         int worldY = (y * TILE_SIZE);
         if (*tile == DIRT){
-          DrawRectangle(worldX, worldY, TILE_SIZE, TILE_SIZE, YELLOW);
+          DrawRectangle(worldX, worldY, TILE_SIZE, TILE_SIZE, GRAY);
         }
         if (*tile == STONE){
-          DrawRectangle(worldX, worldY, TILE_SIZE, TILE_SIZE, GRAY);
+          DrawRectangle(worldX, worldY, TILE_SIZE, TILE_SIZE, BLACK);
         }
       }
     }

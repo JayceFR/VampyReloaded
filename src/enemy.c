@@ -175,15 +175,21 @@ static dynarray pathFinding(Vector2 playerPos, Vector2 enemyPos, hash map){
 
 }
 
+void updateAngle(Enemy e, Vector2 vel){
+    e->angle = atan2f(vel.y , vel.x);
+}
+
 Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
 
     // update enemy state 
-    if (Vector2Distance(enemy->e->pos, player->pos) < 100){
+    if (Vector2Distance(enemy->e->pos, player->pos) < 200){
         enemy->state = ACTIVE;
     }
     else{
         enemy->state = IDLE;
     }
+
+    Vector2 vel;
 
     if (enemy->state == ACTIVE){
         // if LOS is true then move towards the player directly 
@@ -219,10 +225,10 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
 
         free_dynarray(rects);
 
-        if (!blocked) {
-            // Chase with LOS 
-            return Vector2Scale(dir, 2.0f);
-        }
+        // if (!blocked) {
+        //     // Chase with LOS 
+        //     return Vector2Scale(dir, 2.0f);
+        // }
 
         // LOS is blocked need to pathfind 
 
@@ -275,7 +281,9 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
                 };
 
                 Vector2 dir = Vector2Normalize(Vector2Subtract(nextPos, enemy->e->pos));
-                return Vector2Scale(dir, 2.0f);
+                vel = Vector2Scale(dir, 2.0f);
+                updateAngle(enemy, vel);
+                return vel; 
             }
         }
         return (Vector2){0, 0};
@@ -317,7 +325,9 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
             }
 
             Vector2 dir = Vector2Normalize(toTarget);
-            return Vector2Scale(dir, 1.0f); // slower than chasing
+            vel = Vector2Scale(dir, 1.0f);
+            updateAngle(enemy, vel);
+            return vel; // slower than chasing
         }
 
         return (Vector2){0,0};
@@ -333,5 +343,21 @@ Enemy enemyCreate(int startX, int startY, int width, int height){
     enemy->path = NULL;
     enemy->state = IDLE;
     enemy->idleTimer = 0;
+    enemy->angle = 0;
     return enemy;
+}
+
+void enemyDraw(Enemy e){
+    float torchRadius = 150;
+    float torchFOV = 60 * (PI/180); // 60 degree cone
+    DrawRectangleRec(e->e->rect, RED);
+    BeginBlendMode(BLEND_ADDITIVE); // Additive blending for glow
+    int segments = 50;
+    for (int i = 0; i <= segments; i++) {
+        float angle = e->angle - torchFOV/2 + (torchFOV / segments) * i;
+        Vector2 endPos = (Vector2){ e->e->pos.x + cos(angle)*torchRadius,
+                                    e->e->pos.y + sin(angle)*torchRadius };
+        DrawLineV(e->e->pos, endPos, ColorAlpha(YELLOW, 0.1f));
+    }
+    EndBlendMode();
 }

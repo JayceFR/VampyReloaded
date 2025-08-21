@@ -465,8 +465,9 @@ int main() {
         if ((enemies = hashFind(mData.enemies, enemyKey)) != NULL){
             for (int i = 0; i < enemies->len; i++){
                 Enemy e = enemies->data[i];
-                update(e->e, map, computeVelOfEnemy(e, player, map));
-                DrawRectangleRec(e->e->rect, RED);
+                Vector2 vel = computeVelOfEnemy(e, player, map);
+                update(e->e, map, vel);
+                enemyDraw(e);
             }
         }
 
@@ -479,7 +480,7 @@ int main() {
 
         // DrawCircleV(playerPos, 20, RED);
         DrawRectangleRec(player->rect, BLUE);
-        DrawRectangleRec(enemy->e->rect, RED);
+        // DrawRectangleRec(enemy->e->rect, RED);
         // DrawCircleV(swarmTarget, 5, GREEN); // visualize swarm target
         // DrawBoids(flockGrid);
 
