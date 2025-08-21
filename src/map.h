@@ -53,7 +53,7 @@ typedef struct Door *Door;
 
 typedef struct{
   hash map;
-  dynarray doors; 
+  hash enemies; 
 } mapData;
 
 extern mapData mapCreate(void);

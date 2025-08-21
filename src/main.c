@@ -322,65 +322,6 @@ Vector2 randomVelocity(float minSpeed, float maxSpeed) {
     return (Vector2){ cosf(angle) * speed, sinf(angle) * speed };
 }
 
-
-// Vector2 computeVelOfEnemy(entity enemy, entity player, hash map) {
-
-//     dynarray path = pathFinding(player->pos, enemy->pos, map);
-//     if (path != NULL){
-//         if (path->len > 0){
-//             printf("We found a path\n");
-//             pathNode lastNode = path->data[path->len - 1];
-//             Vector2 lastPos = {lastNode->x, lastNode->y};
-//             Vector2 dir = Vector2Normalize(Vector2Subtract(lastPos, enemy->pos));
-//             return Vector2Scale(dir, 2.0f);
-//         }
-//     }
-
-//     return (Vector2) {0, 0};
-
-    // Vector2 dir = Vector2Normalize(Vector2Subtract(player->pos, enemy->pos));
-    // Vector2 step = Vector2Scale(dir, 2.0f); 
-    // Vector2 ray = enemy->pos;
-    // float maxDist = Vector2Distance(enemy->pos, player->pos);
-
-    // dynarray rects = rectsAround(map, enemy->pos);
-
-    // float distTravelled = 0;
-    // bool blocked = false;
-
-    // while (distTravelled < maxDist) {
-    //     // hit player
-    //     if (CheckCollisionPointRec(ray, player->rect)) break;
-
-    //     // hit a wall
-    //     for (int i = 0; i < rects->len; i++) {
-    //         rect r = rects->data[i];
-    //         if (CheckCollisionPointRec(ray, r->rectange)) {
-    //             blocked = true;
-    //             break;
-    //         }
-    //     }
-    //     if (blocked) break;
-
-    //     // step forward
-    //     ray = Vector2Add(ray, step);
-    //     distTravelled += Vector2Length(step);
-    // }
-
-    // free_dynarray(rects);
-
-    // if (blocked) {
-    //     return (Vector2){0, 0}; // LoS blocked
-    // } else {
-    //     return Vector2Scale(dir, 2.0f); // chase
-    // }
-// }
-
-// float Lerp(float a, float b, float t) {
-//     return a + (b - a) * t;
-// }
-
-
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Vampy Reloaded");
     SetTargetFPS(60);
@@ -449,6 +390,11 @@ int main() {
     Image noise = GenImagePerlinNoise(256, 256, 50, 50, 0.4f);
 
     Enemy enemy = enemyCreate(50, 60, 15, 15);
+
+    int roomX, roomY;
+
+    char enemyKey[22];
+    dynarray enemies; 
     
     srand(time(NULL));
 
@@ -467,7 +413,14 @@ int main() {
 
         update(player, map, offset);
 
-        update(enemy->e, map, computeVelOfEnemy(enemy, player, map)); 
+        // update(enemy->e, map, computeVelOfEnemy(enemy, player, map)); 
+
+        roomX = ((int)player->pos.x) / ROOM_SIZE;
+        roomY = ((int)player->pos.y) / ROOM_SIZE;
+
+        sprintf(enemyKey, "%d:%d", roomX, roomY);
+
+
 
         // Update swarm target only every few seconds
         timeSinceUpdate += delta;
@@ -503,9 +456,18 @@ int main() {
 
         mapDraw(map, player->pos);
 
-        Door door = getPlayerRoomDoor(mData.doors, player->pos);
-        if (door != NULL){
-            DrawRectangle((int)door->pos.x,(int) door->pos.y, 15, 15, GREEN);   
+        // Door door = getPlayerRoomDoor(mData.doors, player->pos);
+        // if (door != NULL){
+        //     DrawRectangle((int)door->pos.x,(int) door->pos.y, 15, 15, GREEN);   
+        // }
+
+
+        if ((enemies = hashFind(mData.enemies, enemyKey)) != NULL){
+            for (int i = 0; i < enemies->len; i++){
+                Enemy e = enemies->data[i];
+                update(e->e, map, computeVelOfEnemy(e, player, map));
+                DrawRectangleRec(e->e->rect, RED);
+            }
         }
 
         // for (int i = 0; i < mData.doors->len; i++){
