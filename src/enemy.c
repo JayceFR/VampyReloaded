@@ -110,6 +110,14 @@ static dynarray pathFinding(Vector2 playerPos, Vector2 enemyPos, hash map){
     int ecx = ((int) enemyPos.x) / TILE_SIZE;
     int ecy = ((int) enemyPos.y) / TILE_SIZE;
 
+    if (pcx == ecx && pcy == ecy) {
+        // Already at goal tile: create a 1-node path
+        dynarray p = create_dynarray(NULL, NULL);
+        rect r = mapGetRecAt(map, ecx, ecy);
+        if (r) add_dynarray(p, r->node);
+        return p;
+    }
+
     pathNode startNode = mapGetRecAt(map, ecx, ecy)->node;
     pathNode endNode   = mapGetRecAt(map, pcx, pcy)->node;
 
@@ -237,9 +245,9 @@ bool PlayerInTorchCone(Enemy enemy, entity player, float torchRadius, float torc
     return true;
 }
 
-// Smoothly rotate enemy toward velocity
-void updateAngleSmooth(Enemy e, Vector2 vel, float turnSpeed) {
-    if (fabsf(vel.x) < 0.01f && fabsf(vel.y) < 0.01f) return; // cheap check
+// Smoothly rotate enemy toward velocity (unchanged)
+static inline void updateAngleSmooth(Enemy e, Vector2 vel, float turnSpeed) {
+    if (fabsf(vel.x) < 0.01f && fabsf(vel.y) < 0.01f) return;
     float targetAngle = atan2f(vel.y, vel.x);
     float delta = targetAngle - e->angle;
     if (delta > PI) delta -= 2*PI;
@@ -247,122 +255,138 @@ void updateAngleSmooth(Enemy e, Vector2 vel, float turnSpeed) {
     e->angle += delta * turnSpeed * GetFrameTime();
 }
 
-
-
 #define torchRadius 150
-#define torchFOV (60 * (PI/180)) // 60 degree cone
+#define torchFOV (60 * (PI/180)) // 60-degree cone
+
+static inline void worldCenterOfNode(pathNode n, Rectangle entRect, Vector2 *out) {
+    out->x = n->x * TILE_SIZE + TILE_SIZE/2.0f - entRect.width  / 2.0f;
+    out->y = n->y * TILE_SIZE + TILE_SIZE/2.0f - entRect.height / 2.0f;
+}
 
 Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
-    Vector2 vel = {0, 0};
-    Vector2 toPlayer = Vector2Subtract(player->pos, enemy->e->pos);
-    float distToPlayer = Vector2Length(toPlayer);
+    const float dt = GetFrameTime();
+    Vector2 vel = (Vector2){0,0};
 
-    // Update enemy state
-    if (PlayerInTorchCone(enemy, player, torchRadius, torchFOV, map)) {
-        enemy->state = ACTIVE;
-    } else if (distToPlayer > torchRadius * 1.5f) {
-        enemy->state = IDLE;
+    // --- Throttle sensing (vision/LOS) ---
+    enemy->senseCooldown -= dt;
+    if (enemy->senseCooldown <= 0.0f) {
+        // run at ~10Hz but stagger across enemies to avoid bursts
+        float baseSensePeriod = 0.10f;
+        enemy->senseCooldown = baseSensePeriod + (enemy->staggerSlot * 0.01f);
+        enemy->playerVisible = PlayerInTorchCone(enemy, player, torchRadius, torchFOV, map);
+        if (enemy->playerVisible) enemy->lastKnownPlayerPos = player->pos;
     }
 
-    // ===== ACTIVE STATE =====
+    // --- State update (cheap) ---
+    float distToLastKnown = Vector2Distance(enemy->e->pos, enemy->lastKnownPlayerPos);
+    if (enemy->playerVisible)       enemy->state = ACTIVE;
+    else if (distToLastKnown > torchRadius * 1.5f) enemy->state = IDLE;
+
+    // --- ACTIVE: follow path to player's tile (staggered, cached) ---
     if (enemy->state == ACTIVE) {
-        int playerTileX = (int)(player->pos.x / TILE_SIZE);
-        int playerTileY = (int)(player->pos.y / TILE_SIZE);
+        int goalX = (int)(player->pos.x) / TILE_SIZE;
+        int goalY = (int)(player->pos.y) / TILE_SIZE;
 
         bool needRecompute = false;
-        if (!enemy->path ||
-            enemy->targetTileX != playerTileX || enemy->targetTileY != playerTileY ||
-            enemy->currentStep >= enemy->path->len) {
-            needRecompute = true;
-        }
+        if (!enemy->path || enemy->currentStep >= (enemy->path->len)) needRecompute = true;
+        if (goalX != enemy->lastGoalTileX || goalY != enemy->lastGoalTileY) needRecompute = true;
 
-        if (needRecompute) {
-            if (enemy->path) free_dynarray(enemy->path);
+        // cooldown
+        enemy->repathCooldown -= dt;
+
+        // Stagger solves: only allow enemies with matching slot this frame
+        // e.g. update 1/3 of enemies per frame
+        // bool allowThisFrame = ((GetFrameCount() % 3) == enemy->staggerSlot);
+        
+
+        if (needRecompute && enemy->repathCooldown <= 0.0f) {
+            if (enemy->path) { free_dynarray(enemy->path); enemy->path = NULL; }
             enemy->path = pathFinding(player->pos, enemy->e->pos, map);
-            enemy->targetTileX = playerTileX;
-            enemy->targetTileY = playerTileY;
+            enemy->lastGoalTileX = goalX;
+            enemy->lastGoalTileY = goalY;
             enemy->currentStep = 1;
+            // add slight jitter so enemies don’t resync
+            enemy->repathCooldown = enemy->repathInterval + (GetRandomValue(-25,25) * 0.001f);
         }
 
+        // Follow cached path if available; otherwise drift to last known player pos
         if (enemy->path && enemy->currentStep < enemy->path->len) {
             pathNode nextNode = enemy->path->data[enemy->currentStep];
-            Vector2 nextPos = {
-                nextNode->x * TILE_SIZE + TILE_SIZE / 2 - enemy->e->rect.width / 2,
-                nextNode->y * TILE_SIZE + TILE_SIZE / 2 - enemy->e->rect.height / 2
-            };
-            Vector2 dir = Vector2Subtract(nextPos, enemy->e->pos);
+            Vector2 nextPos; worldCenterOfNode(nextNode, enemy->e->rect, &nextPos);
+            Vector2 toTarget = Vector2Subtract(nextPos, enemy->e->pos);
 
-            if (Vector2Length(dir) < 2.0f) {
+            if (Vector2Length(toTarget) < 2.0f) {
                 enemy->currentStep++;
             } else {
-                dir = Vector2Normalize(dir);
-                vel = Vector2Scale(dir, 2.0f); // chasing speed
+                Vector2 dir = Vector2Normalize(toTarget);
+                vel = Vector2Scale(dir, 2.0f);
+                updateAngleSmooth(enemy, vel, 4.0f);
+                return vel;
+            }
+        } else {
+            // fallback: simple steering to last known pos (no A*)
+            Vector2 toLkp = Vector2Subtract(enemy->lastKnownPlayerPos, enemy->e->pos);
+            if (Vector2Length(toLkp) > 3.0f) {
+                Vector2 dir = Vector2Normalize(toLkp);
+                vel = Vector2Scale(dir, 1.6f);
                 updateAngleSmooth(enemy, vel, 4.0f);
                 return vel;
             }
         }
+
         updateAngleSmooth(enemy, vel, 4.0f);
-        return vel; // stationary if path finished
+        return vel;
     }
 
-    // ===== IDLE STATE =====
+    // --- IDLE: cheap wander with rare decisions ---
     if (enemy->state == IDLE) {
-        // Idle timer handling
         if (enemy->idleTimer <= 0) {
             if (enemy->movingIdle) {
                 enemy->movingIdle = false;
-                enemy->idleTimer = GetRandomValue(30, 90) / 60.0f; // wait 0.5-1.5s
+                enemy->idleTimer = GetRandomValue(30, 90) / 60.0f;
                 return vel;
             } else {
                 enemy->movingIdle = true;
-                enemy->idleTimer = GetRandomValue(60, 180) / 60.0f; // move 1-3s
+                enemy->idleTimer = GetRandomValue(60, 180) / 60.0f;
 
-                // Weighted angle toward player (30%) + random (70%)
-                float playerAngle = atan2f(toPlayer.y, toPlayer.x);
                 float randomAngle = GetRandomValue(0, 360) * DEG2RAD;
-                float wanderAngle = playerAngle * 0.3f + randomAngle * 0.7f;
+                float dist = GetRandomValue(40, 120); // slightly larger, moves light around
+                Vector2 candidate = Vector2Add(enemy->e->pos,
+                                     (Vector2){cosf(randomAngle)*dist, sinf(randomAngle)*dist});
 
-                // Random wander distance
-                float dist = GetRandomValue(20, 80);
-                Vector2 candidateTarget = Vector2Add(enemy->e->pos,
-                                                     (Vector2){cosf(wanderAngle) * dist, sinf(wanderAngle) * dist});
-                
-
-                // enemy->idleTarget = candidateTarget;
-                // Check collision with walls
-                rect r = mapGetRecAt(map, (int)(candidateTarget.x / TILE_SIZE), (int)(candidateTarget.y / TILE_SIZE));
+                rect r = mapGetRecAt(map,
+                    (int)(candidate.x / TILE_SIZE), (int)(candidate.y / TILE_SIZE));
                 if (!r || !r->node->isWalkable) {
-                    // fallback: just stay in place if blocked
                     enemy->movingIdle = false;
-                    enemy->idleTarget = enemy->e->pos;
+                    enemy->idleTimer = GetRandomValue(30, 90) / 60.0f;
                 } else {
-                    enemy->idleTarget = candidateTarget;
+                    enemy->idleTarget = candidate;
                 }
             }
         }
 
-        // Decrease timer
-        enemy->idleTimer -= GetFrameTime();
+        enemy->idleTimer -= dt;
 
         if (enemy->movingIdle) {
             Vector2 toTarget = Vector2Subtract(enemy->idleTarget, enemy->e->pos);
             if (Vector2Length(toTarget) < 2.0f) {
                 enemy->movingIdle = false;
-                enemy->idleTimer = GetRandomValue(30, 90) / 60.0f; // wait again
-                updateAngleSmooth(enemy, vel, 4.0f);
+                enemy->idleTimer = GetRandomValue(30, 90) / 60.0f;
+                updateAngleSmooth(enemy, vel, 3.0f);
                 return vel;
             }
 
             Vector2 dir = Vector2Normalize(toTarget);
-            vel = Vector2Scale(dir, 1.0f); // slower than chasing
-            updateAngleSmooth(enemy, vel, 4.0f);
+            vel = Vector2Scale(dir, 1.0f);
+            updateAngleSmooth(enemy, vel, 3.0f);
             return vel;
         }
     }
 
-    updateAngleSmooth(enemy, vel, 4.0f);
+    updateAngleSmooth(enemy, vel, 3.5f);
     return vel;
 }
+
 
 
 
@@ -374,8 +398,19 @@ Enemy enemyCreate(int startX, int startY, int width, int height){
     enemy->state = IDLE;
     enemy->idleTimer = 0;
     enemy->angle = 0;
+
+    enemy->repathCooldown  = 0.0f;
+    enemy->repathInterval  = 0.25f;        // solve at most ~4x/sec (tweak)
+    enemy->lastGoalTileX   = INT_MIN;
+    enemy->lastGoalTileY   = INT_MIN;
+    enemy->senseCooldown   = 0.0f;         // throttle vision checks
+    enemy->playerVisible   = false;
+    enemy->lastKnownPlayerPos = enemy->e->pos;
+    enemy->staggerSlot     = GetRandomValue(0, 2); // spread work across ~3 frames
+
     return enemy;
 }
+
 
 void enemyDrawTorch(Enemy e, hash map, int rays, Color col) {
     Vector2 origin = e->e->pos;
@@ -427,7 +462,7 @@ void enemyDraw(Enemy e, hash map){
     DrawRectangleRec(e->e->rect, RED);
     // enemyDrawTorchLines(e, map, 40, ColorAlpha(YELLOW, 0.3f));
     BeginBlendMode(BLEND_ADDITIVE);
-    enemyDrawTorch(e, map, 40, ColorAlpha(WHITE, 0.2f));
+    enemyDrawTorch(e, map, 10, ColorAlpha(WHITE, 0.2f));
     EndBlendMode();
     // BeginBlendMode(BLEND_ADDITIVE); // Additive blending for glow
     // int segments = 50;

@@ -26,6 +26,17 @@ struct Enemy{
     float idleTimer; 
     bool movingIdle;
     float angle; 
+
+    // enemy.h (add to struct Enemy)
+    float repathCooldown;       // time left until we’re allowed to repath
+    float repathInterval;       // base interval between path solves (sec)
+    int   lastGoalTileX;        // last player tile we solved towards
+    int   lastGoalTileY;
+    float senseCooldown;        // throttle LOS/cone checks
+    bool  playerVisible;        // cached result of PlayerInTorchCone
+    Vector2 lastKnownPlayerPos; // where we last saw the player
+    int   staggerSlot;          // 0..(N-1) to distribute work across frames
+
 };
 typedef struct Enemy *Enemy;  
 
