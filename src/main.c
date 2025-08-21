@@ -467,7 +467,7 @@ int main() {
                 Enemy e = enemies->data[i];
                 Vector2 vel = computeVelOfEnemy(e, player, map);
                 update(e->e, map, vel);
-                enemyDraw(e);
+                enemyDraw(e, map);
             }
         }
 
