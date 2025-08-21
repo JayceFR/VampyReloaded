@@ -262,7 +262,7 @@ hash generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH]) {
             roomCount[cy][cx] = cnt;
             for (int y=0; y<CHUNK_SIZE; y++){
                 for (int x=0; x<CHUNK_SIZE; x++){
-                    if (chunk[y][x] == DIRT && GetRandomValue(1,50) == 2){
+                    if (chunk[y][x] == DIRT && GetRandomValue(1,100) == 2){
                         // Spawn an enemy in this location 
                         Enemy e = enemyCreate(
                             (cx * CHUNK_SIZE + x) * TILE_SIZE, 
@@ -415,27 +415,48 @@ dynarray rectsAround(hash map, Vector2 player_pos){
   return arr; 
 }
 
-void mapDraw(hash map, Vector2 player_pos){
-  int gx = ((int) player_pos.x) / TILE_SIZE;
-  int gy = ((int) player_pos.y) / TILE_SIZE;
-  // Init the map for 3 grids around the player first 
-  char buffer[22];
-  for (int x = gx - 64; x <= gx + 64; x++){
-    for (int y = gy - 64; y <= gy + 64; y++){
-      sprintf(buffer, "%d:%d", x, y);
-      TILES* tile; 
-      if ((tile = hashFind(map, buffer)) != NULL){
-        int worldX = (x * TILE_SIZE);
-        int worldY = (y * TILE_SIZE);
-        if (*tile == DIRT){
-          DrawRectangle(worldX, worldY, TILE_SIZE, TILE_SIZE, GRAY);
+Rectangle GetCameraWorldBounds(Camera2D camera) {
+    Vector2 topLeft = GetScreenToWorld2D((Vector2){0,0}, camera);
+    Vector2 bottomRight = GetScreenToWorld2D(
+        (Vector2){GetScreenWidth(), GetScreenHeight()},
+        camera
+    );
+
+    Rectangle bounds = {
+        topLeft.x, topLeft.y,
+        bottomRight.x - topLeft.x,
+        bottomRight.y - topLeft.y
+    };
+    return bounds;
+}
+
+void mapDraw(hash map, Camera2D camera) {
+    // Get visible area in world space
+    Rectangle bounds = GetCameraWorldBounds(camera);
+
+    // Convert to tile indices
+    int minX = (int)(bounds.x / TILE_SIZE);
+    int maxX = (int)((bounds.x + bounds.width) / TILE_SIZE);
+    int minY = (int)(bounds.y / TILE_SIZE);
+    int maxY = (int)((bounds.y + bounds.height) / TILE_SIZE);
+
+    char buffer[32];
+    for (int x = minX; x <= maxX; x++) {
+        for (int y = minY; y <= maxY; y++) {
+            sprintf(buffer, "%d:%d", x, y);
+            TILES *tile = hashFind(map, buffer);
+            if (tile) {
+                int worldX = x * TILE_SIZE;
+                int worldY = y * TILE_SIZE;
+
+                if (*tile == DIRT) {
+                    DrawRectangle(worldX, worldY, TILE_SIZE, TILE_SIZE, GRAY);
+                } else if (*tile == STONE) {
+                    DrawRectangle(worldX, worldY, TILE_SIZE, TILE_SIZE, BLACK);
+                }
+            }
         }
-        if (*tile == STONE){
-          DrawRectangle(worldX, worldY, TILE_SIZE, TILE_SIZE, BLACK);
-        }
-      }
     }
-  }
 }
 
 void mapFree(hash map){

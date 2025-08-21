@@ -454,7 +454,7 @@ int main() {
 
         BeginMode2D(camera);
 
-        mapDraw(map, player->pos);
+        mapDraw(map, camera);
 
         // Door door = getPlayerRoomDoor(mData.doors, player->pos);
         // if (door != NULL){

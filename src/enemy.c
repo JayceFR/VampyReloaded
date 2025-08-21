@@ -239,17 +239,14 @@ bool PlayerInTorchCone(Enemy enemy, entity player, float torchRadius, float torc
 
 // Smoothly rotate enemy toward velocity
 void updateAngleSmooth(Enemy e, Vector2 vel, float turnSpeed) {
-    if (Vector2Length(vel) < 0.01f) return; // don't turn if almost stationary
-
+    if (fabsf(vel.x) < 0.01f && fabsf(vel.y) < 0.01f) return; // cheap check
     float targetAngle = atan2f(vel.y, vel.x);
     float delta = targetAngle - e->angle;
-
-    // Wrap-around to -PI..PI
-    while (delta > PI) delta -= 2*PI;
-    while (delta < -PI) delta += 2*PI;
-
+    if (delta > PI) delta -= 2*PI;
+    if (delta < -PI) delta += 2*PI;
     e->angle += delta * turnSpeed * GetFrameTime();
 }
+
 
 
 #define torchRadius 150
@@ -329,7 +326,9 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
                 float dist = GetRandomValue(20, 80);
                 Vector2 candidateTarget = Vector2Add(enemy->e->pos,
                                                      (Vector2){cosf(wanderAngle) * dist, sinf(wanderAngle) * dist});
+                
 
+                // enemy->idleTarget = candidateTarget;
                 // Check collision with walls
                 rect r = mapGetRecAt(map, (int)(candidateTarget.x / TILE_SIZE), (int)(candidateTarget.y / TILE_SIZE));
                 if (!r || !r->node->isWalkable) {
@@ -376,37 +375,6 @@ Enemy enemyCreate(int startX, int startY, int width, int height){
     enemy->idleTimer = 0;
     enemy->angle = 0;
     return enemy;
-}
-
-void enemyDrawTorchLines(Enemy e, hash map, int rays, Color col) {
-    Vector2 origin = e->e->pos;
-    dynarray rects = rectsAround(map, origin);
-
-    for (int i = 0; i <= rays; i++) {
-        float a = e->angle - torchFOV/2 + (torchFOV / rays) * i;
-        Vector2 dir = { cosf(a), sinf(a) };
-        Vector2 ray = origin;
-        float traveled = 0;
-        bool blocked = false;
-
-        while (traveled < torchRadius) {
-            for (int j = 0; j < rects->len; j++) {
-                rect r = rects->data[j];
-                if (CheckCollisionPointRec(ray, r->rectange)) {
-                    blocked = true;
-                    break;
-                }
-            }
-            if (blocked) break;
-
-            ray = Vector2Add(ray, Vector2Scale(dir, 4.0f));
-            traveled += 4.0f;
-        }
-
-        DrawLineV(origin, ray, ColorAlpha(col, 0.3f));
-    }
-
-    free_dynarray(rects);
 }
 
 void enemyDrawTorch(Enemy e, hash map, int rays, Color col) {
@@ -458,7 +426,9 @@ void enemyDrawTorch(Enemy e, hash map, int rays, Color col) {
 void enemyDraw(Enemy e, hash map){
     DrawRectangleRec(e->e->rect, RED);
     // enemyDrawTorchLines(e, map, 40, ColorAlpha(YELLOW, 0.3f));
+    BeginBlendMode(BLEND_ADDITIVE);
     enemyDrawTorch(e, map, 40, ColorAlpha(WHITE, 0.2f));
+    EndBlendMode();
     // BeginBlendMode(BLEND_ADDITIVE); // Additive blending for glow
     // int segments = 50;
     // for (int i = 0; i <= segments; i++) {
