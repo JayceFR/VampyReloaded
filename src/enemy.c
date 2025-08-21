@@ -179,58 +179,79 @@ void updateAngle(Enemy e, Vector2 vel){
     e->angle = atan2f(vel.y , vel.x);
 }
 
+bool HasLOS(Vector2 from, Vector2 to, hash map) {
+    Vector2 dir = Vector2Normalize(Vector2Subtract(to, from));
+    Vector2 step = Vector2Scale(dir, 4.0f); 
+    Vector2 ray = from;
+    float maxDist = Vector2Distance(from, to);
+
+    dynarray rects = rectsAround(map, from);
+
+    float distTravelled = 0;
+    bool blocked = false;
+
+    while (distTravelled < maxDist) {
+        if (CheckCollisionPointRec(ray, (Rectangle){to.x-2, to.y-2, 4, 4})) {
+            // hit player region
+            free_dynarray(rects);
+            return true;
+        }
+
+        for (int i = 0; i < rects->len; i++) {
+            rect r = rects->data[i];
+            if (CheckCollisionPointRec(ray, r->rectange)) {
+                blocked = true;
+                break;
+            }
+        }
+        if (blocked) break;
+
+        ray = Vector2Add(ray, step);
+        distTravelled += Vector2Length(step);
+    }
+
+    free_dynarray(rects);
+    return false;
+}
+
+
+bool PlayerInTorchCone(Enemy enemy, entity player, float torchRadius, float torchFOV, hash map) {
+    Vector2 toPlayer = Vector2Subtract(player->pos, enemy->e->pos);
+    float dist = Vector2Length(toPlayer);
+
+    // Too far
+    if (dist > torchRadius) return false;
+
+    // Angle check
+    Vector2 dirToPlayer = Vector2Normalize(toPlayer);
+    Vector2 facing = (Vector2){ cosf(enemy->angle), sinf(enemy->angle) };
+
+    float dot = Vector2DotProduct(facing, dirToPlayer);
+    float angleToPlayer = acosf(dot);
+
+    if (angleToPlayer > torchFOV * 0.5f) return false;
+
+    // LOS check (optional but recommended)
+    if (!HasLOS(enemy->e->pos, player->pos, map)) return false;
+
+    return true;
+}
+
+#define torchRadius 150
+#define torchFOV (60 * (PI/180)) // 60 degree cone
+
 Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
 
-    // update enemy state 
-    if (Vector2Distance(enemy->e->pos, player->pos) < 200){
+    if (PlayerInTorchCone(enemy, player, torchRadius, torchFOV, map)) {
         enemy->state = ACTIVE;
-    }
-    else{
+    } else if (Vector2Distance(enemy->e->pos, player->pos) > torchRadius * 1.5f) {
+        // If player gets far enough, lose interest
         enemy->state = IDLE;
     }
 
     Vector2 vel;
 
     if (enemy->state == ACTIVE){
-        // if LOS is true then move towards the player directly 
-        // else compute the path 
-        Vector2 dir = Vector2Normalize(Vector2Subtract(player->pos, enemy->e->pos));
-        Vector2 step = Vector2Scale(dir, 2.0f); 
-        Vector2 ray = enemy->e->pos;
-        float maxDist = Vector2Distance(enemy->e->pos, player->pos);
-
-        dynarray rects = rectsAround(map, enemy->e->pos);
-
-        float distTravelled = 0;
-        bool blocked = false;
-
-        while (distTravelled < maxDist) {
-            // hit player
-            if (CheckCollisionPointRec(ray, player->rect)) break;
-
-            // hit a wall
-            for (int i = 0; i < rects->len; i++) {
-                rect r = rects->data[i];
-                if (CheckCollisionPointRec(ray, r->rectange)) {
-                    blocked = true;
-                    break;
-                }
-            }
-            if (blocked) break;
-
-            // step forward
-            ray = Vector2Add(ray, step);
-            distTravelled += Vector2Length(step);
-        }
-
-        free_dynarray(rects);
-
-        // if (!blocked) {
-        //     // Chase with LOS 
-        //     return Vector2Scale(dir, 2.0f);
-        // }
-
-        // LOS is blocked need to pathfind 
 
         int playerTileX = (int)(player->pos.x / TILE_SIZE);
         int playerTileY = (int)(player->pos.y / TILE_SIZE);
@@ -348,8 +369,6 @@ Enemy enemyCreate(int startX, int startY, int width, int height){
 }
 
 void enemyDraw(Enemy e){
-    float torchRadius = 150;
-    float torchFOV = 60 * (PI/180); // 60 degree cone
     DrawRectangleRec(e->e->rect, RED);
     BeginBlendMode(BLEND_ADDITIVE); // Additive blending for glow
     int segments = 50;
