@@ -12,6 +12,7 @@
 #include "physics.h"
 #include "enemy.h"
 #include "camera.h"
+#include "projectile.h"
 // #include <math.h>
 
 #define MAX_BOIDS 100
@@ -363,6 +364,8 @@ int main() {
     camera.rotation = 0.0f; 
     camera.zoom = 1.0f; 
 
+    dynarray projectiles = create_dynarray(&projectileFree,NULL);
+
     for (int i = 0; i < MAX_BOIDS; i++){
 
         boid b = malloc(sizeof(struct boid));
@@ -421,6 +424,11 @@ int main() {
         float delta = GetFrameTime();
         UpdateJoystick(&joy);
         UpdateJoystick(&aim);
+
+        if (aim.state == JOY_SHOOTING) {
+            // Fire projectile in that direction
+            projectileShoot(projectiles, player->pos, aim.value);
+        }
 
         char buffer[22];
         sprintf(buffer, "fps : %d", GetFPS());
@@ -503,6 +511,12 @@ int main() {
         // DrawRectangleRec(enemy->e->rect, RED);
         // DrawCircleV(swarmTarget, 5, GREEN); // visualize swarm target
         // DrawBoids(flockGrid);
+
+        for (int i = 0; i < projectiles->len; i++){
+            projectile p = projectiles->data[i];
+            projectileUpdate(p);
+            projectileDraw(p);
+        }
 
         EndMode2D();
 
