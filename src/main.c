@@ -23,6 +23,12 @@
 #define MAX_FORCE 0.4
 #define MAX_SPEED 6
 
+typedef enum {
+    JOY_IDLE,
+    JOY_AIMING,
+    JOY_SHOOTING
+} JoystickState;
+
 typedef struct {
     Vector2 basePos;     // Center of joystick base
     float baseRadius;
@@ -30,8 +36,10 @@ typedef struct {
     float thumbRadius;
     Vector2 value;       // Normalized [-1,1] x/y output
     bool active;         // Is joystick currently touched?
-    float offvalue;
+    float offvalue;      // Distance from center (0..baseRadius)
+    JoystickState state; // Idle / aiming / shooting
 } Joystick;
+
 
 struct boid{
     Vector2 pos; 
@@ -74,10 +82,19 @@ void UpdateJoystick(Joystick *joy) {
                 offset = Vector2Scale(Vector2Normalize(offset), joy->baseRadius);
             }
 
-            joy->offvalue = Vector2Length(offset); 
-
+            joy->offvalue = Vector2Length(offset);
             joy->thumbPos = Vector2Add(joy->basePos, offset);
             joy->value = (Vector2){ offset.x / joy->baseRadius, offset.y / joy->baseRadius };
+
+            // --- AIM vs SHOOT ---
+            float normDist = joy->offvalue / joy->baseRadius;
+            if (normDist > 0.7f) {
+                joy->state = JOY_SHOOTING;
+            } else if (normDist > 0.2f) {
+                joy->state = JOY_AIMING;
+            } else {
+                joy->state = JOY_IDLE;
+            }
         }
     } else {
         // Reset when released
@@ -85,8 +102,10 @@ void UpdateJoystick(Joystick *joy) {
         joy->thumbPos = joy->basePos;
         joy->value = (Vector2){0, 0};
         joy->offvalue = 0.0;
+        joy->state = JOY_IDLE;
     }
 }
+
 
 void DrawJoystick(Joystick joy) {
     DrawCircleV(joy.basePos, joy.baseRadius, Fade(DARKGRAY, 0.5f));
@@ -327,7 +346,7 @@ int main() {
     SetTargetFPS(60);
 
     Joystick joy = CreateJoystick((Vector2){100, 350}, 60);
-    Joystick aim = CreateJoystick((Vector2){300, 350}, 60);
+    Joystick aim = CreateJoystick((Vector2){700, 350}, 60);
 
     hash flockGrid = hashCreate(NULL, &free_dynarray, NULL); 
 
@@ -401,6 +420,7 @@ int main() {
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
         UpdateJoystick(&joy);
+        UpdateJoystick(&aim);
 
         char buffer[22];
         sprintf(buffer, "fps : %d", GetFPS());
@@ -490,6 +510,7 @@ int main() {
         DrawText(buffer, 10, 10, 10, RED);
 
         DrawJoystick(joy);
+        DrawJoystick(aim);
 
         EndDrawing();
     }
