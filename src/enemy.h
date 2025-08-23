@@ -37,6 +37,9 @@ struct Enemy{
     Vector2 lastKnownPlayerPos; // where we last saw the player
     int   staggerSlot;          // 0..(N-1) to distribute work across frames
 
+    int health;
+    int maxHealth; 
+
 };
 typedef struct Enemy *Enemy;  
 

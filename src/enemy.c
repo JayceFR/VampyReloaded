@@ -408,6 +408,9 @@ Enemy enemyCreate(int startX, int startY, int width, int height){
     enemy->lastKnownPlayerPos = enemy->e->pos;
     enemy->staggerSlot     = GetRandomValue(0, 2); // spread work across ~3 frames
 
+    enemy->health = 100; 
+    enemy->maxHealth = 100;
+
     return enemy;
 }
 
@@ -459,18 +462,33 @@ void enemyDrawTorch(Enemy e, hash map, int rays, Color col) {
 
 
 void enemyDraw(Enemy e, hash map){
+    // Draw enemy
     DrawRectangleRec(e->e->rect, RED);
-    // enemyDrawTorchLines(e, map, 40, ColorAlpha(YELLOW, 0.3f));
+
+    // Torch effect
     BeginBlendMode(BLEND_ADDITIVE);
     enemyDrawTorch(e, map, 10, ColorAlpha(WHITE, 0.2f));
     EndBlendMode();
-    // BeginBlendMode(BLEND_ADDITIVE); // Additive blending for glow
-    // int segments = 50;
-    // for (int i = 0; i <= segments; i++) {
-    //     float angle = e->angle - torchFOV/2 + (torchFOV / segments) * i;
-    //     Vector2 endPos = (Vector2){ e->e->pos.x + cos(angle)*torchRadius,
-    //                                 e->e->pos.y + sin(angle)*torchRadius };
-    //     DrawLineV(e->e->pos, endPos, ColorAlpha(YELLOW, 0.3f));
-    // }
-    // EndBlendMode();
+
+    // --- Health bar ---
+    float barWidth = e->e->rect.width;
+    float barHeight = 5;
+    float healthPercent = (float)e->health / (float)e->maxHealth;
+
+    Rectangle healthBarBack = {
+        e->e->rect.x,
+        e->e->rect.y - barHeight - 2, // slightly above enemy
+        barWidth,
+        barHeight
+    };
+    Rectangle healthBarFront = {
+        e->e->rect.x,
+        e->e->rect.y - barHeight - 2,
+        barWidth * healthPercent,
+        barHeight
+    };
+
+    DrawRectangleRec(healthBarBack, DARKGRAY);
+    DrawRectangleRec(healthBarFront, GREEN);
+    DrawRectangleLinesEx(healthBarBack, 1, BLACK); // outline
 }
