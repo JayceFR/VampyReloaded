@@ -420,14 +420,22 @@ int main() {
     
     srand(time(NULL));
 
+    float shootCooldown = 0.0f; 
+
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
         UpdateJoystick(&joy);
         UpdateJoystick(&aim);
 
-        if (aim.state == JOY_SHOOTING) {
+        if (aim.state == JOY_SHOOTING && shootCooldown <= 0.0f) {
             // Fire projectile in that direction
             projectileShoot(projectiles, player->pos, aim.value, 10.0f);
+            shootCooldown = 40.0f / 60.0f; 
+        }
+
+        shootCooldown -= delta;
+        if (shootCooldown <= 0.0f){
+            shootCooldown = 0.0f;
         }
 
         char buffer[22];
