@@ -534,6 +534,14 @@ int main() {
                 remove_dynarray(projectiles, pos);
                 continue;
             }
+            if (p->e->rect.x > roomX * ROOM_SIZE + ROOM_SIZE || 
+                p->e->rect.y > roomY * ROOM_SIZE + ROOM_SIZE ||
+                p->e->rect.x < roomX * ROOM_SIZE ||
+                p->e->rect.y < roomY * ROOM_SIZE
+                ){
+                remove_dynarray(projectiles, pos);
+                continue;
+            }
             projectileDraw(p);
             pos += 1;
         }
