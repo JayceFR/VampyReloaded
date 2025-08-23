@@ -12,6 +12,6 @@ struct entity{
 typedef struct entity *entity;
 
 extern entity entityCreate(float startX, float startY, int width, int height);
-extern void update(entity e, hash map, Vector2 newPos);
+extern bool update(entity e, hash map, Vector2 newPos);
 
 #endif

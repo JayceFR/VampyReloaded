@@ -30,9 +30,10 @@ static bool collideRect(entity e, hash map, rect *hitTile){
     return false;
 }
 
-void update(entity e, hash map, Vector2 newPos) {
+// Returns true if collided
+bool update(entity e, hash map, Vector2 newPos) {
     Vector2 oldPos = e->pos;
-
+    bool collided = false;
     // --- X axis first ---
     e->pos.x += newPos.x;
     e->rect.x = e->pos.x;
@@ -42,6 +43,7 @@ void update(entity e, hash map, Vector2 newPos) {
       if (r->tile != STONE) continue;
 
       if (CheckCollisionRecs(r->rectange, e->rect)) {
+        collided = true;
         Rectangle tr = r->rectange;
 
         if (newPos.x > 0) {
@@ -64,6 +66,7 @@ void update(entity e, hash map, Vector2 newPos) {
 
       if (CheckCollisionRecs(r->rectange, e->rect)) {
         Rectangle tr = r->rectange;
+        collided = true;
 
         if (newPos.y > 0) {
           e->pos.y = tr.y - e->rect.height;
@@ -74,6 +77,7 @@ void update(entity e, hash map, Vector2 newPos) {
         e->rect.y = e->pos.y;
       }
     }
+    return collided;
 }
 
 

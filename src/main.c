@@ -427,7 +427,7 @@ int main() {
 
         if (aim.state == JOY_SHOOTING) {
             // Fire projectile in that direction
-            projectileShoot(projectiles, player->pos, aim.value);
+            projectileShoot(projectiles, player->pos, aim.value, 10.0f);
         }
 
         char buffer[22];
@@ -512,10 +512,22 @@ int main() {
         // DrawCircleV(swarmTarget, 5, GREEN); // visualize swarm target
         // DrawBoids(flockGrid);
 
-        for (int i = 0; i < projectiles->len; i++){
-            projectile p = projectiles->data[i];
-            projectileUpdate(p);
+        // for (int i = 0; i < projectiles->len; i++){
+        //     projectile p = projectiles->data[i];
+        //     projectileUpdate(p, map);
+        //     projectileDraw(p);
+        // }
+
+        int pos = 0;
+        while (pos < projectiles->len){
+            projectile p = projectiles->data[pos];
+            if (projectileUpdate(p, map)){
+                // Collided 
+                remove_dynarray(projectiles, pos);
+                continue;
+            }
             projectileDraw(p);
+            pos += 1;
         }
 
         EndMode2D();

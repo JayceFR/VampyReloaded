@@ -4,22 +4,25 @@
 #include "dynarray.h"
 #include "raylib.h"
 #include "raymath.h"
+#include "physics.h"
 #include "projectile.h"
 
-void projectileShoot(dynarray projectiles, Vector2 playerPos, Vector2 dir){
+void projectileShoot(dynarray projectiles, Vector2 playerPos, Vector2 dir, float speed){
     projectile p = malloc(sizeof(struct projectile));
-    p->rect = (Rectangle) {playerPos.x, playerPos.y, 5, 5};
+    // p->rect = (Rectangle) {playerPos.x, playerPos.y, 5, 5};
+    p->e = entityCreate(playerPos.x, playerPos.y, 5, 5);
     p->dir = Vector2Normalize(dir); 
+    p->speed = speed;
+    p->dir = Vector2Scale(p->dir, speed);
     add_dynarray(projectiles, p);
 }   
 
-void projectileUpdate(projectile p){
-    p->rect.x += p->dir.x * 10; 
-    p->rect.y += p->dir.y * 10;
+bool projectileUpdate(projectile p, hash map){
+    return update(p->e, map, p->dir);
 }
 
 void projectileDraw(projectile p){
-    DrawRectangleRec(p->rect, WHITE);
+    DrawRectangleRec(p->e->rect, WHITE);
 }
 
 void projectileFree(projectile p){
