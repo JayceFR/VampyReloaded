@@ -30,16 +30,16 @@ typedef enum {
     JOY_SHOOTING
 } JoystickState;
 
-typedef struct {
-    Vector2 basePos;     // Center of joystick base
-    float baseRadius;
-    Vector2 thumbPos;    // Position of joystick thumb
-    float thumbRadius;
-    Vector2 value;       // Normalized [-1,1] x/y output
-    bool active;         // Is joystick currently touched?
-    float offvalue;      // Distance from center (0..baseRadius)
-    JoystickState state; // Idle / aiming / shooting
-} Joystick;
+// typedef struct {
+//     Vector2 basePos;     // Center of joystick base
+//     float baseRadius;
+//     Vector2 thumbPos;    // Position of joystick thumb
+//     float thumbRadius;
+//     Vector2 value;       // Normalized [-1,1] x/y output
+//     bool active;         // Is joystick currently touched?
+//     float offvalue;      // Distance from center (0..baseRadius)
+//     JoystickState state; // Idle / aiming / shooting
+// } Joystick;
 
 
 struct boid{
@@ -54,17 +54,69 @@ struct boid{
 };
 typedef struct boid *boid;
 
+typedef struct {
+    Vector2 basePos;
+    float baseRadius;
+    Vector2 thumbPos;
+    float thumbRadius;
+    Vector2 value;
+    bool active;
+    float offvalue;
+    JoystickState state;
+    int pointerId;      // <- NEW: which finger is bound (-1 == none)
+} Joystick;
+
 Joystick CreateJoystick(Vector2 basePos, float baseRadius) {
-    Joystick joy = {0};
+    Joystick joy = (Joystick){0};
     joy.basePos = basePos;
     joy.baseRadius = baseRadius;
     joy.thumbRadius = baseRadius / 2.5f;
     joy.thumbPos = basePos;
-    joy.value = (Vector2){0, 0};
+    joy.value = (Vector2){0,0};
     joy.active = false;
-    joy.offvalue = 0.0; 
+    joy.offvalue = 0.0f;
+    joy.state = JOY_IDLE;
+    joy.pointerId = -1;                 // <- NEW
     return joy;
 }
+
+
+static inline void ResetJoystick(Joystick *j){
+    j->active = false;
+    j->thumbPos = j->basePos;
+    j->value = (Vector2){0,0};
+    j->offvalue = 0.0f;
+    j->state = JOY_IDLE;
+    j->pointerId = -1;
+}
+
+static inline int FindTouchIndexById(int id){
+    int n = GetTouchPointCount();
+    for (int i = 0; i < n; i++){
+        if (GetTouchPointId(i) == id) return i;
+    }
+    return -1;
+}
+
+static inline void ApplyTouchToJoystick(Joystick *j, Vector2 touch){
+    Vector2 offset = Vector2Subtract(touch, j->basePos);
+    float len = Vector2Length(offset);
+    if (len > j->baseRadius){
+        offset = Vector2Scale(Vector2Normalize(offset), j->baseRadius);
+        len = j->baseRadius;
+    }
+    j->offvalue = len;
+    j->thumbPos = Vector2Add(j->basePos, offset);
+    j->value = (Vector2){ offset.x / j->baseRadius, offset.y / j->baseRadius };
+
+    float norm = j->offvalue / j->baseRadius;
+    if (norm > 0.7f) j->state = JOY_SHOOTING;
+    else if (norm > 0.2f) j->state = JOY_AIMING;
+    else j->state = JOY_IDLE;
+
+    j->active = true;
+}
+
 
 void UpdateJoystick(Joystick *joy) {
     if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) { // On Android, mouse==touch
@@ -106,6 +158,76 @@ void UpdateJoystick(Joystick *joy) {
         joy->state = JOY_IDLE;
     }
 }
+
+void UpdateJoysticks(Joystick *left, Joystick *right){
+    int touchCount = GetTouchPointCount();
+
+    // 1) Drop bindings that lifted this frame
+    if (left->pointerId  != -1 && FindTouchIndexById(left->pointerId)  == -1)  ResetJoystick(left);
+    if (right->pointerId != -1 && FindTouchIndexById(right->pointerId) == -1) ResetJoystick(right);
+
+    // 2) Update bound joysticks with their finger
+    if (left->pointerId != -1){
+        int li = FindTouchIndexById(left->pointerId);
+        if (li != -1) ApplyTouchToJoystick(left, GetTouchPosition(li));
+    }
+    if (right->pointerId != -1){
+        int ri = FindTouchIndexById(right->pointerId);
+        if (ri != -1) ApplyTouchToJoystick(right, GetTouchPosition(ri));
+    }
+
+    // 3) Assign free touches to free joysticks (no double-binding)
+    for (int i = 0; i < touchCount; i++){
+        int id = GetTouchPointId(i);
+        Vector2 p = GetTouchPosition(i);
+
+        if (id == left->pointerId || id == right->pointerId) continue;
+
+        if (left->pointerId == -1 && Vector2Distance(left->basePos, p) <= left->baseRadius){
+            left->pointerId = id;
+            ApplyTouchToJoystick(left, p);
+            continue;
+        }
+        if (right->pointerId == -1 && Vector2Distance(right->basePos, p) <= right->baseRadius){
+            right->pointerId = id;
+            ApplyTouchToJoystick(right, p);
+            continue;
+        }
+    }
+
+    // 4) If still unbound, keep them centered
+    if (left->pointerId  == -1)  ResetJoystick(left);
+    if (right->pointerId == -1) ResetJoystick(right);
+
+#if defined(PLATFORM_DESKTOP)
+    // Desktop fallback for debugging: WASD -> left stick, mouse (LMB) -> right stick
+    if (touchCount == 0){
+        Vector2 mv = {0,0};
+        if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT))  mv.x -= 1.0f;
+        if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) mv.x += 1.0f;
+        if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP))    mv.y -= 1.0f;
+        if (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN))  mv.y += 1.0f;
+
+        if (Vector2Length(mv) > 0.0f){
+            mv = Vector2Normalize(mv);
+            left->active = true;
+            left->thumbPos = Vector2Add(left->basePos, Vector2Scale(mv, left->baseRadius));
+            left->value = mv;
+            left->offvalue = left->baseRadius * 0.8f;
+            left->state = JOY_AIMING;
+        } else {
+            ResetJoystick(left);
+        }
+
+        if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)){
+            ApplyTouchToJoystick(right, GetMousePosition());
+        } else {
+            ResetJoystick(right);
+        }
+    }
+#endif
+}
+
 
 
 void DrawJoystick(Joystick joy) {
@@ -424,8 +546,9 @@ int main() {
 
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
-        UpdateJoystick(&joy);
-        UpdateJoystick(&aim);
+        // UpdateJoystick(&joy);
+        // UpdateJoystick(&aim);
+        UpdateJoysticks(&joy, &aim);
 
         if (aim.state == JOY_SHOOTING && shootCooldown <= 0.0f) {
             // Fire projectile in that direction
