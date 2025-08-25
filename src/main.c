@@ -579,12 +579,10 @@ int main() {
 
         MapEnsureCache(map, camera);
 
-        // === 🎯 Draw to render texture at base resolution ===
         BeginTextureMode(target);
             ClearBackground(RAYWHITE);
 
             BeginMode2D(camera);
-                // mapDraw(map, camera);
                 MapDrawCached(camera);
                 
                 if ((enemies = hashFind(mData.enemies, enemyKey)) != NULL) {
@@ -599,15 +597,55 @@ int main() {
                 DrawTexture(player_idle->frames[currentFrame], player->rect.x, player->rect.y, WHITE);
 
                 int pos = 0;
-                while (pos < projectiles->len) {
+                while (pos < projectiles->len){
                     projectile p = projectiles->data[pos];
 
-                    if (projectileUpdate(p, map)) {
+                    if (projectileUpdate(p, map)){
                         remove_dynarray(projectiles, pos);
                         continue;
                     }
+
+                    if (p->e->rect.x > roomX * ROOM_SIZE + ROOM_SIZE ||
+                        p->e->rect.y > roomY * ROOM_SIZE + ROOM_SIZE ||
+                        p->e->rect.x < roomX * ROOM_SIZE ||
+                        p->e->rect.y < roomY * ROOM_SIZE)
+                    {
+                        remove_dynarray(projectiles, pos);
+                        continue;
+                    }
+
+                    bool removedProjectile = false;
+
+                    if ((enemies = hashFind(mData.enemies, enemyKey)) != NULL){
+                        int epos = 0;
+                        while (epos < enemies->len){
+                            Enemy e = enemies->data[epos];
+
+                            if (e->health <= 0){
+                                remove_dynarray(enemies, epos);
+                                continue; 
+                            }
+
+                            if (CheckCollisionRecs(e->e->rect, p->e->rect)){
+                                e->health -= 20;
+                                // Impact_HitFlashTrigger(&e->flash )
+                                Impact_SpawnBurst((Vector2){p->e->rect.x, p->e->rect.y}, RED, 8);
+                                Impact_StartShake(0.15f, 3.0f);
+                                remove_dynarray(projectiles, pos);
+                                removedProjectile = true;
+                                break;
+                            }
+
+                            epos += 1;
+                        }
+                    }
+
+                    if (removedProjectile) {
+                        continue;
+                    }
+
                     projectileDraw(p);
-                    pos++;
+                    pos += 1;
                 }
 
                 Impact_DrawParticles();
