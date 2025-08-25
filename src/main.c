@@ -14,6 +14,7 @@
 #include "camera.h"
 #include "projectile.h"
 #include "impact.h"
+#include "utils.h"
 // #include <math.h>
 
 #define MAX_BOIDS 100
@@ -469,6 +470,9 @@ int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Vampy Reloaded");
     SetTargetFPS(60);
 
+    // Loading files 
+    Animation player_idle = loadAnimation("./entities/player/", 4);
+
     Joystick joy = CreateJoystick((Vector2){100, 350}, 60);
     Joystick aim = CreateJoystick((Vector2){700, 350}, 60);
 
@@ -545,10 +549,23 @@ int main() {
 
     float shootCooldown = 0.0f; 
 
-    // float delta = 0.0f;     
+    // float delta = 0.0f;    
+    
+    int currentFrame = 0;
+    float frameTime = 0.1f;
+    float timer = 0;
+
 
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
+
+        // Frame timer
+        timer += delta;
+        if (timer > frameTime){
+            timer = 0;
+            currentFrame = (currentFrame + 1) % player_idle->numberOfFrames;
+        }
+
         UpdateJoysticks(&joy, &aim);
 
         shootCooldown -= delta;
@@ -642,15 +659,9 @@ int main() {
             }
         }
 
-        // for (int i = 0; i < mData.doors->len; i++){
-        //     Door door = mData.doors->data[i];
-        //     if (player->pos.x > door->ax && player->pos.x < door->bx && player->pos.y > door->ay && player->pos.y < door->by){
-        //         DrawRectangle((int)door->pos.x,(int) door->pos.y, 15, 15, GREEN);
-        //     }
-        // }
-
         // DrawCircleV(playerPos, 20, RED);
-        DrawRectangleRec(player->rect, BLUE);
+        // DrawRectangleRec(player->rect, BLUE);
+        DrawTexture(player_idle->frames[currentFrame], player->rect.x, player->rect.y, WHITE);
         // DrawRectangleRec(enemy->e->rect, RED);
         // DrawCircleV(swarmTarget, 5, GREEN); // visualize swarm target
         // DrawBoids(flockGrid);
