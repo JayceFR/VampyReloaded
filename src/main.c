@@ -474,7 +474,7 @@ int main() {
     RenderTexture2D target = LoadRenderTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
 
     // Loading files 
-    Animation player_idle = loadAnimation("./entities/player/", 4);
+    Animation player_idle = loadAnimation("entities/player/", 4);
 
     Joystick joy = CreateJoystick((Vector2){100, 350}, 60);
     Joystick aim = CreateJoystick((Vector2){700, 350}, 60);
