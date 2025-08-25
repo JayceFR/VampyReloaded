@@ -22,8 +22,8 @@ void UpdateCameraRoom(Camera2D *camera, entity player) {
     camera->target.y = Lerp(camera->target.y, target.y, lerpSpeed);
 
     // Clamp so camera doesn't leave the room
-    float halfW = GetScreenWidth() / 2.0f;
-    float halfH = GetScreenHeight() / 2.0f;
+    float halfW = GetScreenWidth() / 4.0f;
+    float halfH = GetScreenHeight() / 4.0f;
 
     float minX = roomX * ROOM_SIZE + halfW;
     float maxX = (roomX + 1) * ROOM_SIZE - halfW;

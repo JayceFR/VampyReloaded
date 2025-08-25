@@ -470,27 +470,24 @@ static RoomCache s_cache = {0};
 
 static Rectangle GetCameraWorldBounds(Camera2D cam) {
     Vector2 tl = GetScreenToWorld2D((Vector2){0, 0}, cam);
-    Vector2 br = GetScreenToWorld2D((Vector2){GetScreenWidth(), GetScreenHeight()}, cam);
+    Vector2 br = GetScreenToWorld2D((Vector2){GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f}, cam);
     return (Rectangle){ tl.x, tl.y, br.x - tl.x, br.y - tl.y };
 }
 
-void mapDraw(hash map, Camera2D camera) {
-    const int PAD_TILES_X = 2;         // extra tiles around the screen to reduce rebuilds
-    const int PAD_TILES_Y = 2;
+void MapEnsureCache(hash map, Camera2D camera) {
+    const int PAD_TILES_X = 2, PAD_TILES_Y = 2;
 
     Rectangle view = GetCameraWorldBounds(camera);
 
-    // snap + pad in *tile* space
+    // snap + pad in tile space
     int minTileX = (int)floorf(view.x / TILE_SIZE) - PAD_TILES_X;
     int minTileY = (int)floorf(view.y / TILE_SIZE) - PAD_TILES_Y;
     int maxTileX = (int)ceilf((view.x + view.width) / TILE_SIZE) + PAD_TILES_X;
     int maxTileY = (int)ceilf((view.y + view.height) / TILE_SIZE) + PAD_TILES_Y;
 
-    // clamp order
     if (maxTileX < minTileX) { int t=minTileX; minTileX=maxTileX; maxTileX=t; }
     if (maxTileY < minTileY) { int t=minTileY; minTileY=maxTileY; maxTileY=t; }
 
-    // convert to *pixel* space (snapped to tiles)
     int cacheX = minTileX * TILE_SIZE;
     int cacheY = minTileY * TILE_SIZE;
     int cacheW = (maxTileX - minTileX) * TILE_SIZE;
@@ -510,52 +507,128 @@ void mapDraw(hash map, Camera2D camera) {
     if (needResize) {
         if (s_cache.tex.id) UnloadRenderTexture(s_cache.tex);
         s_cache.tex = LoadRenderTexture(cacheW, cacheH);
-        s_cache.dirty = true;
     }
 
     if (needResize || movedOutside) {
-        // --- Rebuild cache with identity transform (no camera!) ---
-        // We assume mapDraw is called *inside* BeginMode2D(camera); temporarily disable it:
-        EndMode2D();
-
         s_cache.worldRect = (Rectangle){ (float)cacheX, (float)cacheY, (float)cacheW, (float)cacheH };
 
+        // IMPORTANT: draw cache with no camera, no nesting inside your main target
         BeginTextureMode(s_cache.tex);
-            ClearBackground(BLANK);
+            ClearBackground(BLACK); // or BLANK, your choice
 
             char key[32];
             for (int tx = minTileX; tx < maxTileX; tx++) {
                 for (int ty = minTileY; ty < maxTileY; ty++) {
                     sprintf(key, "%d:%d", tx, ty);
-                    TILES *tile = hashFind(map, key);
-                    if (!tile) continue;
+                    rect r = (rect)hashFind(map, key);   // <-- correct type!
+                    if (!r) continue;
 
-                    // local (cache) coords
-                    int lx = tx * TILE_SIZE - cacheX;
+                    int lx = tx * TILE_SIZE - cacheX;    // local coords in cache
                     int ly = ty * TILE_SIZE - cacheY;
 
-                    if (*tile == DIRT) {
+                    if (r->tile == DIRT) {
                         DrawRectangle(lx, ly, TILE_SIZE, TILE_SIZE, GRAY);
-                    } else if (*tile == STONE) {
+                    } else if (r->tile == STONE) {
                         DrawRectangle(lx, ly, TILE_SIZE, TILE_SIZE, BLACK);
                     }
                 }
             }
         EndTextureMode();
-
-        // restore camera for world drawing
-        BeginMode2D(camera);
-        s_cache.dirty = false;
     }
+}
 
-    // --- Draw cached quad in world-space (now camera is active) ---
+void MapDrawCached(Camera2D camera) {
+    if (!s_cache.tex.id) return;
     DrawTexturePro(
         s_cache.tex.texture,
-        (Rectangle){ 0, 0, (float)s_cache.tex.texture.width, -(float)s_cache.tex.texture.height }, // flip Y
+        (Rectangle){ 0, 0, (float)s_cache.tex.texture.width, -(float)s_cache.tex.texture.height },
         (Rectangle){ s_cache.worldRect.x, s_cache.worldRect.y, s_cache.worldRect.width, s_cache.worldRect.height },
         (Vector2){ 0, 0 }, 0.0f, WHITE
     );
 }
+
+// void mapDraw(hash map, Camera2D camera) {
+//     const int PAD_TILES_X = 2;         // extra tiles around the screen to reduce rebuilds
+//     const int PAD_TILES_Y = 2;
+
+//     Rectangle view = GetCameraWorldBounds(camera);
+
+//     // snap + pad in *tile* space
+//     int minTileX = (int)floorf(view.x / TILE_SIZE) - PAD_TILES_X;
+//     int minTileY = (int)floorf(view.y / TILE_SIZE) - PAD_TILES_Y;
+//     int maxTileX = (int)ceilf((view.x + view.width) / TILE_SIZE) + PAD_TILES_X;
+//     int maxTileY = (int)ceilf((view.y + view.height) / TILE_SIZE) + PAD_TILES_Y;
+
+//     // clamp order
+//     if (maxTileX < minTileX) { int t=minTileX; minTileX=maxTileX; maxTileX=t; }
+//     if (maxTileY < minTileY) { int t=minTileY; minTileY=maxTileY; maxTileY=t; }
+
+//     // convert to *pixel* space (snapped to tiles)
+//     int cacheX = minTileX * TILE_SIZE;
+//     int cacheY = minTileY * TILE_SIZE;
+//     int cacheW = (maxTileX - minTileX) * TILE_SIZE;
+//     int cacheH = (maxTileY - minTileY) * TILE_SIZE;
+
+//     bool needResize =
+//         !s_cache.tex.id ||
+//         s_cache.tex.texture.width  != cacheW ||
+//         s_cache.tex.texture.height != cacheH;
+
+//     bool movedOutside =
+//         (view.x < s_cache.worldRect.x) ||
+//         (view.y < s_cache.worldRect.y) ||
+//         (view.x + view.width  > s_cache.worldRect.x + s_cache.worldRect.width) ||
+//         (view.y + view.height > s_cache.worldRect.y + s_cache.worldRect.height);
+
+//     if (needResize) {
+//         if (s_cache.tex.id) UnloadRenderTexture(s_cache.tex);
+//         s_cache.tex = LoadRenderTexture(cacheW, cacheH);
+//         s_cache.dirty = true;
+//     }
+
+//     if (needResize || movedOutside) {
+//         // --- Rebuild cache with identity transform (no camera!) ---
+//         // We assume mapDraw is called *inside* BeginMode2D(camera); temporarily disable it:
+//         EndMode2D();
+
+//         s_cache.worldRect = (Rectangle){ (float)cacheX, (float)cacheY, (float)cacheW, (float)cacheH };
+
+//         BeginTextureMode(s_cache.tex);
+//             ClearBackground(BLANK);
+
+//             char key[32];
+//             for (int tx = minTileX; tx < maxTileX; tx++) {
+//                 for (int ty = minTileY; ty < maxTileY; ty++) {
+//                     sprintf(key, "%d:%d", tx, ty);
+//                     TILES *tile = hashFind(map, key);
+//                     if (!tile) continue;
+
+//                     // local (cache) coords
+//                     int lx = tx * TILE_SIZE - cacheX;
+//                     int ly = ty * TILE_SIZE - cacheY;
+
+//                     if (*tile == DIRT) {
+//                         DrawRectangle(lx, ly, TILE_SIZE, TILE_SIZE, GRAY);
+//                     } else if (*tile == STONE) {
+//                         DrawRectangle(lx, ly, TILE_SIZE, TILE_SIZE, BLACK);
+//                     }
+//                 }
+//             }
+//         EndTextureMode();
+
+//         // restore camera for world drawing
+//         BeginMode2D(camera);
+//         s_cache.dirty = false;
+//     }
+
+//     // --- Draw cached quad in world-space (now camera is active) ---
+//     DrawTexturePro(
+//         s_cache.tex.texture,
+//         (Rectangle){ 0, 0, (float)s_cache.tex.texture.width, -(float)s_cache.tex.texture.height }, // flip Y
+//         (Rectangle){ s_cache.worldRect.x, s_cache.worldRect.y, s_cache.worldRect.width, s_cache.worldRect.height },
+//         (Vector2){ 0, 0 }, 0.0f, WHITE
+//     );
+// }
 
 
 

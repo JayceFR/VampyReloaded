@@ -467,8 +467,11 @@ Vector2 randomVelocity(float minSpeed, float maxSpeed) {
 }
 
 int main() {
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Vampy Reloaded");
+    InitWindow(SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2, "Vampy Reloaded (x2 scaled)");
     SetTargetFPS(60);
+
+    // 🎯 Offscreen render target at original resolution
+    RenderTexture2D target = LoadRenderTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
 
     // Loading files 
     Animation player_idle = loadAnimation("./entities/player/", 4);
@@ -477,7 +480,6 @@ int main() {
     Joystick aim = CreateJoystick((Vector2){700, 350}, 60);
 
     hash flockGrid = hashCreate(NULL, &free_dynarray, NULL); 
-
     entity player = entityCreate(400, 225, 15, 15);
     Vector2 offset = {0, 0};
 
@@ -487,258 +489,142 @@ int main() {
 
     Camera2D camera = {0};
     camera.target = player->pos;
-    camera.offset = (Vector2) {GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f};
+    camera.offset = (Vector2){SCREEN_WIDTH / 2.0f, SCREEN_HEIGHT / 2.0f};
     camera.rotation = 0.0f; 
     camera.zoom = 1.0f; 
 
     dynarray projectiles = create_dynarray(&projectileFree,NULL);
 
-    for (int i = 0; i < MAX_BOIDS; i++){
-
+    // 🐦 Init boids (same as before)
+    for (int i = 0; i < MAX_BOIDS; i++) {
         boid b = malloc(sizeof(struct boid));
         assert(b != NULL);
 
-        
-        b->pos = (Vector2) {GetRandomValue(0, SCREEN_WIDTH), GetRandomValue(0, SCREEN_HEIGHT)};
-        b->cellX = (int) b->pos.x / GRID_SIZE; 
-        b->cellY = (int) b->pos.y / GRID_SIZE;
-        b->velocity = randomVelocity(-2,2);
-        b->acceleration = (Vector2) {0,0};
+        b->pos = (Vector2){GetRandomValue(0, SCREEN_WIDTH), GetRandomValue(0, SCREEN_HEIGHT)};
+        b->cellX = (int)b->pos.x / GRID_SIZE; 
+        b->cellY = (int)b->pos.y / GRID_SIZE;
+        b->velocity = randomVelocity(-2, 2);
+        b->acceleration = (Vector2){0, 0};
         b->isMoving = true;
         b->moveTimer = randFloat(0.5, 1);
 
-
         char buffer[25];
-
         dynarray arr; 
-
         sprintf(buffer, "%d:%d", b->cellX, b->cellY);
-        printf("bpos : %f : %f", b->pos.x, b->pos.y);
-        printf("Buffer when inititing : %s",buffer);
-        if ( (arr = hashFind(flockGrid, buffer)) != NULL){
-            // Then append it to the list 
+        if ((arr = hashFind(flockGrid, buffer)) != NULL) {
             add_dynarray(arr, b);
-        }
-        else{
+        } else {
             arr = create_dynarray(NULL, NULL);
             add_dynarray(arr, b);
             hashSet(flockGrid, buffer, arr);
         }
-
     }
 
     Vector2 averageVels[MAX_BOIDS];
-
     Vector2 swarmTarget = player->pos;
-    float timeSinceUpdate = 0.0f;
-    float updateInterval = 0.0f; // seconds
 
     mapData mData = mapCreate();
     hash map = mData.map;
 
-    Image noise = GenImagePerlinNoise(256, 256, 50, 50, 0.4f);
-
     Enemy enemy = enemyCreate(50, 60, 15, 15);
-
-    int roomX, roomY;
 
     char enemyKey[22];
     dynarray enemies; 
-    
     srand(time(NULL));
 
     float shootCooldown = 0.0f; 
-
-    // float delta = 0.0f;    
-    
     int currentFrame = 0;
     float frameTime = 0.1f;
     float timer = 0;
 
-
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
 
-        // Frame timer
+        int roomX = player->pos.x / ROOM_SIZE;
+        int roomY = player->pos.y / ROOM_SIZE;
+
+        // Animation frame timer
         timer += delta;
-        if (timer > frameTime){
+        if (timer > frameTime) {
             timer = 0;
             currentFrame = (currentFrame + 1) % player_idle->numberOfFrames;
         }
 
         UpdateJoysticks(&joy, &aim);
 
-        shootCooldown -= delta;
-        if (shootCooldown <= 0.0f){
-            shootCooldown = 0.0f;
-        }
+        shootCooldown = fmaxf(0.0f, shootCooldown - delta);
 
-        char buffer[22];
-        sprintf(buffer, "fps : %d", GetFPS());
-
-        offset.x = 0;
-        offset.y = 0;
-
-        offset.x += joy.value.x * 5;
-        offset.y += joy.value.y * 5;
+        offset = (Vector2){ joy.value.x * 5, joy.value.y * 5 };
 
         if (aim.state == JOY_SHOOTING && shootCooldown <= 0.0f) {
-            // Fire projectile in that direction
             projectileShoot(projectiles, player->pos, aim.value, 10.0f);
             shootCooldown = 40.0f / 60.0f;
             offset.x -= (aim.value.x * 3); 
             offset.y -= (aim.value.y * 3);  
-
             Impact_StartShake(0.4f, 8.0f);
         }
 
         update(player, map, offset);
+        UpdateCameraRoom(&camera, player);
 
-        // update(enemy->e, map, computeVelOfEnemy(enemy, player, map)); 
-
-        roomX = ((int)player->pos.x) / ROOM_SIZE;
-        roomY = ((int)player->pos.y) / ROOM_SIZE;
+        Impact_UpdateShake(&camera, delta);
+        Impact_UpdateParticles(delta);
 
         sprintf(enemyKey, "%d:%d", roomX, roomY);
 
+        MapEnsureCache(map, camera);
 
+        // === 🎯 Draw to render texture at base resolution ===
+        BeginTextureMode(target);
+            ClearBackground(RAYWHITE);
 
-        // Update swarm target only every few seconds
-        timeSinceUpdate += delta;
-        if (timeSinceUpdate >= updateInterval) {
-            timeSinceUpdate = 0.0f;
-
-            // Random offset from player's current position
-            // swarmTarget = Vector2Add(playerPos, 
-            //     (Vector2){ GetRandomValue(-50, 50), GetRandomValue(-50, 50) });
-            swarmTarget = player->pos;
-        }
-
-        // calculateSteering(flock, averageVels, swarmTarget);
-        data->playerPos = player->pos;
-        calculateSteering(flockGrid, data);
-        updateBoids(flockGrid, averageVels);
-
-        // float followSpeed = 4.0f; 
-        // Vector2 diff = {
-        //     player->pos.x - camera.target.x,
-        //     player->pos.y - camera.target.y
-        // };
-
-        // camera.target.x += diff.x * followSpeed * GetFrameTime();
-        // camera.target.y += diff.y * followSpeed * GetFrameTime(); 
-
-        UpdateCameraRoom(&camera, player);
-
-        // Particles 
-
-        Impact_UpdateShake(&camera, delta);
-
-        Impact_UpdateParticles(delta);
-
-
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
-
-        BeginMode2D(camera);
-
-        mapDraw(map, camera);
-
-        // Door door = getPlayerRoomDoor(mData.doors, player->pos);
-        // if (door != NULL){
-        //     DrawRectangle((int)door->pos.x,(int) door->pos.y, 15, 15, GREEN);   
-        // }
-
-
-        if ((enemies = hashFind(mData.enemies, enemyKey)) != NULL){
-            for (int i = 0; i < enemies->len; i++){
-                Enemy e = enemies->data[i];
-                Vector2 vel = computeVelOfEnemy(e, player, map);
-                update(e->e, map, vel);
-                enemyDraw(e, map);
-            }
-        }
-
-        // DrawCircleV(playerPos, 20, RED);
-        // DrawRectangleRec(player->rect, BLUE);
-        DrawTexture(player_idle->frames[currentFrame], player->rect.x, player->rect.y, WHITE);
-        // DrawRectangleRec(enemy->e->rect, RED);
-        // DrawCircleV(swarmTarget, 5, GREEN); // visualize swarm target
-        // DrawBoids(flockGrid);
-
-        // for (int i = 0; i < projectiles->len; i++){
-        //     projectile p = projectiles->data[i];
-        //     projectileUpdate(p, map);
-        //     projectileDraw(p);
-        // }
-
-        int pos = 0;
-        while (pos < projectiles->len){
-            projectile p = projectiles->data[pos];
-
-            if (projectileUpdate(p, map)){
-                remove_dynarray(projectiles, pos);
-                continue;
-            }
-
-            if (p->e->rect.x > roomX * ROOM_SIZE + ROOM_SIZE ||
-                p->e->rect.y > roomY * ROOM_SIZE + ROOM_SIZE ||
-                p->e->rect.x < roomX * ROOM_SIZE ||
-                p->e->rect.y < roomY * ROOM_SIZE)
-            {
-                remove_dynarray(projectiles, pos);
-                continue;
-            }
-
-            bool removedProjectile = false;
-
-            if ((enemies = hashFind(mData.enemies, enemyKey)) != NULL){
-                int epos = 0;
-                while (epos < enemies->len){
-                    Enemy e = enemies->data[epos];
-
-                    if (e->health <= 0){
-                        remove_dynarray(enemies, epos);
-                        continue; 
+            BeginMode2D(camera);
+                // mapDraw(map, camera);
+                MapDrawCached(camera);
+                
+                if ((enemies = hashFind(mData.enemies, enemyKey)) != NULL) {
+                    for (int i = 0; i < enemies->len; i++) {
+                        Enemy e = enemies->data[i];
+                        Vector2 vel = computeVelOfEnemy(e, player, map);
+                        update(e->e, map, vel);
+                        enemyDraw(e, map);
                     }
-
-                    if (CheckCollisionRecs(e->e->rect, p->e->rect)){
-                        e->health -= 20;
-                        // Impact_HitFlashTrigger(&e->flash )
-                        Impact_SpawnBurst((Vector2){p->e->rect.x, p->e->rect.y}, RED, 8);
-                        Impact_StartShake(0.15f, 3.0f);
-                        remove_dynarray(projectiles, pos);
-                        removedProjectile = true;
-                        break;
-                    }
-
-                    epos += 1;
                 }
-            }
 
-            if (removedProjectile) {
-                continue;
-            }
+                DrawTexture(player_idle->frames[currentFrame], player->rect.x, player->rect.y, WHITE);
 
-            projectileDraw(p);
-            pos += 1;
-        }
+                int pos = 0;
+                while (pos < projectiles->len) {
+                    projectile p = projectiles->data[pos];
 
-        Impact_DrawParticles();
+                    if (projectileUpdate(p, map)) {
+                        remove_dynarray(projectiles, pos);
+                        continue;
+                    }
+                    projectileDraw(p);
+                    pos++;
+                }
 
-        EndMode2D();
+                Impact_DrawParticles();
+            EndMode2D();
 
+            DrawText(TextFormat("fps: %d", GetFPS()), 10, 10, 10, RED);
+            DrawJoystick(joy);
+            DrawJoystick(aim);
+        EndTextureMode();
 
-        DrawText(buffer, 10, 10, 10, RED);
-
-        DrawJoystick(joy);
-        DrawJoystick(aim);
-
+        // === 🎯 Draw scaled texture to screen ===
+        BeginDrawing();
+            ClearBackground(BLACK);
+            Rectangle src = { 0, 0, (float)target.texture.width, -(float)target.texture.height };
+            Rectangle dst = { 0, 0, (float)SCREEN_WIDTH * 2, (float)SCREEN_HEIGHT * 2 };
+            DrawTexturePro(target.texture, src, dst, (Vector2){0, 0}, 0.0f, WHITE);
         EndDrawing();
     }
 
+    UnloadRenderTexture(target);
     mapFree(map);
-
     CloseWindow();
     return 0;
 }
+
