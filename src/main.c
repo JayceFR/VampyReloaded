@@ -13,6 +13,7 @@
 #include "enemy.h"
 #include "camera.h"
 #include "projectile.h"
+#include "impact.h"
 // #include <math.h>
 
 #define MAX_BOIDS 100
@@ -544,17 +545,11 @@ int main() {
 
     float shootCooldown = 0.0f; 
 
+    // float delta = 0.0f;     
+
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
-        // UpdateJoystick(&joy);
-        // UpdateJoystick(&aim);
         UpdateJoysticks(&joy, &aim);
-
-        if (aim.state == JOY_SHOOTING && shootCooldown <= 0.0f) {
-            // Fire projectile in that direction
-            projectileShoot(projectiles, player->pos, aim.value, 10.0f);
-            shootCooldown = 40.0f / 60.0f; 
-        }
 
         shootCooldown -= delta;
         if (shootCooldown <= 0.0f){
@@ -569,6 +564,16 @@ int main() {
 
         offset.x += joy.value.x * 5;
         offset.y += joy.value.y * 5;
+
+        if (aim.state == JOY_SHOOTING && shootCooldown <= 0.0f) {
+            // Fire projectile in that direction
+            projectileShoot(projectiles, player->pos, aim.value, 10.0f);
+            shootCooldown = 40.0f / 60.0f;
+            offset.x -= (aim.value.x * 3); 
+            offset.y -= (aim.value.y * 3);  
+
+            Impact_StartShake(0.4f, 8.0f);
+        }
 
         update(player, map, offset);
 
@@ -607,6 +612,13 @@ int main() {
         // camera.target.y += diff.y * followSpeed * GetFrameTime(); 
 
         UpdateCameraRoom(&camera, player);
+
+        // Particles 
+
+        Impact_UpdateShake(&camera, delta);
+
+        Impact_UpdateParticles(delta);
+
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
@@ -681,6 +693,9 @@ int main() {
 
                     if (CheckCollisionRecs(e->e->rect, p->e->rect)){
                         e->health -= 20;
+                        // Impact_HitFlashTrigger(&e->flash )
+                        Impact_SpawnBurst((Vector2){p->e->rect.x, p->e->rect.y}, RED, 8);
+                        Impact_StartShake(0.15f, 3.0f);
                         remove_dynarray(projectiles, pos);
                         removedProjectile = true;
                         break;
@@ -698,6 +713,7 @@ int main() {
             pos += 1;
         }
 
+        Impact_DrawParticles();
 
         EndMode2D();
 

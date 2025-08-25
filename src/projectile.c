@@ -10,7 +10,7 @@
 void projectileShoot(dynarray projectiles, Vector2 playerPos, Vector2 dir, float speed){
     projectile p = malloc(sizeof(struct projectile));
     // p->rect = (Rectangle) {playerPos.x, playerPos.y, 5, 5};
-    p->e = entityCreate(playerPos.x, playerPos.y, 5, 5);
+    p->e = entityCreate(playerPos.x, playerPos.y, 10, 10);
     p->dir = Vector2Normalize(dir); 
     p->speed = speed;
     p->dir = Vector2Scale(p->dir, speed);
