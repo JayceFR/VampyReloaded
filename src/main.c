@@ -18,8 +18,8 @@
 // #include <math.h>
 
 #define MAX_BOIDS 100
-#define SCREEN_WIDTH 800 
-#define SCREEN_HEIGHT 450 
+#define SCREEN_WIDTH 400 
+#define SCREEN_HEIGHT 225 
 
 #define GRID_SIZE 20
 
@@ -123,6 +123,9 @@ static inline void ApplyTouchToJoystick(Joystick *j, Vector2 touch){
 void UpdateJoystick(Joystick *joy) {
     if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) { // On Android, mouse==touch
         Vector2 touch = GetMousePosition();
+        // touch.x /= 2.0f;
+        // touch.y /= 2.0f;
+
         float dist = Vector2Distance(joy->basePos, touch);
 
         if (!joy->active && dist <= joy->baseRadius) {
@@ -182,6 +185,8 @@ void UpdateJoysticks(Joystick *left, Joystick *right){
     for (int i = 0; i < touchCount; i++){
         int id = GetTouchPointId(i);
         Vector2 p = GetTouchPosition(i);
+        // p.x /= 2.0f;
+        // p.y /= 2.0f;
 
         if (id == left->pointerId || id == right->pointerId) continue;
 
@@ -609,8 +614,6 @@ int main() {
             EndMode2D();
 
             DrawText(TextFormat("fps: %d", GetFPS()), 10, 10, 10, RED);
-            DrawJoystick(joy);
-            DrawJoystick(aim);
         EndTextureMode();
 
         // === 🎯 Draw scaled texture to screen ===
@@ -619,6 +622,10 @@ int main() {
             Rectangle src = { 0, 0, (float)target.texture.width, -(float)target.texture.height };
             Rectangle dst = { 0, 0, (float)SCREEN_WIDTH * 2, (float)SCREEN_HEIGHT * 2 };
             DrawTexturePro(target.texture, src, dst, (Vector2){0, 0}, 0.0f, WHITE);
+
+            DrawJoystick(joy);
+            DrawJoystick(aim);
+
         EndDrawing();
     }
 
