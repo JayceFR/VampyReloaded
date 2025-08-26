@@ -4,6 +4,7 @@
 #include "raylib.h"
 #include "map.h"
 #include "physics.h"
+#include "utils.h"
 
 // Enemy states
 // Idle -> circling around the spawn point 
@@ -40,12 +41,16 @@ struct Enemy{
     int health;
     int maxHealth; 
 
+    int currentFrame; 
+    float animTimer; 
+    int facingRight;
+
 };
 typedef struct Enemy *Enemy;  
 
 extern Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map);
 extern Enemy enemyCreate(int startX, int startY, int width, int height);
 extern void updateAngle(Enemy e, Vector2 vel);
-extern void enemyDraw(Enemy e, hash map);
+extern void enemyDraw(Enemy e, hash map, Animation *enemyAnimations);
 
 #endif

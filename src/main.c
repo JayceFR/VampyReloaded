@@ -489,6 +489,11 @@ int main() {
         loadAnimation("entities/player/idle/", 4),
         loadAnimation("entities/player/run/", 4),
     };
+
+    Animation EnemyAnimations[] = {
+        loadAnimation("entities/enemy/idle/", 4),
+        loadAnimation("entities/enemy/run/", 4),
+    };
     // Animation player_idle = loadAnimation("entities/player/", 4);
 
     Joystick joy = CreateJoystick((Vector2){100, 350}, 60);
@@ -623,7 +628,7 @@ int main() {
                         Enemy e = enemies->data[i];
                         Vector2 vel = computeVelOfEnemy(e, player, map);
                         update(e->e, map, vel);
-                        enemyDraw(e, map);
+                        enemyDraw(e, map, EnemyAnimations);
                     }
                 }
 

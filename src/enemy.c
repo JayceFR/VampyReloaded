@@ -9,6 +9,7 @@
 #include "physics.h"
 #include "map.h"
 #include "enemy.h"
+#include "utils.h"
 
 #define MOVE_STRAIGHT_COST 10
 #define MOVE_DIAGONAL_COST 14
@@ -265,12 +266,19 @@ static inline void worldCenterOfNode(pathNode n, Rectangle entRect, Vector2 *out
 
 Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
     const float dt = GetFrameTime();
+
+    // --- Animation ---
+    enemy->animTimer += dt;
+    if (enemy->animTimer > 0.1f) {
+        enemy->animTimer = 0.0f;
+        enemy->currentFrame = (enemy->currentFrame + 1) % 4;
+    }
+
     Vector2 vel = (Vector2){0,0};
 
     // --- Throttle sensing (vision/LOS) ---
     enemy->senseCooldown -= dt;
     if (enemy->senseCooldown <= 0.0f) {
-        // run at ~10Hz but stagger across enemies to avoid bursts
         float baseSensePeriod = 0.10f;
         enemy->senseCooldown = baseSensePeriod + (enemy->staggerSlot * 0.01f);
         enemy->playerVisible = PlayerInTorchCone(enemy, player, torchRadius, torchFOV, map);
@@ -282,7 +290,7 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
     if (enemy->playerVisible)       enemy->state = ACTIVE;
     else if (distToLastKnown > torchRadius * 1.5f) enemy->state = IDLE;
 
-    // --- ACTIVE: follow path to player's tile (staggered, cached) ---
+    // --- ACTIVE: follow player path ---
     if (enemy->state == ACTIVE) {
         int goalX = (int)(player->pos.x) / TILE_SIZE;
         int goalY = (int)(player->pos.y) / TILE_SIZE;
@@ -291,13 +299,7 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
         if (!enemy->path || enemy->currentStep >= (enemy->path->len)) needRecompute = true;
         if (goalX != enemy->lastGoalTileX || goalY != enemy->lastGoalTileY) needRecompute = true;
 
-        // cooldown
         enemy->repathCooldown -= dt;
-
-        // Stagger solves: only allow enemies with matching slot this frame
-        // e.g. update 1/3 of enemies per frame
-        // bool allowThisFrame = ((GetFrameCount() % 3) == enemy->staggerSlot);
-        
 
         if (needRecompute && enemy->repathCooldown <= 0.0f) {
             if (enemy->path) { free_dynarray(enemy->path); enemy->path = NULL; }
@@ -305,11 +307,9 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
             enemy->lastGoalTileX = goalX;
             enemy->lastGoalTileY = goalY;
             enemy->currentStep = 1;
-            // add slight jitter so enemies don’t resync
             enemy->repathCooldown = enemy->repathInterval + (GetRandomValue(-25,25) * 0.001f);
         }
 
-        // Follow cached path if available; otherwise drift to last known player pos
         if (enemy->path && enemy->currentStep < enemy->path->len) {
             pathNode nextNode = enemy->path->data[enemy->currentStep];
             Vector2 nextPos; worldCenterOfNode(nextNode, enemy->e->rect, &nextPos);
@@ -320,37 +320,28 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
             } else {
                 Vector2 dir = Vector2Normalize(toTarget);
                 vel = Vector2Scale(dir, 2.0f);
-                updateAngleSmooth(enemy, vel, 4.0f);
-                return vel;
             }
         } else {
-            // fallback: simple steering to last known pos (no A*)
             Vector2 toLkp = Vector2Subtract(enemy->lastKnownPlayerPos, enemy->e->pos);
             if (Vector2Length(toLkp) > 3.0f) {
                 Vector2 dir = Vector2Normalize(toLkp);
                 vel = Vector2Scale(dir, 1.6f);
-                updateAngleSmooth(enemy, vel, 4.0f);
-                return vel;
             }
         }
-
-        updateAngleSmooth(enemy, vel, 4.0f);
-        return vel;
     }
 
-    // --- IDLE: cheap wander with rare decisions ---
+    // --- IDLE: wander ---
     if (enemy->state == IDLE) {
         if (enemy->idleTimer <= 0) {
             if (enemy->movingIdle) {
                 enemy->movingIdle = false;
                 enemy->idleTimer = GetRandomValue(30, 90) / 60.0f;
-                return vel;
             } else {
                 enemy->movingIdle = true;
                 enemy->idleTimer = GetRandomValue(60, 180) / 60.0f;
 
                 float randomAngle = GetRandomValue(0, 360) * DEG2RAD;
-                float dist = GetRandomValue(40, 120); // slightly larger, moves light around
+                float dist = GetRandomValue(40, 120);
                 Vector2 candidate = Vector2Add(enemy->e->pos,
                                      (Vector2){cosf(randomAngle)*dist, sinf(randomAngle)*dist});
 
@@ -372,20 +363,21 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
             if (Vector2Length(toTarget) < 2.0f) {
                 enemy->movingIdle = false;
                 enemy->idleTimer = GetRandomValue(30, 90) / 60.0f;
-                updateAngleSmooth(enemy, vel, 3.0f);
-                return vel;
+            } else {
+                Vector2 dir = Vector2Normalize(toTarget);
+                vel = Vector2Scale(dir, 1.0f);
             }
-
-            Vector2 dir = Vector2Normalize(toTarget);
-            vel = Vector2Scale(dir, 1.0f);
-            updateAngleSmooth(enemy, vel, 3.0f);
-            return vel;
         }
     }
+
+    // --- Facing update ---
+    if (vel.x > 0.1f)  enemy->facingRight = 1;
+    if (vel.x < -0.1f) enemy->facingRight = -1;
 
     updateAngleSmooth(enemy, vel, 3.5f);
     return vel;
 }
+
 
 
 
@@ -410,6 +402,10 @@ Enemy enemyCreate(int startX, int startY, int width, int height){
 
     enemy->health = 100; 
     enemy->maxHealth = 100;
+
+    enemy->currentFrame = 0;
+    enemy->animTimer = 0;
+    enemy->facingRight = 1; 
 
     return enemy;
 }
@@ -461,9 +457,18 @@ void enemyDrawTorch(Enemy e, hash map, int rays, Color col) {
 
 
 
-void enemyDraw(Enemy e, hash map){
+void enemyDraw(Enemy e, hash map, Animation *enemyAnimations){
     // Draw enemy
-    DrawRectangleRec(e->e->rect, RED);
+    // DrawRectangleRec(e->e->rect, RED);
+    Texture2D frame = enemyAnimations[e->state]->frames[e->currentFrame];
+    Rectangle src = (Rectangle) { 0, 0, (float)frame.width * e->facingRight, (float)frame.height };
+    Rectangle dst = (Rectangle) { e->e->rect.x, e->e->rect.y, (float)frame.width, (float)frame.height };
+    Vector2 origin = { 0, 0 };
+
+    DrawTexturePro(frame, src, dst, origin, 0.0f, WHITE);
+    // DrawTexturePro(frame, src, dst, origin, 0, WHITE);
+    // DrawTexture(frame, e->e->rect.x, e->e->rect.y, WHITE);
+
 
     // Torch effect
     BeginBlendMode(BLEND_ADDITIVE);
