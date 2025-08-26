@@ -1,20 +1,19 @@
-#version 330
+#ifdef GL_ES
+precision mediump float;
+#endif
 
-in vec2 fragTexCoord;
-in vec4 fragColor;
-out vec4 finalColor;
-
+varying vec2 fragTexCoord;
 uniform sampler2D texture0;
 uniform float itime;
 uniform float darkness;
-uniform bool jekyll;
+uniform int jekyll;      // use int for GLES bool
 uniform vec2 cam_scroll;
 
 // Constants
-uniform vec2 scroll  = vec2(0.05, -0.05);
-uniform vec2 scroll2 = vec2(0.05,  0.05);
-uniform vec2 scroll3 = vec2(0.05, -0.15);
-uniform vec2 scroll4 = vec2(0.15,  0.05);
+const vec2 scroll  = vec2(0.05, -0.05);
+const vec2 scroll2 = vec2(0.05,  0.05);
+const vec2 scroll3 = vec2(0.05, -0.15);
+const vec2 scroll4 = vec2(0.15,  0.05);
 
 // ----------------------- Procedural Noise -----------------------
 float rand(vec2 co) {
@@ -40,7 +39,7 @@ float noise(vec2 st) {
 float fbm(vec2 st) {
     float value = 0.0;
     float amplitude = 0.5;
-    for (int i = 0; i < 4; i++) {   // bumped octaves
+    for (int i = 0; i < 4; i++) {
         value += amplitude * noise(st);
         st *= 2.0;
         amplitude *= 0.5;
@@ -49,12 +48,11 @@ float fbm(vec2 st) {
 }
 
 void foreground(inout vec4 col) {
-    vec4 tex_color = texture(texture0, fragTexCoord);
+    vec4 tex_color = texture2D(texture0, fragTexCoord);
     col = tex_color;
 
     vec2 baseUV = fragTexCoord * 5.0 + cam_scroll * -0.001;
 
-    // Speed up fog drift
     float depth1 = fbm(baseUV + itime * scroll * 4.0) * 
                    fbm(baseUV * 1.2 + itime * scroll2 * 1.5);
 
@@ -63,53 +61,44 @@ void foreground(inout vec4 col) {
 
     float depth = mix(depth1, depth2, 0.5);
 
-    // More contrasty fog factor (kept same)
     float fogFactor = pow(exp(-1.2 + depth * 2.0), 0.5);
-
-    // Faster, livelier pulse
     float pulse = 0.5 + 0.5 * sin(itime * 2.0);
 
-    vec3 fog_color1 = jekyll 
-        ? vec3(0.2 + 0.1*pulse, 0.15, 0.4)   // cooler shifting
-        : vec3(0.4, 0.15 + 0.1*pulse, 0.2); // warmer shifting
+    vec3 fog_color1 = (jekyll == 1) 
+        ? vec3(0.2 + 0.1*pulse, 0.15, 0.4)
+        : vec3(0.4, 0.15 + 0.1*pulse, 0.2);
 
-    vec3 fog_color2 = jekyll 
-        ? vec3(0.1, 0.12 + 0.05*pulse, 0.35) 
+    vec3 fog_color2 = (jekyll == 1) 
+        ? vec3(0.1, 0.12 + 0.05*pulse, 0.35)
         : vec3(0.35, 0.1, 0.15 + 0.05*pulse);
 
     vec3 fog_color = mix(fog_color1, fog_color2, depth);
 
-    // Faster overlay drift
-    vec2 uv = fragTexCoord * 6.0 
-              + itime * 1.5 
-              + cam_scroll * -0.0001;
+    vec2 uv = fragTexCoord * 6.0 + itime * 1.5 + cam_scroll * -0.0001;
 
     col.rgb = mix(fog_color, col.rgb, fogFactor);
-    col = mix(col, vec4(0,0,0,1), darkness);
+    col = mix(col, vec4(0.0,0.0,0.0,1.0), darkness);
 }
 
 void overlay_frag(inout vec4 col) {
-    vec2 uv = fragTexCoord * 6.0 
-              + itime * 0.5 
-              + cam_scroll * -0.005;
+    vec2 uv = fragTexCoord * 6.0 + itime * 0.5 + cam_scroll * -0.005;
 
     float n = fbm(uv);
 
     float center_dis = distance(fragTexCoord, vec2(0.5, 0.5));
     float noise_val = center_dis + n * 0.2;
 
-    vec4 tint = jekyll 
-        ? vec4(0.1, 0.15, 0.25, 1.0) 
+    vec4 tint = (jekyll == 1)
+        ? vec4(0.1, 0.15, 0.25, 1.0)
         : vec4(0.2, 0.05, 0.05, 1.0);
 
     float darkAmt = max(0.0, noise_val - 0.65) * 8.0;
-
     col = mix(col, tint, darkAmt * 0.3);
 }
 
 void main() {
-    vec4 col; 
+    vec4 col = vec4(0.0);
     foreground(col);
     overlay_frag(col);
-    finalColor = col;
+    gl_FragColor = col;
 }
