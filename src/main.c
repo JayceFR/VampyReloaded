@@ -471,6 +471,12 @@ Vector2 randomVelocity(float minSpeed, float maxSpeed) {
     return (Vector2){ cosf(angle) * speed, sinf(angle) * speed };
 }
 
+typedef enum{
+    P_IDLE, 
+    P_RUN,
+} PlayerState; 
+
+
 int main() {
     InitWindow(SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2, "Vampy Reloaded (x2 scaled)");
     SetTargetFPS(60);
@@ -479,13 +485,19 @@ int main() {
     RenderTexture2D target = LoadRenderTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
 
     // Loading files 
-    Animation player_idle = loadAnimation("entities/player/", 4);
+    Animation PlayerAnimations[] = {
+        loadAnimation("entities/player/idle/", 4),
+        loadAnimation("entities/player/run/", 4),
+    };
+    // Animation player_idle = loadAnimation("entities/player/", 4);
 
     Joystick joy = CreateJoystick((Vector2){100, 350}, 60);
     Joystick aim = CreateJoystick((Vector2){700, 350}, 60);
 
     hash flockGrid = hashCreate(NULL, &free_dynarray, NULL); 
     entity player = entityCreate(400, 225, 15, 15);
+    PlayerState pState = P_IDLE;
+    int facingRight = 1; 
     Vector2 offset = {0, 0};
 
     steeringData data = malloc(sizeof(struct steeringData));
@@ -542,6 +554,9 @@ int main() {
     float frameTime = 0.1f;
     float timer = 0;
 
+    Rectangle src;
+    Rectangle dst; 
+
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
 
@@ -552,7 +567,7 @@ int main() {
         timer += delta;
         if (timer > frameTime) {
             timer = 0;
-            currentFrame = (currentFrame + 1) % player_idle->numberOfFrames;
+            currentFrame = (currentFrame + 1) % 4;
         }
 
         UpdateJoysticks(&joy, &aim);
@@ -564,10 +579,28 @@ int main() {
         if (aim.state == JOY_SHOOTING && shootCooldown <= 0.0f) {
             projectileShoot(projectiles, player->pos, aim.value, 10.0f);
             shootCooldown = 40.0f / 60.0f;
-            offset.x -= (aim.value.x * 3); 
-            offset.y -= (aim.value.y * 3);  
+            offset.x -= (aim.value.x * 5); 
+            offset.y -= (aim.value.y * 5);  
             Impact_StartShake(0.4f, 8.0f);
         }
+
+        if (Vector2Length(offset) > 0.1f) {
+            pState = P_RUN;
+        } else {
+            pState = P_IDLE;
+        }
+
+        // Decide facing based on aim if active, else based on move joystick
+        if (Vector2Length(aim.value) > 0.1f) {
+            // Aim joystick decides direction
+            if (aim.value.x > 0.1f) facingRight = 1;
+            else if (aim.value.x < -0.1f) facingRight = -1;
+        } else {
+            // Fall back to movement joystick
+            if (offset.x > 0.1f) facingRight = 1;
+            else if (offset.x < -0.1f) facingRight = -1;
+        }
+
 
         update(player, map, offset);
         UpdateCameraRoom(&camera, player);
@@ -594,7 +627,15 @@ int main() {
                     }
                 }
 
-                DrawTexture(player_idle->frames[currentFrame], player->rect.x, player->rect.y, WHITE);
+                // DrawTexture(PlayerAnimations[pState]->frames[currentFrame], player->rect.x, player->rect.y, WHITE);
+                Texture2D frame = PlayerAnimations[pState]->frames[currentFrame];
+
+                src = (Rectangle) { 0, 0, (float)frame.width * facingRight, (float)frame.height };
+                dst = (Rectangle) { player->rect.x, player->rect.y, (float)frame.width, (float)frame.height };
+                Vector2 origin = { 0, 0 };
+
+                DrawTexturePro(frame, src, dst, origin, 0.0f, WHITE);
+
 
                 int pos = 0;
                 while (pos < projectiles->len){
@@ -657,8 +698,8 @@ int main() {
         // === 🎯 Draw scaled texture to screen ===
         BeginDrawing();
             ClearBackground(BLACK);
-            Rectangle src = { 0, 0, (float)target.texture.width, -(float)target.texture.height };
-            Rectangle dst = { 0, 0, (float)SCREEN_WIDTH * 2, (float)SCREEN_HEIGHT * 2 };
+            src = (Rectangle) { 0, 0, (float)target.texture.width, -(float)target.texture.height };
+            dst = (Rectangle) { 0, 0, (float)SCREEN_WIDTH * 2, (float)SCREEN_HEIGHT * 2 };
             DrawTexturePro(target.texture, src, dst, (Vector2){0, 0}, 0.0f, WHITE);
 
             DrawJoystick(joy);
