@@ -489,11 +489,13 @@ int main() {
         loadAnimation("entities/player/idle/", 4),
         loadAnimation("entities/player/run/", 4),
     };
-
     Animation EnemyAnimations[] = {
         loadAnimation("entities/enemy/idle/", 4),
         loadAnimation("entities/enemy/run/", 4),
     };
+    loadDirectory();
+    Texture2D gunTex = LoadTexture("entities/enemy/gun.png");
+    closeDirectory();
     // Animation player_idle = loadAnimation("entities/player/", 4);
 
     Joystick joy = CreateJoystick((Vector2){100, 350}, 60);
@@ -577,6 +579,16 @@ int main() {
 
         UpdateJoysticks(&joy, &aim);
 
+        float aimAngle = atan2f(aim.value.y, aim.value.x) * RAD2DEG;;
+        if (fabsf(aim.value.x) < 0.1f && fabsf(aim.value.y) < 0.1f) {
+            aimAngle = facingRight ? 0.0f : 180.0f;
+        }
+
+        // if (Vector2Length(aim.value) > 0.1f) {
+        //     aimAngle = atan2f(aim.value.y, aim.value.x) * RAD2DEG;
+        // }
+
+
         shootCooldown = fmaxf(0.0f, shootCooldown - delta);
 
         offset = (Vector2){ joy.value.x * 5, joy.value.y * 5 };
@@ -632,14 +644,42 @@ int main() {
                     }
                 }
 
+                // Draw Player
                 // DrawTexture(PlayerAnimations[pState]->frames[currentFrame], player->rect.x, player->rect.y, WHITE);
                 Texture2D frame = PlayerAnimations[pState]->frames[currentFrame];
-
                 src = (Rectangle) { 0, 0, (float)frame.width * facingRight, (float)frame.height };
                 dst = (Rectangle) { player->rect.x, player->rect.y, (float)frame.width, (float)frame.height };
                 Vector2 origin = { 0, 0 };
-
                 DrawTexturePro(frame, src, dst, origin, 0.0f, WHITE);
+
+                // Draw gun
+                // Gun source rect (no flip, just full texture)
+                Rectangle gunSrc = { 0, 0, (float)gunTex.width * facingRight, (float)gunTex.height };
+                // Position: anchor it to the player’s hand
+                Rectangle gunDst = {
+                    player->rect.x + player->rect.width / 2,  // X
+                    player->rect.y + player->rect.height / 2, // Y
+                    (float)gunTex.width,
+                    (float)gunTex.height
+                };
+                // Origin: pivot point of rotation (e.g., gun handle)
+                Vector2 gunOrigin = { 9, gunTex.height / 2.0f };  // adjust so it rotates around the grip
+                if (facingRight != 1){
+                    gunOrigin = (Vector2) {30, gunTex.height / 2.0f};
+                }
+                
+                if (facingRight != 1){
+                    aimAngle = aimAngle + 180.0f;
+                }
+                // Draw with rotation
+                if (Vector2Length(aim.value) >= 0.1f){
+                    DrawTexturePro(gunTex, gunSrc, gunDst, gunOrigin, aimAngle, WHITE);
+                }
+                else{
+                    DrawTexturePro(gunTex, gunSrc, gunDst, gunOrigin, 0.0f, WHITE);
+                }
+
+
 
 
                 int pos = 0;

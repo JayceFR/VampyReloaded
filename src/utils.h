@@ -10,5 +10,7 @@ struct Animation{
 typedef struct Animation *Animation;
 
 extern Animation loadAnimation(char *path, int numberOfFrames);
+extern void loadDirectory();
+extern void closeDirectory();
 
 #endif

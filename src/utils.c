@@ -5,13 +5,13 @@
 #include "utils.h"
 #include "raylib.h"
 
-static void loadDirectory(){
+void loadDirectory(){
     #ifndef PLATFORM_ANDROID
 	    ChangeDirectory("assets");
     #endif
 }
 
-static void closeDirectory(){
+void closeDirectory(){
     #ifndef PLATFORM_ANDROID
 	    ChangeDirectory("..");
     #endif
