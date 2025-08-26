@@ -495,6 +495,10 @@ int main() {
     };
     loadDirectory();
     Texture2D gunTex = LoadTexture("entities/enemy/gun.png");
+    Texture2D tiles[] = {
+        LoadTexture("tiles/dirt.png"),
+        LoadTexture("tiles/stone.png")
+    };
     closeDirectory();
     // Animation player_idle = loadAnimation("entities/player/", 4);
 
@@ -546,6 +550,7 @@ int main() {
 
     Vector2 averageVels[MAX_BOIDS];
     Vector2 swarmTarget = player->pos;
+    Vector2 previousOffset = {0.0f, 0.0f};
 
     mapData mData = mapCreate();
     hash map = mData.map;
@@ -645,7 +650,7 @@ int main() {
         SetShaderValue(shader, timeLoc, &t, SHADER_UNIFORM_FLOAT);
         SetShaderValue(shader, itimeLoc, &t, SHADER_UNIFORM_FLOAT);
 
-        float darkness = 0.1f; // adjust dynamically if you want
+        float darkness = 0.0f; // adjust dynamically if you want
         SetShaderValue(shader, darknessLoc, &darkness, SHADER_UNIFORM_FLOAT);
 
         int jekyllVal = 1; // toggle with key if you like
@@ -663,7 +668,7 @@ int main() {
 
         sprintf(enemyKey, "%d:%d", roomX, roomY);
 
-        MapEnsureCache(map, camera);
+        MapEnsureCache(map, camera, tiles);
 
         BeginTextureMode(target);
             ClearBackground(RAYWHITE);

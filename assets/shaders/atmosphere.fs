@@ -40,7 +40,7 @@ float noise(vec2 st) {
 float fbm(vec2 st) {
     float value = 0.0;
     float amplitude = 0.5;
-    for (int i = 0; i < 5; i++) {   // bumped octaves
+    for (int i = 0; i < 4; i++) {   // bumped octaves
         value += amplitude * noise(st);
         st *= 2.0;
         amplitude *= 0.5;
@@ -54,19 +54,20 @@ void foreground(inout vec4 col) {
 
     vec2 baseUV = fragTexCoord * 5.0 + cam_scroll * -0.001;
 
-    float depth1 = fbm(baseUV + itime * scroll * 2.0) * 
-                   fbm(baseUV * 1.2 + itime * scroll2 * 0.5);
+    // Speed up fog drift
+    float depth1 = fbm(baseUV + itime * scroll * 4.0) * 
+                   fbm(baseUV * 1.2 + itime * scroll2 * 1.5);
 
-    float depth2 = fbm(baseUV * 0.8 + itime * scroll3 * 0.7) * 
-                   fbm(baseUV * 1.6 + itime * scroll4 * 0.9);
+    float depth2 = fbm(baseUV * 0.8 + itime * scroll3 * 2.0) * 
+                   fbm(baseUV * 1.6 + itime * scroll4 * 2.5);
 
     float depth = mix(depth1, depth2, 0.5);
 
-    // More contrasty fog factor
-    float fogFactor = pow(exp(-1.2 + depth * 2.0), 1.5);
+    // More contrasty fog factor (kept same)
+    float fogFactor = pow(exp(-1.2 + depth * 2.0), 0.5);
 
-    // Dynamic color shifts
-    float pulse = 0.5 + 0.5 * sin(itime * 0.8);
+    // Faster, livelier pulse
+    float pulse = 0.5 + 0.5 * sin(itime * 2.0);
 
     vec3 fog_color1 = jekyll 
         ? vec3(0.2 + 0.1*pulse, 0.15, 0.4)   // cooler shifting
@@ -78,15 +79,19 @@ void foreground(inout vec4 col) {
 
     vec3 fog_color = mix(fog_color1, fog_color2, depth);
 
-    col.rgb = mix(fog_color, col.rgb, fogFactor);
+    // Faster overlay drift
+    vec2 uv = fragTexCoord * 6.0 
+              + itime * 1.5 
+              + cam_scroll * -0.0001;
 
+    col.rgb = mix(fog_color, col.rgb, fogFactor);
     col = mix(col, vec4(0,0,0,1), darkness);
 }
 
 void overlay_frag(inout vec4 col) {
     vec2 uv = fragTexCoord * 6.0 
-              + itime * 0.05 
-              + cam_scroll * -0.001;
+              + itime * 0.5 
+              + cam_scroll * -0.005;
 
     float n = fbm(uv);
 

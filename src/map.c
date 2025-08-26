@@ -474,7 +474,7 @@ static Rectangle GetCameraWorldBounds(Camera2D cam) {
     return (Rectangle){ tl.x, tl.y, br.x - tl.x, br.y - tl.y };
 }
 
-void MapEnsureCache(hash map, Camera2D camera) {
+void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap) {
     const int PAD_TILES_X = 2, PAD_TILES_Y = 2;
 
     Rectangle view = GetCameraWorldBounds(camera);
@@ -527,9 +527,11 @@ void MapEnsureCache(hash map, Camera2D camera) {
                     int ly = ty * TILE_SIZE - cacheY;
 
                     if (r->tile == DIRT) {
-                        DrawRectangle(lx, ly, TILE_SIZE, TILE_SIZE, GRAY);
+                        // DrawRectangle(lx, ly, TILE_SIZE, TILE_SIZE, GRAY);
+                        DrawTexture(tileMap[DIRT], lx, ly, WHITE);
                     } else if (r->tile == STONE) {
-                        DrawRectangle(lx, ly, TILE_SIZE, TILE_SIZE, BLACK);
+                        // DrawRectangle(lx, ly, TILE_SIZE, TILE_SIZE, BLACK);
+                        DrawTexture(tileMap[STONE], lx, ly, WHITE);
                     }
                 }
             }
