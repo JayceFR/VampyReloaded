@@ -653,17 +653,14 @@ int main() {
                 DrawTexturePro(frame, src, dst, origin, 0.0f, WHITE);
 
                 // Draw gun
-                // Gun source rect (no flip, just full texture)
                 Rectangle gunSrc = { 0, 0, (float)gunTex.width * facingRight, (float)gunTex.height };
-                // Position: anchor it to the player’s hand
                 Rectangle gunDst = {
                     player->rect.x + player->rect.width / 2,  // X
                     player->rect.y + player->rect.height / 2, // Y
                     (float)gunTex.width,
                     (float)gunTex.height
                 };
-                // Origin: pivot point of rotation (e.g., gun handle)
-                Vector2 gunOrigin = { 9, gunTex.height / 2.0f };  // adjust so it rotates around the grip
+                Vector2 gunOrigin = { 9, gunTex.height / 2.0f };
                 if (facingRight != 1){
                     gunOrigin = (Vector2) {30, gunTex.height / 2.0f};
                 }
@@ -671,7 +668,6 @@ int main() {
                 if (facingRight != 1){
                     aimAngle = aimAngle + 180.0f;
                 }
-                // Draw with rotation
                 if (Vector2Length(aim.value) >= 0.1f){
                     DrawTexturePro(gunTex, gunSrc, gunDst, gunOrigin, aimAngle, WHITE);
                 }
@@ -736,6 +732,21 @@ int main() {
                 }
 
                 Impact_DrawParticles();
+
+                // Crosshair
+                if (Vector2Length(aim.value) > 0.1f) {
+                    float crosshairDist = 80.0f; // distance from player
+                    Vector2 crossPos = {
+                        player->pos.x + aim.value.x * crosshairDist,
+                        player->pos.y + aim.value.y * crosshairDist
+                    };
+                    
+                    // Draw a simple crosshair
+                    DrawLineV((Vector2){crossPos.x - 5, crossPos.y}, (Vector2){crossPos.x + 5, crossPos.y}, RED);
+                    DrawLineV((Vector2){crossPos.x, crossPos.y - 5}, (Vector2){crossPos.x, crossPos.y + 5}, RED);
+                }
+
+
             EndMode2D();
 
             DrawText(TextFormat("fps: %d", GetFPS()), 10, 10, 10, RED);
