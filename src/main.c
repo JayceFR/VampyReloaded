@@ -564,8 +564,29 @@ int main() {
     Rectangle src;
     Rectangle dst; 
 
+    // Shader stuff
+    loadDirectory();
+    Shader shader = LoadShader(0, "shaders/atmosphere.fs");
+    closeDirectory();
+    int timeLoc = GetShaderLocation(shader, "time");
+    int itimeLoc = GetShaderLocation(shader, "itime");
+    int darknessLoc = GetShaderLocation(shader, "darkness");
+    int jekyllLoc = GetShaderLocation(shader, "jekyll");
+    int camScrollLoc = GetShaderLocation(shader, "cam_scroll");
+
+    // Bind Noise Texture
+    loadDirectory();
+    Texture2D noise1 = LoadTexture("misc/pnoise.png");
+    Texture2D noise2 = LoadTexture("misc/pnoise2.png");
+    closeDirectory();
+
+    // Then bind the textures
+
+    float startTime = GetTime();
+
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
+        // printf("%f\n", delta);
 
         int roomX = player->pos.x / ROOM_SIZE;
         int roomY = player->pos.y / ROOM_SIZE;
@@ -617,6 +638,21 @@ int main() {
             if (offset.x > 0.1f) facingRight = 1;
             else if (offset.x < -0.1f) facingRight = -1;
         }
+
+        // Update shader stuff
+        // float t = GetTime();
+        float t = GetTime() - startTime;
+        SetShaderValue(shader, timeLoc, &t, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(shader, itimeLoc, &t, SHADER_UNIFORM_FLOAT);
+
+        float darkness = 0.1f; // adjust dynamically if you want
+        SetShaderValue(shader, darknessLoc, &darkness, SHADER_UNIFORM_FLOAT);
+
+        int jekyllVal = 1; // toggle with key if you like
+        SetShaderValue(shader, jekyllLoc, &jekyllVal, SHADER_UNIFORM_INT);
+
+        Vector2 camScroll = camera.target;
+        SetShaderValue(shader, camScrollLoc, &camScroll, SHADER_UNIFORM_VEC2);
 
 
         update(player, map, offset);
@@ -752,12 +788,18 @@ int main() {
             DrawText(TextFormat("fps: %d", GetFPS()), 10, 10, 10, RED);
         EndTextureMode();
 
+        // Bind main render target to texture0 in shader
+        SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), target.texture);
+
         // === 🎯 Draw scaled texture to screen ===
         BeginDrawing();
             ClearBackground(BLACK);
-            src = (Rectangle) { 0, 0, (float)target.texture.width, -(float)target.texture.height };
-            dst = (Rectangle) { 0, 0, (float)SCREEN_WIDTH * 2, (float)SCREEN_HEIGHT * 2 };
-            DrawTexturePro(target.texture, src, dst, (Vector2){0, 0}, 0.0f, WHITE);
+
+            BeginShaderMode(shader);
+                src = (Rectangle) { 0, 0, (float)target.texture.width, -(float)target.texture.height };
+                dst = (Rectangle) { 0, 0, (float)SCREEN_WIDTH * 2, (float)SCREEN_HEIGHT * 2 };
+                DrawTexturePro(target.texture, src, dst, (Vector2){0, 0}, 0.0f, WHITE);
+            EndShaderMode();
 
             DrawJoystick(joy);
             DrawJoystick(aim);
