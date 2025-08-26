@@ -374,6 +374,13 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
     if (vel.x > 0.1f)  enemy->facingRight = 1;
     if (vel.x < -0.1f) enemy->facingRight = -1;
 
+    if (Vector2Length(vel) >= 0.1f){
+        enemy->running = 1; 
+    }
+    else{
+        enemy->running = 0;
+    }
+
     updateAngleSmooth(enemy, vel, 3.5f);
     return vel;
 }
@@ -406,6 +413,7 @@ Enemy enemyCreate(int startX, int startY, int width, int height){
     enemy->currentFrame = 0;
     enemy->animTimer = 0;
     enemy->facingRight = 1; 
+    enemy->running = 0; 
 
     return enemy;
 }
@@ -460,7 +468,7 @@ void enemyDrawTorch(Enemy e, hash map, int rays, Color col) {
 void enemyDraw(Enemy e, hash map, Animation *enemyAnimations){
     // Draw enemy
     // DrawRectangleRec(e->e->rect, RED);
-    Texture2D frame = enemyAnimations[e->state]->frames[e->currentFrame];
+    Texture2D frame = enemyAnimations[e->running]->frames[e->currentFrame];
     Rectangle src = (Rectangle) { 0, 0, (float)frame.width * e->facingRight, (float)frame.height };
     Rectangle dst = (Rectangle) { e->e->rect.x, e->e->rect.y, (float)frame.width, (float)frame.height };
     Vector2 origin = { 0, 0 };

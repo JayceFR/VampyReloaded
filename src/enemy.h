@@ -44,6 +44,7 @@ struct Enemy{
     int currentFrame; 
     float animTimer; 
     int facingRight;
+    int running;
 
 };
 typedef struct Enemy *Enemy;  
