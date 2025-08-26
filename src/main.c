@@ -674,6 +674,7 @@ int main() {
 
                             if (CheckCollisionRecs(e->e->rect, p->e->rect)){
                                 e->health -= 20;
+                                e->state = ACTIVE;
                                 // Impact_HitFlashTrigger(&e->flash )
                                 Impact_SpawnBurst((Vector2){p->e->rect.x, p->e->rect.y}, RED, 8);
                                 Impact_StartShake(0.15f, 3.0f);
