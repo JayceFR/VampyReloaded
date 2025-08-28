@@ -589,6 +589,8 @@ int main() {
 
     float startTime = GetTime();
 
+    bool playerAlive = true; 
+
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
         // printf("%f\n", delta);
@@ -772,6 +774,7 @@ int main() {
                     pos += 1;
                 }
 
+                // Enemy Projectiles
                 if ((enemies = hashFind(mData.enemies, enemyKey)) != NULL){
                     for (int i = 0; i < enemies->len; i++){
                         Enemy e = enemies->data[i];
@@ -781,6 +784,9 @@ int main() {
                             if (projectileUpdate(p, map)){
                                 remove_dynarray(e->projectiles, pos);
                                 continue;
+                            }
+                            if (CheckCollisionRecs(player->rect, p->e->rect)){
+                                playerAlive = false;
                             }
                             projectileDraw(p);
                             pos += 1;

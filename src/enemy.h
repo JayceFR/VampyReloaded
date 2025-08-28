@@ -48,6 +48,9 @@ struct Enemy{
 
     dynarray projectiles; 
 
+    float shootCooldown; 
+    float shootTimer; 
+
 };
 typedef struct Enemy *Enemy;  
 
