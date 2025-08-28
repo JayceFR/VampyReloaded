@@ -744,11 +744,6 @@ int main() {
                         while (epos < enemies->len){
                             Enemy e = enemies->data[epos];
 
-                            if (e->health <= 0){
-                                remove_dynarray(enemies, epos);
-                                continue; 
-                            }
-
                             if (CheckCollisionRecs(e->e->rect, p->e->rect)){
                                 e->health -= 20;
                                 e->state = ACTIVE;
@@ -758,6 +753,11 @@ int main() {
                                 remove_dynarray(projectiles, pos);
                                 removedProjectile = true;
                                 break;
+                            }
+
+                            if (e->health <= 0){
+                                remove_dynarray(enemies, epos);
+                                continue; 
                             }
 
                             epos += 1;
@@ -770,6 +770,22 @@ int main() {
 
                     projectileDraw(p);
                     pos += 1;
+                }
+
+                if ((enemies = hashFind(mData.enemies, enemyKey)) != NULL){
+                    for (int i = 0; i < enemies->len; i++){
+                        Enemy e = enemies->data[i];
+                        pos = 0;
+                        while (pos < e->projectiles->len){
+                            projectile p = e->projectiles->data[pos];
+                            if (projectileUpdate(p, map)){
+                                remove_dynarray(e->projectiles, pos);
+                                continue;
+                            }
+                            projectileDraw(p);
+                            pos += 1;
+                        }
+                    }
                 }
 
                 Impact_DrawParticles();

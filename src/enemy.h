@@ -46,6 +46,8 @@ struct Enemy{
     int facingRight;
     int running;
 
+    dynarray projectiles; 
+
 };
 typedef struct Enemy *Enemy;  
 

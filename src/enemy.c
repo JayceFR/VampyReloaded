@@ -10,6 +10,7 @@
 #include "map.h"
 #include "enemy.h"
 #include "utils.h"
+#include "projectile.h"
 
 #define MOVE_STRAIGHT_COST 10
 #define MOVE_DIAGONAL_COST 14
@@ -328,6 +329,13 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
                 vel = Vector2Scale(dir, 1.6f);
             }
         }
+
+        if (HasLOS(enemy->e->pos, player->pos, map)){
+            // Shoot 
+            Vector2 toPlayer = Vector2Subtract(player->pos, enemy->e->pos);
+            projectileShoot(enemy->projectiles, enemy->e->pos, Vector2Normalize(toPlayer), 5);
+        }
+
     }
 
     // --- IDLE: wander ---
@@ -414,6 +422,8 @@ Enemy enemyCreate(int startX, int startY, int width, int height){
     enemy->animTimer = 0;
     enemy->facingRight = 1; 
     enemy->running = 0; 
+
+    enemy->projectiles = create_dynarray(&projectileFree, NULL);
 
     return enemy;
 }
