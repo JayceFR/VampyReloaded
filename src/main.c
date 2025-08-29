@@ -499,6 +499,7 @@ int main() {
         LoadTexture("tiles/dirt.png"),
         LoadTexture("tiles/stone.png")
     };
+    Texture2D enemyGunTex = LoadTexture("entities/enemy/pistol.png");
     closeDirectory();
     // Animation player_idle = loadAnimation("entities/player/", 4);
 
@@ -704,10 +705,9 @@ int main() {
                         Enemy e = enemies->data[i];
                         Vector2 vel = computeVelOfEnemy(e, player, map);
                         update(e->e, map, vel);
-                        enemyDraw(e, map, EnemyAnimations);
+                        enemyDraw(e, player, map, EnemyAnimations, enemyGunTex);
                     }
                 }
-
                 // Draw Player
                 // DrawTexture(PlayerAnimations[pState]->frames[currentFrame], player->rect.x, player->rect.y, WHITE);
                 Texture2D frame = PlayerAnimations[pState]->frames[currentFrame];

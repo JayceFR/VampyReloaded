@@ -480,7 +480,7 @@ void enemyDrawTorch(Enemy e, hash map, int rays, Color col) {
 
 
 
-void enemyDraw(Enemy e, hash map, Animation *enemyAnimations){
+void enemyDraw(Enemy e, entity player, hash map, Animation *enemyAnimations, Texture2D gunTex){
     // Draw enemy
     // DrawRectangleRec(e->e->rect, RED);
     Texture2D frame = enemyAnimations[e->running]->frames[e->currentFrame];
@@ -489,6 +489,31 @@ void enemyDraw(Enemy e, hash map, Animation *enemyAnimations){
     Vector2 origin = { 0, 0 };
 
     DrawTexturePro(frame, src, dst, origin, 0.0f, WHITE);
+
+    // Draw gun
+    Rectangle gunSrc = { 0, 0, (float)gunTex.width * e->facingRight, (float)gunTex.height };
+    Rectangle gunDst = {
+        e->e->rect.x + e->e->rect.width / 2,  // X
+        e->e->rect.y + e->e->rect.height / 2, // Y
+        (float)gunTex.width,
+        (float)gunTex.height
+    };
+    Vector2 gunOrigin = { 9, gunTex.height / 2.0f };
+    if (e->facingRight != 1){
+        gunOrigin = (Vector2) {30, gunTex.height / 2.0f};
+    }
+    Vector2 toPlayer = Vector2Subtract(player->pos, e->e->pos);
+    float aimAngle = atan2f(toPlayer.y, toPlayer.x) * RAD2DEG; 
+    if (e->facingRight != 1){
+        aimAngle = aimAngle + 180.0f;
+    }
+    if (e->state == ACTIVE){
+        DrawTexturePro(gunTex, gunSrc, gunDst, gunOrigin, aimAngle, WHITE);
+    }
+    else{
+        DrawTexturePro(gunTex, gunSrc, gunDst, gunOrigin, 0.0f, WHITE);
+    }
+    // DrawTexturePro(gunTex, gunSrc, gunDst, gunOrigin, aimAngle, WHITE);
     // DrawTexturePro(frame, src, dst, origin, 0, WHITE);
     // DrawTexture(frame, e->e->rect.x, e->e->rect.y, WHITE);
 
