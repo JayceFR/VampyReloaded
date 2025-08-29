@@ -590,6 +590,10 @@ int main() {
     float startTime = GetTime();
 
     bool playerAlive = true; 
+    bool transitioning = false; 
+    float transitionRadius = 0.0f; 
+    float transitionSpeed = 200.0f; 
+    Vector2 transitionCenter; 
 
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
@@ -607,7 +611,7 @@ int main() {
 
         UpdateJoysticks(&joy, &aim);
 
-        float aimAngle = atan2f(aim.value.y, aim.value.x) * RAD2DEG;;
+        float aimAngle = atan2f(aim.value.y, aim.value.x) * RAD2DEG;
         if (fabsf(aim.value.x) < 0.1f && fabsf(aim.value.y) < 0.1f) {
             aimAngle = facingRight ? 0.0f : 180.0f;
         }
@@ -671,6 +675,23 @@ int main() {
         sprintf(enemyKey, "%d:%d", roomX, roomY);
 
         MapEnsureCache(map, camera, tiles);
+
+        if (transitioning) {
+            transitionRadius -= transitionSpeed * delta;
+            if (transitionRadius <= 0.0f) {
+                // Reset map + player here
+                mapFree(map);
+                mData = mapCreate();
+                map = mData.map;
+
+                player->pos = (Vector2){ 400, 225 };
+                player->rect.x = player->pos.x;
+                player->rect.y = player->pos.y;
+
+                playerAlive = true;
+                transitioning = false;
+            }
+        }
 
         BeginTextureMode(target);
             ClearBackground(RAYWHITE);
@@ -786,7 +807,12 @@ int main() {
                                 continue;
                             }
                             if (CheckCollisionRecs(player->rect, p->e->rect)){
-                                playerAlive = false;
+                                if (playerAlive){
+                                    playerAlive = false;
+                                    transitioning = true; 
+                                    transitionRadius = GetScreenWidth();
+                                    transitionCenter = (Vector2) {GetScreenWidth() / 4.0f, GetScreenHeight() / 4.0f}; 
+                                }
                             }
                             projectileDraw(p);
                             pos += 1;
@@ -809,8 +835,8 @@ int main() {
                     DrawLineV((Vector2){crossPos.x, crossPos.y - 5}, (Vector2){crossPos.x, crossPos.y + 5}, RED);
                 }
 
-
             EndMode2D();
+
 
             DrawText(TextFormat("fps: %d", GetFPS()), 10, 10, 10, RED);
         EndTextureMode();
@@ -827,9 +853,22 @@ int main() {
                 dst = (Rectangle) { 0, 0, (float)SCREEN_WIDTH * 2, (float)SCREEN_HEIGHT * 2 };
                 DrawTexturePro(target.texture, src, dst, (Vector2){0, 0}, 0.0f, WHITE);
             EndShaderMode();
+            
+            if (transitioning) {
+                BeginBlendMode(BLEND_ALPHA);
+                DrawRectangle(0, 0, SCREEN_WIDTH*2, SCREEN_HEIGHT*2, BLACK); // fill screen
+                DrawCircleV(
+                    (Vector2){ transitionCenter.x * 2, transitionCenter.y * 2 }, 
+                    transitionRadius * 2, 
+                    WHITE
+                );
+                EndBlendMode();
+            }
 
             DrawJoystick(joy);
             DrawJoystick(aim);
+
+
 
         EndDrawing();
     }
