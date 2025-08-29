@@ -15,6 +15,7 @@
 #include "projectile.h"
 #include "impact.h"
 #include "utils.h"
+#include "gun.h"
 // #include <math.h>
 
 #define MAX_BOIDS 100
@@ -596,6 +597,16 @@ int main() {
     float transitionSpeed = 200.0f; 
     Vector2 transitionCenter; 
 
+    Gun g;
+    g.cooldown = 40.0f / 60.0f; 
+    g.maxAmmo = 10; 
+    g.reloadTime = 2.0f;
+
+
+    int ammo = g.maxAmmo;
+    float reloadTimer = 0.0f; 
+    bool reloading = false;
+
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
         // printf("%f\n", delta);
@@ -621,17 +632,32 @@ int main() {
         //     aimAngle = atan2f(aim.value.y, aim.value.x) * RAD2DEG;
         // }
 
+        if (reloading) {
+            reloadTimer -= delta;
+            if (reloadTimer <= 0.0f){
+                ammo = g.maxAmmo;
+                reloading = false;
+            }
+        }
+
 
         shootCooldown = fmaxf(0.0f, shootCooldown - delta);
 
         offset = (Vector2){ joy.value.x * 5, joy.value.y * 5 };
 
-        if (aim.state == JOY_SHOOTING && shootCooldown <= 0.0f) {
+        if (aim.state == JOY_SHOOTING && shootCooldown <= 0.0f && !reloading && ammo > 0) {
             projectileShoot(projectiles, player->pos, aim.value, 10.0f);
-            shootCooldown = 40.0f / 60.0f;
+            shootCooldown = g.cooldown;
+            ammo--; 
+
             offset.x -= (aim.value.x * 5); 
             offset.y -= (aim.value.y * 5);  
             Impact_StartShake(0.4f, 8.0f);
+
+            if (ammo <= 0){
+                reloading = true;
+                reloadTimer = g.reloadTime;
+            }
         }
 
         if (Vector2Length(offset) > 0.1f) {
@@ -853,6 +879,13 @@ int main() {
                 dst = (Rectangle) { 0, 0, (float)SCREEN_WIDTH * 2, (float)SCREEN_HEIGHT * 2 };
                 DrawTexturePro(target.texture, src, dst, (Vector2){0, 0}, 0.0f, WHITE);
             EndShaderMode();
+
+            if (reloading) {
+                DrawText("Reloading...", 100, 30, 10, RED);
+            } else {
+                DrawText(TextFormat("Ammo: %d/%d", ammo, g.maxAmmo), 100, 30, 10, RED);
+            }
+
             
             if (transitioning) {
                 BeginBlendMode(BLEND_ALPHA);
