@@ -265,7 +265,7 @@ static inline void worldCenterOfNode(pathNode n, Rectangle entRect, Vector2 *out
     out->y = n->y * TILE_SIZE + TILE_SIZE/2.0f - entRect.height / 2.0f;
 }
 
-Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
+Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map, dynarray projectiles) {
     const float dt = GetFrameTime();
 
     // --- Animation ---
@@ -335,7 +335,7 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map) {
         if (HasLOS(enemy->e->pos, player->pos, map) && enemy->shootTimer <= 0.0f){
             // Shoot 
             Vector2 toPlayer = Vector2Subtract(player->pos, enemy->e->pos);
-            projectileShoot(enemy->projectiles, enemy->e->pos, Vector2Normalize(toPlayer), 4);
+            projectileShoot(projectiles, enemy->e->pos, Vector2Normalize(toPlayer), 4);
             enemy->shootTimer = enemy->shootCooldown;
         }
 
@@ -426,7 +426,7 @@ Enemy enemyCreate(int startX, int startY, int width, int height){
     enemy->facingRight = 1; 
     enemy->running = 0; 
 
-    enemy->projectiles = create_dynarray(&projectileFree, NULL);
+    // enemy->projectiles = create_dynarray(&projectileFree, NULL);
     enemy->shootCooldown = GetRandomValue(40, 60) / 60.0f; 
     enemy->shootTimer = 0.0f; 
 

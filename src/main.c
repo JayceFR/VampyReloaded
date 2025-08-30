@@ -524,6 +524,7 @@ int main() {
     camera.zoom = 1.0f; 
 
     dynarray projectiles = create_dynarray(&projectileFree,NULL);
+    dynarray eprojectiles = create_dynarray(&projectileFree, NULL);
 
     // 🐦 Init boids (same as before)
     for (int i = 0; i < MAX_BOIDS; i++) {
@@ -729,7 +730,7 @@ int main() {
                 if ((enemies = hashFind(mData.enemies, enemyKey)) != NULL) {
                     for (int i = 0; i < enemies->len; i++) {
                         Enemy e = enemies->data[i];
-                        Vector2 vel = computeVelOfEnemy(e, player, map);
+                        Vector2 vel = computeVelOfEnemy(e, player, map, eprojectiles);
                         update(e->e, map, vel);
                         enemyDraw(e, player, map, EnemyAnimations, enemyGunTex);
                     }
@@ -822,29 +823,30 @@ int main() {
                 }
 
                 // Enemy Projectiles
-                if ((enemies = hashFind(mData.enemies, enemyKey)) != NULL){
-                    for (int i = 0; i < enemies->len; i++){
-                        Enemy e = enemies->data[i];
-                        pos = 0;
-                        while (pos < e->projectiles->len){
-                            projectile p = e->projectiles->data[pos];
-                            if (projectileUpdate(p, map)){
-                                remove_dynarray(e->projectiles, pos);
-                                continue;
-                            }
-                            if (CheckCollisionRecs(player->rect, p->e->rect)){
-                                if (playerAlive){
-                                    playerAlive = false;
-                                    transitioning = true; 
-                                    transitionRadius = GetScreenWidth();
-                                    transitionCenter = (Vector2) {GetScreenWidth() / 4.0f, GetScreenHeight() / 4.0f}; 
-                                }
-                            }
-                            projectileDraw(p);
-                            pos += 1;
+                pos = 0;
+                while (pos < eprojectiles->len){
+                    projectile p = eprojectiles->data[pos];
+                    if (projectileUpdate(p, map)){
+                        remove_dynarray(eprojectiles, pos);
+                        continue;
+                    }
+                    if (CheckCollisionRecs(player->rect, p->e->rect)){
+                        if (playerAlive){
+                            playerAlive = false;
+                            transitioning = true; 
+                            transitionRadius = GetScreenWidth();
+                            transitionCenter = (Vector2) {GetScreenWidth() / 4.0f, GetScreenHeight() / 4.0f}; 
                         }
                     }
+                    projectileDraw(p);
+                    pos += 1;
                 }
+                // if ((enemies = hashFind(mData.enemies, enemyKey)) != NULL){
+                //     for (int i = 0; i < enemies->len; i++){
+                //         Enemy e = enemies->data[i];
+                        
+                //     }
+                // }
 
                 Impact_DrawParticles();
 
