@@ -117,6 +117,25 @@ int generatePuzzleMap(TILES chunk[CHUNK_SIZE][CHUNK_SIZE], Room rooms[MAX_ROOMS]
         }
     }
 
+    // --- post-processing: remove 1-tile wide scraps ---
+    for (int y = 1; y < CHUNK_SIZE - 1; y++) {
+        for (int x = 1; x < CHUNK_SIZE - 1; x++) {
+            if (chunk[y][x] == DIRT) {
+                int neighbors = 0;
+                if (chunk[y-1][x] == DIRT) neighbors++;
+                if (chunk[y+1][x] == DIRT) neighbors++;
+                if (chunk[y][x-1] == DIRT) neighbors++;
+                if (chunk[y][x+1] == DIRT) neighbors++;
+
+                if (neighbors <= 1) {
+                    // isolated or 1-tile wide, turn back to stone
+                    chunk[y][x] = STONE;
+                }
+            }
+        }
+    }
+
+
     return roomCount;
 }
 
@@ -439,6 +458,43 @@ mapData mapCreate(){
     }
   }
 
+  // cleanup 
+  // remove tiles that have dirt on (top and bottom) or (left and right)
+  for (int y = 1; y < GAME_HEIGHT - 1; y++){
+    for (int x = 1; x < GAME_WIDTH - 1; x++){
+        char buffer[22]; 
+        sprintf(buffer, "%d:%d", x - 1, y);
+        rect rLeft = hashFind(data.map, buffer);
+
+        sprintf(buffer, "%d:%d", x + 1, y);
+        rect rRight = hashFind(data.map, buffer);
+
+        sprintf(buffer, "%d:%d", x, y - 1);
+        rect rAbove = hashFind(data.map, buffer);
+
+        sprintf(buffer, "%d:%d", x, y + 1);
+        rect rDown = hashFind(data.map, buffer);
+
+        sprintf(buffer, "%d:%d", x, y);
+        rect rCurr = hashFind(data.map, buffer);
+
+        bool delete = false;
+        if (rCurr->tile == STONE){
+            if (rLeft->tile == DIRT && rRight->tile == DIRT){
+                delete = true;
+            }
+
+            if (rAbove->tile == DIRT && rDown->tile == DIRT){
+                delete = true;
+            }
+        }
+
+        if (delete){
+            rCurr->tile = DIRT;
+        }
+    }
+  }
+
   for (int y = 1; y < GAME_HEIGHT; y++) {   // start at 1 so y-1 is valid
     for (int x = 0; x < GAME_WIDTH; x++) {
         
@@ -469,6 +525,9 @@ mapData mapCreate(){
         
     }
   }
+
+
+
   return data; 
 }
 
