@@ -444,6 +444,10 @@ bool canPlaceProperty(hash map, offgrid prop, int x, int y) {
     return true;
 }
 
+void offgridTileFree(DA_ELEMENT el){
+    offgridTile o = (offgridTile) el;
+    free(o);
+}
 
 void placeProperty(hash map, hash offgridTiles, offgrid prop, int index, int x, int y) {
     int w = (prop->width  + TILE_SIZE - 1) / TILE_SIZE;
@@ -470,7 +474,7 @@ void placeProperty(hash map, hash offgridTiles, offgrid prop, int index, int x, 
     o->y       = y * TILE_SIZE; 
 
     if (hashFind(offgridTiles, buffer) == NULL){
-        dynarray arr = create_dynarray(NULL, NULL);
+        dynarray arr = create_dynarray(&offgridTileFree, NULL);
         hashSet(offgridTiles, buffer, arr);
     }
 

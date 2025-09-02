@@ -477,6 +477,11 @@ typedef enum{
     P_RUN,
 } PlayerState; 
 
+// free offgrids 
+void offgridsFree(hashvalue val){
+    dynarray o = (dynarray) val; 
+    free_dynarray(o);
+}
 
 int main() {
     InitWindow(SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2, "Vampy Reloaded (x2 scaled)");
@@ -564,7 +569,7 @@ int main() {
     dynarray projectiles = create_dynarray(&projectileFree,NULL);
     dynarray eprojectiles = create_dynarray(&projectileFree, NULL);
 
-    hash offgridMap = hashCreate(NULL, NULL, NULL);
+    hash offgridMap = hashCreate(NULL, &offgridsFree, NULL);
     dynarray offgrids;
 
     // 🐦 Init boids (same as before)
@@ -750,7 +755,8 @@ int main() {
             if (transitionRadius <= 0.0f) {
                 // Reset map + player here
                 mapFree(map);
-                // TODO : NEED TO FREE offgridMAPPPPPPPP !!!!!!!!
+                hashFree(offgridMap);
+                offgridMap = hashCreate(NULL, &offgridsFree, NULL);
                 mData = mapCreate(offgridProperty, NO_OF_OFFGRID_TILES, offgridMap);
                 map = mData.map;
 
