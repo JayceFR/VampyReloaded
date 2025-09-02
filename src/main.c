@@ -531,12 +531,19 @@ int main() {
 
     Texture2D offgridTiles[] = {
         LoadTexture("tiles/offgrid/1.png"),
-        LoadTexture("tiles/offgrid/2.png")
+        LoadTexture("tiles/offgrid/2.png"), 
+        LoadTexture("tiles/offgrid/3.png"), 
+        LoadTexture("tiles/offgrid/4.png"), 
+        LoadTexture("tiles/offgrid/5.png"), 
+        LoadTexture("tiles/offgrid/6.png"), 
+        LoadTexture("tiles/offgrid/7.png"), 
+        LoadTexture("tiles/offgrid/8.png"), 
+        LoadTexture("tiles/offgrid/9.png"), 
     };
     Texture2D enemyGunTex = LoadTexture("entities/enemy/pistol.png");
     closeDirectory();
     // Animation player_idle = loadAnimation("entities/player/", 4);
-    int NO_OF_OFFGRID_TILES = 2;
+    int NO_OF_OFFGRID_TILES = 9;
     offgrid offgridProperty[NO_OF_OFFGRID_TILES];
     for (int i = 0; i < NO_OF_OFFGRID_TILES; i++){
         offgrid o = malloc(sizeof(struct offgrid));

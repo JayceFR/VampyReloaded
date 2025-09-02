@@ -605,8 +605,6 @@ mapData mapCreate(offgrid *properties, int size_of_properties, hash offgridTiles
             int index = GetRandomValue(0, size_of_properties - 1);
             offgrid chosen = properties[index];
 
-            // printf("%d", chosen->width);
-
             if (canPlaceProperty(data.map, chosen, x, y)) {
                 placeProperty(data.map, offgridTiles, chosen, index, x, y);
             }
