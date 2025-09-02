@@ -445,7 +445,7 @@ bool canPlaceProperty(hash map, offgrid prop, int x, int y) {
 }
 
 
-void placeProperty(hash map, offgrid prop, int index, int x, int y) {
+void placeProperty(hash map, hash offgridTiles, offgrid prop, int index, int x, int y) {
     int w = (prop->width  + TILE_SIZE - 1) / TILE_SIZE;
     int h = (prop->height + TILE_SIZE - 1) / TILE_SIZE;
 
@@ -459,10 +459,30 @@ void placeProperty(hash map, offgrid prop, int index, int x, int y) {
             }
         }
     }
+
+    char buffer[22];
+    sprintf(buffer, "%d:%d", x / CHUNK_SIZE, y / CHUNK_SIZE);
+    dynarray tiles; 
+
+    offgridTile o = malloc(sizeof(struct offgridTile));
+    o->texture = prop->texture;
+    o->x       = x * TILE_SIZE; 
+    o->y       = y * TILE_SIZE; 
+
+    if (hashFind(offgridTiles, buffer) == NULL){
+        dynarray arr = create_dynarray(NULL, NULL);
+        hashSet(offgridTiles, buffer, arr);
+    }
+
+    if ((tiles = hashFind(offgridTiles, buffer)) != NULL){
+        // Just add the tile to the thing
+        add_dynarray(tiles, o);
+    }
+
 }
 
 
-mapData mapCreate(offgrid *properties, int size_of_properties){
+mapData mapCreate(offgrid *properties, int size_of_properties, hash offgridTiles){
   mapData data; 
   data.map = hashCreate(&tilesPrint, &tilesFree, NULL);
 
@@ -584,7 +604,7 @@ mapData mapCreate(offgrid *properties, int size_of_properties){
             // printf("%d", chosen->width);
 
             if (canPlaceProperty(data.map, chosen, x, y)) {
-                placeProperty(data.map, chosen, index, x, y);
+                placeProperty(data.map, offgridTiles, chosen, index, x, y);
             }
         }
     }
@@ -703,9 +723,9 @@ void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap, Texture2D *st
                         // }
                     }
 
-                    if (r->offGridType != -1){
-                        DrawTexture(offgridMap[r->offGridType], lx, ly, WHITE);
-                    }
+                    // if (r->offGridType != -1){
+                    //     DrawTexture(offgridMap[r->offGridType], lx, ly, WHITE);
+                    // }
                 }
             }
         EndTextureMode();

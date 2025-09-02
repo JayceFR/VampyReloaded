@@ -525,17 +525,20 @@ int main() {
     };
 
     Texture2D offgridTiles[] = {
-        LoadTexture("tiles/offgrid/1.png")  
+        LoadTexture("tiles/offgrid/1.png"),
+        LoadTexture("tiles/offgrid/2.png")
     };
     Texture2D enemyGunTex = LoadTexture("entities/enemy/pistol.png");
     closeDirectory();
     // Animation player_idle = loadAnimation("entities/player/", 4);
-    int NO_OF_OFFGRID_TILES = 1;
+    int NO_OF_OFFGRID_TILES = 2;
     offgrid offgridProperty[NO_OF_OFFGRID_TILES];
     for (int i = 0; i < NO_OF_OFFGRID_TILES; i++){
         offgrid o = malloc(sizeof(struct offgrid));
         o->width = offgridTiles[i].width;
         o->height = offgridTiles[i].height;
+        o->texture = offgridTiles[i];
+        printf("width : %d, height : %d\n", o->width, o->height);
         offgridProperty[i] = o;
     }
 
@@ -560,6 +563,9 @@ int main() {
 
     dynarray projectiles = create_dynarray(&projectileFree,NULL);
     dynarray eprojectiles = create_dynarray(&projectileFree, NULL);
+
+    hash offgridMap = hashCreate(NULL, NULL, NULL);
+    dynarray offgrids;
 
     // 🐦 Init boids (same as before)
     for (int i = 0; i < MAX_BOIDS; i++) {
@@ -590,7 +596,7 @@ int main() {
     Vector2 swarmTarget = player->pos;
     Vector2 previousOffset = {0.0f, 0.0f};
 
-    mapData mData = mapCreate(offgridProperty, NO_OF_OFFGRID_TILES);
+    mapData mData = mapCreate(offgridProperty, NO_OF_OFFGRID_TILES, offgridMap);
     hash map = mData.map;
 
     Enemy enemy = enemyCreate(50, 60, 15, 15);
@@ -744,7 +750,8 @@ int main() {
             if (transitionRadius <= 0.0f) {
                 // Reset map + player here
                 mapFree(map);
-                mData = mapCreate(offgridProperty, NO_OF_OFFGRID_TILES);
+                // TODO : NEED TO FREE offgridMAPPPPPPPP !!!!!!!!
+                mData = mapCreate(offgridProperty, NO_OF_OFFGRID_TILES, offgridMap);
                 map = mData.map;
 
                 player->pos = (Vector2){ 400, 225 };
@@ -761,6 +768,13 @@ int main() {
 
             BeginMode2D(camera);
                 MapDrawCached(camera);
+
+                if ((offgrids = hashFind(offgridMap, enemyKey)) != NULL){
+                    for (int i = 0; i < offgrids->len; i++){
+                        offgridTile o = (offgridTile) offgrids->data[i];
+                        DrawTexture(o->texture, o->x , o->y , WHITE);
+                    }
+                }
                 
                 if ((enemies = hashFind(mData.enemies, enemyKey)) != NULL) {
                     for (int i = 0; i < enemies->len; i++) {
