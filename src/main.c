@@ -523,9 +523,21 @@ int main() {
         LoadTexture("tiles/dirt2/3.png"),
         LoadTexture("tiles/dirt2/4.png"),
     };
+
+    Texture2D offgridTiles[] = {
+        LoadTexture("tiles/offgrid/1.png")  
+    };
     Texture2D enemyGunTex = LoadTexture("entities/enemy/pistol.png");
     closeDirectory();
     // Animation player_idle = loadAnimation("entities/player/", 4);
+    int NO_OF_OFFGRID_TILES = 1;
+    offgrid offgridProperty[NO_OF_OFFGRID_TILES];
+    for (int i = 0; i < NO_OF_OFFGRID_TILES; i++){
+        offgrid o = malloc(sizeof(struct offgrid));
+        o->width = offgridTiles[i].width;
+        o->height = offgridTiles[i].height;
+        offgridProperty[i] = o;
+    }
 
     Joystick joy = CreateJoystick((Vector2){100, 350}, 60);
     Joystick aim = CreateJoystick((Vector2){700, 350}, 60);
@@ -578,7 +590,7 @@ int main() {
     Vector2 swarmTarget = player->pos;
     Vector2 previousOffset = {0.0f, 0.0f};
 
-    mapData mData = mapCreate();
+    mapData mData = mapCreate(offgridProperty, NO_OF_OFFGRID_TILES);
     hash map = mData.map;
 
     Enemy enemy = enemyCreate(50, 60, 15, 15);
@@ -725,14 +737,14 @@ int main() {
 
         sprintf(enemyKey, "%d:%d", roomX, roomY);
 
-        MapEnsureCache(map, camera, tiles, stoneTiles, dirtTiles);
+        MapEnsureCache(map, camera, tiles, stoneTiles, dirtTiles, offgridTiles);
 
         if (transitioning) {
             transitionRadius -= transitionSpeed * delta;
             if (transitionRadius <= 0.0f) {
                 // Reset map + player here
                 mapFree(map);
-                mData = mapCreate();
+                mData = mapCreate(offgridProperty, NO_OF_OFFGRID_TILES);
                 map = mData.map;
 
                 player->pos = (Vector2){ 400, 225 };

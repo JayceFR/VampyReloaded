@@ -421,7 +421,48 @@ static int chooseStoneVariant(TILES (*m)[GAME_WIDTH], int x, int y) {
     return base;
 }
 
-mapData mapCreate(){
+bool canPlaceProperty(hash map, offgrid prop, int x, int y) {
+    if (!prop) return false;
+
+    int w = (prop->width  + TILE_SIZE - 1) / TILE_SIZE;
+    int h = (prop->height + TILE_SIZE - 1) / TILE_SIZE;
+
+    for (int dy = 0; dy < h; dy++) {
+        for (int dx = 0; dx < w; dx++) {
+            char buffer[32];
+            int nx = x + dx;
+            int ny = y + dy;
+
+            snprintf(buffer, sizeof(buffer), "%d:%d", nx, ny);
+            rect r = hashFind(map, buffer);
+
+            if (!r) return false; // out of bounds
+            if (r->tileType != STONE_MIDDLE) return false;
+            if (r->offGridType != -1) return false; // already occupied
+        }
+    }
+    return true;
+}
+
+
+void placeProperty(hash map, offgrid prop, int index, int x, int y) {
+    int w = (prop->width  + TILE_SIZE - 1) / TILE_SIZE;
+    int h = (prop->height + TILE_SIZE - 1) / TILE_SIZE;
+
+    for (int dy = 0; dy < h; dy++) {
+        for (int dx = 0; dx < w; dx++) {
+            char buffer[32];
+            snprintf(buffer, sizeof(buffer), "%d:%d", x + dx, y + dy);
+            rect r = hashFind(map, buffer);
+            if (r) {
+                r->offGridType = index;
+            }
+        }
+    }
+}
+
+
+mapData mapCreate(offgrid *properties, int size_of_properties){
   mapData data; 
   data.map = hashCreate(&tilesPrint, &tilesFree, NULL);
 
@@ -435,6 +476,7 @@ mapData mapCreate(){
       rect r = malloc(sizeof(struct rect));
       r->rectange = (Rectangle){ x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE };
       r->tile = mappy[y][x];
+      r->offGridType = -1;
 
       r->node = malloc(sizeof(struct pathNode));
       r->node->x = x;
@@ -527,6 +569,27 @@ mapData mapCreate(){
     }
   }
 
+  // Placing offgrid stuff 
+
+  for (int y = 0; y < GAME_HEIGHT; y++){
+    for (int x = 0; x < GAME_WIDTH; x++){
+        char buffer[22];
+        sprintf(buffer, "%d:%d", x, y);
+        rect r = hashFind(data.map, buffer);
+
+        if (r->tileType == STONE_MIDDLE){
+            int index = GetRandomValue(0, size_of_properties - 1);
+            offgrid chosen = properties[index];
+
+            // printf("%d", chosen->width);
+
+            if (canPlaceProperty(data.map, chosen, x, y)) {
+                placeProperty(data.map, chosen, index, x, y);
+            }
+        }
+    }
+  }
+
 
 
   return data; 
@@ -558,51 +621,6 @@ dynarray rectsAround(hash map, Vector2 player_pos){
   }
   return arr; 
 }
-
-// Rectangle GetCameraWorldBounds(Camera2D camera) {
-//     Vector2 topLeft = GetScreenToWorld2D((Vector2){0,0}, camera);
-//     Vector2 bottomRight = GetScreenToWorld2D(
-//         (Vector2){GetScreenWidth(), GetScreenHeight()},
-//         camera
-//     );
-
-//     Rectangle bounds = {
-//         topLeft.x, topLeft.y,
-//         bottomRight.x - topLeft.x,
-//         bottomRight.y - topLeft.y
-//     };
-//     return bounds;
-// }
-
-// void mapDraw(hash map, Camera2D camera) {
-//     // Get visible area in world space
-//     Rectangle bounds = GetCameraWorldBounds(camera);
-
-//     // Convert to tile indices
-//     int minX = (int)(bounds.x / TILE_SIZE);
-//     int maxX = (int)((bounds.x + bounds.width) / TILE_SIZE);
-//     int minY = (int)(bounds.y / TILE_SIZE);
-//     int maxY = (int)((bounds.y + bounds.height) / TILE_SIZE);
-
-//     char buffer[32];
-//     for (int x = minX; x <= maxX; x++) {
-//         for (int y = minY; y <= maxY; y++) {
-//             sprintf(buffer, "%d:%d", x, y);
-//             TILES *tile = hashFind(map, buffer);
-//             if (tile) {
-//                 int worldX = x * TILE_SIZE;
-//                 int worldY = y * TILE_SIZE;
-
-//                 if (*tile == DIRT) {
-//                     DrawRectangle(worldX, worldY, TILE_SIZE, TILE_SIZE, GRAY);
-//                 } else if (*tile == STONE) {
-//                     DrawRectangle(worldX, worldY, TILE_SIZE, TILE_SIZE, BLACK);
-//                 }
-//             }
-//         }
-//     }
-// }
-
 // ------------ batching cache -------------
 typedef struct RoomCache {
     bool dirty;
@@ -612,12 +630,6 @@ typedef struct RoomCache {
 
 static RoomCache s_cache = {0};
 
-// static Rectangle GetCameraWorldBounds(Camera2D cam) {
-//     Vector2 tl = GetScreenToWorld2D((Vector2){0, 0}, cam);
-//     Vector2 br = GetScreenToWorld2D((Vector2){GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f}, cam);
-//     return (Rectangle){ tl.x, tl.y, br.x - tl.x, br.y - tl.y };
-// }
-
 static Rectangle GetCameraWorldBounds(Camera2D cam) {
     Vector2 tl = GetScreenToWorld2D((Vector2){0, 0}, cam);
     Vector2 br = GetScreenToWorld2D((Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() }, cam);
@@ -625,7 +637,7 @@ static Rectangle GetCameraWorldBounds(Camera2D cam) {
 }
 
 
-void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap, Texture2D *stoneMap, Texture2D *dirtMap) {
+void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap, Texture2D *stoneMap, Texture2D *dirtMap, Texture2D *offgridMap) {
     const int PAD_TILES_X = 2, PAD_TILES_Y = 2;
 
     Rectangle view = GetCameraWorldBounds(camera);
@@ -690,6 +702,10 @@ void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap, Texture2D *st
                         DrawTexture(stoneMap[r->tileType], lx, ly, WHITE);
                         // }
                     }
+
+                    if (r->offGridType != -1){
+                        DrawTexture(offgridMap[r->offGridType], lx, ly, WHITE);
+                    }
                 }
             }
         EndTextureMode();
@@ -718,93 +734,6 @@ void MapDrawCached(Camera2D camera) {
 
     EndBlendMode();
 }
-
-
-// void mapDraw(hash map, Camera2D camera) {
-//     const int PAD_TILES_X = 2;         // extra tiles around the screen to reduce rebuilds
-//     const int PAD_TILES_Y = 2;
-
-//     Rectangle view = GetCameraWorldBounds(camera);
-
-//     // snap + pad in *tile* space
-//     int minTileX = (int)floorf(view.x / TILE_SIZE) - PAD_TILES_X;
-//     int minTileY = (int)floorf(view.y / TILE_SIZE) - PAD_TILES_Y;
-//     int maxTileX = (int)ceilf((view.x + view.width) / TILE_SIZE) + PAD_TILES_X;
-//     int maxTileY = (int)ceilf((view.y + view.height) / TILE_SIZE) + PAD_TILES_Y;
-
-//     // clamp order
-//     if (maxTileX < minTileX) { int t=minTileX; minTileX=maxTileX; maxTileX=t; }
-//     if (maxTileY < minTileY) { int t=minTileY; minTileY=maxTileY; maxTileY=t; }
-
-//     // convert to *pixel* space (snapped to tiles)
-//     int cacheX = minTileX * TILE_SIZE;
-//     int cacheY = minTileY * TILE_SIZE;
-//     int cacheW = (maxTileX - minTileX) * TILE_SIZE;
-//     int cacheH = (maxTileY - minTileY) * TILE_SIZE;
-
-//     bool needResize =
-//         !s_cache.tex.id ||
-//         s_cache.tex.texture.width  != cacheW ||
-//         s_cache.tex.texture.height != cacheH;
-
-//     bool movedOutside =
-//         (view.x < s_cache.worldRect.x) ||
-//         (view.y < s_cache.worldRect.y) ||
-//         (view.x + view.width  > s_cache.worldRect.x + s_cache.worldRect.width) ||
-//         (view.y + view.height > s_cache.worldRect.y + s_cache.worldRect.height);
-
-//     if (needResize) {
-//         if (s_cache.tex.id) UnloadRenderTexture(s_cache.tex);
-//         s_cache.tex = LoadRenderTexture(cacheW, cacheH);
-//         s_cache.dirty = true;
-//     }
-
-//     if (needResize || movedOutside) {
-//         // --- Rebuild cache with identity transform (no camera!) ---
-//         // We assume mapDraw is called *inside* BeginMode2D(camera); temporarily disable it:
-//         EndMode2D();
-
-//         s_cache.worldRect = (Rectangle){ (float)cacheX, (float)cacheY, (float)cacheW, (float)cacheH };
-
-//         BeginTextureMode(s_cache.tex);
-//             ClearBackground(BLANK);
-
-//             char key[32];
-//             for (int tx = minTileX; tx < maxTileX; tx++) {
-//                 for (int ty = minTileY; ty < maxTileY; ty++) {
-//                     sprintf(key, "%d:%d", tx, ty);
-//                     TILES *tile = hashFind(map, key);
-//                     if (!tile) continue;
-
-//                     // local (cache) coords
-//                     int lx = tx * TILE_SIZE - cacheX;
-//                     int ly = ty * TILE_SIZE - cacheY;
-
-//                     if (*tile == DIRT) {
-//                         DrawRectangle(lx, ly, TILE_SIZE, TILE_SIZE, GRAY);
-//                     } else if (*tile == STONE) {
-//                         DrawRectangle(lx, ly, TILE_SIZE, TILE_SIZE, BLACK);
-//                     }
-//                 }
-//             }
-//         EndTextureMode();
-
-//         // restore camera for world drawing
-//         BeginMode2D(camera);
-//         s_cache.dirty = false;
-//     }
-
-//     // --- Draw cached quad in world-space (now camera is active) ---
-//     DrawTexturePro(
-//         s_cache.tex.texture,
-//         (Rectangle){ 0, 0, (float)s_cache.tex.texture.width, -(float)s_cache.tex.texture.height }, // flip Y
-//         (Rectangle){ s_cache.worldRect.x, s_cache.worldRect.y, s_cache.worldRect.width, s_cache.worldRect.height },
-//         (Vector2){ 0, 0 }, 0.0f, WHITE
-//     );
-// }
-
-
-
 
 
 void mapFree(hash map){
