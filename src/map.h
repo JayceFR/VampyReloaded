@@ -34,6 +34,20 @@ struct pathNode{
   bool isWalkable;
 };
 
+typedef enum {
+    STONE_BL = 0,
+    STONE_BR = 1,
+    STONE_BOTTOM = 2,
+    STONE_LEFT = 3,
+    STONE_MIDDLE = 4,
+    STONE_RIGHT = 5,
+    STONE_TL = 6,
+    STONE_TR = 7,
+    STONE_TOP = 8,
+    STONE_BL_1 = 9,
+    STONE_BR_1 = 10,
+    STONE_BOTTOM_1 = 11
+} StoneVariant;
 
 // Tile Types 
 // [bottom_left, bottom_right, bottom, left, right, top_left, top_right]
