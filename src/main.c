@@ -516,6 +516,13 @@ int main() {
         LoadTexture("tiles/stone2/bottom-right-1.png"),
         LoadTexture("tiles/stone2/bottom-1.png"),
     };
+
+    Texture2D dirtTiles[] = {
+        LoadTexture("tiles/dirt2/1.png"),
+        LoadTexture("tiles/dirt2/2.png"),
+        LoadTexture("tiles/dirt2/3.png"),
+        LoadTexture("tiles/dirt2/4.png"),
+    };
     Texture2D enemyGunTex = LoadTexture("entities/enemy/pistol.png");
     closeDirectory();
     // Animation player_idle = loadAnimation("entities/player/", 4);
@@ -718,7 +725,7 @@ int main() {
 
         sprintf(enemyKey, "%d:%d", roomX, roomY);
 
-        MapEnsureCache(map, camera, tiles, stoneTiles);
+        MapEnsureCache(map, camera, tiles, stoneTiles, dirtTiles);
 
         if (transitioning) {
             transitionRadius -= transitionSpeed * delta;

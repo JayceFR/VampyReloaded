@@ -79,7 +79,7 @@ typedef struct{
 extern mapData mapCreate(void);
 // extern void mapDraw(Camera2D camera);
 extern void MapDrawCached(Camera2D camera);
-void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap, Texture2D *stoneMap);
+void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap, Texture2D *stoneMap, Texture2D *dirtMap);
 extern dynarray rectsAround(hash map, Vector2 player_pos);
 extern void mapFree(hash map);
 extern rect mapGetRecAt(hash map, int x, int y);

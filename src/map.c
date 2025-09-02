@@ -449,7 +449,7 @@ mapData mapCreate(){
         r->tileType = chooseStoneVariant(mappy, x, y);
       }
       else{
-        r->tileType = 0;
+        r->tileType = GetRandomValue(0,3);
       }
 
       char buffer[22];
@@ -491,6 +491,7 @@ mapData mapCreate(){
 
         if (delete){
             rCurr->tile = DIRT;
+            rCurr->tileType = GetRandomValue(0,3);
         }
     }
   }
@@ -624,7 +625,7 @@ static Rectangle GetCameraWorldBounds(Camera2D cam) {
 }
 
 
-void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap, Texture2D *stoneMap) {
+void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap, Texture2D *stoneMap, Texture2D *dirtMap) {
     const int PAD_TILES_X = 2, PAD_TILES_Y = 2;
 
     Rectangle view = GetCameraWorldBounds(camera);
@@ -678,7 +679,7 @@ void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap, Texture2D *st
 
                     if (r->tile == DIRT) {
                         // DrawRectangle(lx, ly, TILE_SIZE, TILE_SIZE, GRAY);
-                        DrawTexture(tileMap[DIRT], lx, ly, WHITE);
+                        DrawTexture(dirtMap[r->tileType], lx, ly, WHITE);
                     } else if (r->tile == STONE) {
                         // DrawRectangle(lx, ly, TILE_SIZE, TILE_SIZE, BLACK);
                         // DrawTexture(tileMap[STONE], lx, ly, WHITE);
