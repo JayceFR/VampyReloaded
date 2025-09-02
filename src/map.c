@@ -357,6 +357,65 @@ void printMap(TILES map[HEIGHT][WIDTH]) {
   }
 }
 
+// atlas indices must match this order:
+// [0: bottom_left, 1: bottom_right, 2: bottom,
+//  3: left,        4: middle,       5: right,
+//  6: top_left,    7: top_right,    8: top]
+typedef enum {
+    STONE_BL = 0,
+    STONE_BR = 1,
+    STONE_BOTTOM = 2,
+    STONE_LEFT = 3,
+    STONE_MIDDLE = 4,
+    STONE_RIGHT = 5,
+    STONE_TL = 6,
+    STONE_TR = 7,
+    STONE_TOP = 8,
+    STONE_BL_1 = 9,
+    STONE_BR_1 = 10,
+    STONE_BOTTOM_1 = 11
+} StoneVariant;
+
+
+static inline TILES getTileSafe(TILES (*m)[GAME_WIDTH], int x, int y) {
+    if (x < 0 || y < 0 || x >= GAME_WIDTH || y >= GAME_HEIGHT) return STONE;
+    return m[y][x];
+}
+
+static int chooseStoneVariant(TILES (*m)[GAME_WIDTH], int x, int y) {
+    if (getTileSafe(m, x, y) != STONE) return STONE_MIDDLE;
+
+    // check surroundings
+    bool t  = (getTileSafe(m, x,   y-1) == DIRT);
+    bool b  = (getTileSafe(m, x,   y+1) == DIRT);
+    bool l  = (getTileSafe(m, x-1, y  ) == DIRT);
+    bool r  = (getTileSafe(m, x+1, y  ) == DIRT);
+
+    int mask = (t ? 1 : 0) | (b ? 2 : 0) | (l ? 4 : 0) | (r ? 8 : 0);
+
+    int base = STONE_MIDDLE;
+
+    // basic tiles
+    if (mask == 1)        base = STONE_TOP;
+    else if (mask == 2)   base = STONE_BOTTOM;
+    else if (mask == 4)   base = STONE_LEFT;
+    else if (mask == 8)   base = STONE_RIGHT;
+    else if (mask == (2|4)) base = STONE_BL;
+    else if (mask == (2|8)) base = STONE_BR;
+    else if (mask == (1|4)) base = STONE_TL;
+    else if (mask == (1|8)) base = STONE_TR;
+
+    // --- optional: horizontal stacking for left / right ---
+    // if you have _1 variants for left/right, enable them:
+    // if ((base == STONE_LEFT || base == STONE_RIGHT) &&
+    //     getTileSafe(m, x + (base == STONE_RIGHT ? 1 : -1), y) == STONE)
+    // {
+    //     return (base == STONE_LEFT ? STONE_LEFT_1 : STONE_RIGHT_1);
+    // }
+
+    return base;
+}
+
 mapData mapCreate(){
   mapData data; 
   data.map = hashCreate(&tilesPrint, &tilesFree, NULL);
@@ -365,6 +424,7 @@ mapData mapCreate(){
   srand(time(NULL));
   // generatePuzzleMap(mappy);
   data.enemies = generateWorld(mappy);
+
   for (int y = 0; y < GAME_HEIGHT; y++){
     for (int x = 0; x < GAME_WIDTH; x++){
       rect r = malloc(sizeof(struct rect));
@@ -379,10 +439,48 @@ mapData mapCreate(){
       r->node->hCost = 0;
       r->node->fCost = 0;
       r->node->prev = NULL;
+      
+      if (mappy[y][x] == STONE){
+        r->tileType = chooseStoneVariant(mappy, x, y);
+      }
+      else{
+        r->tileType = 0;
+      }
 
       char buffer[22];
       sprintf(buffer, "%d:%d", x, y);
-      hashSet(data.map, buffer, r);
+      hashSet(data.map, strdup(buffer), r);
+    }
+  }
+
+  for (int y = 1; y < GAME_HEIGHT; y++) {   // start at 1 so y-1 is valid
+    for (int x = 0; x < GAME_WIDTH; x++) {
+        
+        char buffer[22];
+        sprintf(buffer, "%d:%d", x, y-1);
+        rect rAbove = hashFind(data.map, buffer);
+
+        sprintf(buffer, "%d:%d", x, y);
+        rect rCurr = hashFind(data.map, buffer);
+
+        if (rCurr->tile == STONE && rCurr->tileType == STONE_BOTTOM){
+            if (rAbove->tile == STONE){
+                rAbove->tileType = STONE_BOTTOM_1;
+            }
+        }
+
+        if (rCurr->tile == STONE && rCurr->tileType == STONE_BL){
+            if (rAbove->tile == STONE){
+                rAbove->tileType = STONE_BL_1;
+            }
+        }
+
+        if (rCurr->tile == STONE && rCurr->tileType == STONE_BR){
+            if (rAbove->tile == STONE){
+                rAbove->tileType = STONE_BR_1;
+            }
+        }
+        
     }
   }
   return data; 
@@ -468,13 +566,20 @@ typedef struct RoomCache {
 
 static RoomCache s_cache = {0};
 
+// static Rectangle GetCameraWorldBounds(Camera2D cam) {
+//     Vector2 tl = GetScreenToWorld2D((Vector2){0, 0}, cam);
+//     Vector2 br = GetScreenToWorld2D((Vector2){GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f}, cam);
+//     return (Rectangle){ tl.x, tl.y, br.x - tl.x, br.y - tl.y };
+// }
+
 static Rectangle GetCameraWorldBounds(Camera2D cam) {
     Vector2 tl = GetScreenToWorld2D((Vector2){0, 0}, cam);
-    Vector2 br = GetScreenToWorld2D((Vector2){GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f}, cam);
+    Vector2 br = GetScreenToWorld2D((Vector2){ (float)GetScreenWidth(), (float)GetScreenHeight() }, cam);
     return (Rectangle){ tl.x, tl.y, br.x - tl.x, br.y - tl.y };
 }
 
-void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap) {
+
+void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap, Texture2D *stoneMap) {
     const int PAD_TILES_X = 2, PAD_TILES_Y = 2;
 
     Rectangle view = GetCameraWorldBounds(camera);
@@ -514,7 +619,7 @@ void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap) {
 
         // IMPORTANT: draw cache with no camera, no nesting inside your main target
         BeginTextureMode(s_cache.tex);
-            ClearBackground(BLACK); // or BLANK, your choice
+            ClearBackground((Color) {0, 0, 0, 0}); // or BLANK, your choice
 
             char key[32];
             for (int tx = minTileX; tx < maxTileX; tx++) {
@@ -531,7 +636,13 @@ void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap) {
                         DrawTexture(tileMap[DIRT], lx, ly, WHITE);
                     } else if (r->tile == STONE) {
                         // DrawRectangle(lx, ly, TILE_SIZE, TILE_SIZE, BLACK);
-                        DrawTexture(tileMap[STONE], lx, ly, WHITE);
+                        // DrawTexture(tileMap[STONE], lx, ly, WHITE);
+                        // if (r->tileType == STONE_BOTTOM_1) {
+                        //     DrawRectangle(lx, ly, TILE_SIZE, TILE_SIZE, RED);
+                        // }
+                        // else{
+                        DrawTexture(stoneMap[r->tileType], lx, ly, WHITE);
+                        // }
                     }
                 }
             }
@@ -541,13 +652,27 @@ void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap) {
 
 void MapDrawCached(Camera2D camera) {
     if (!s_cache.tex.id) return;
+
+    // Use premultiplied alpha blending for render textures
+    BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
+
     DrawTexturePro(
         s_cache.tex.texture,
-        (Rectangle){ 0, 0, (float)s_cache.tex.texture.width, -(float)s_cache.tex.texture.height },
-        (Rectangle){ s_cache.worldRect.x, s_cache.worldRect.y, s_cache.worldRect.width, s_cache.worldRect.height },
-        (Vector2){ 0, 0 }, 0.0f, WHITE
+        (Rectangle){ 0, 0,
+                     (float)s_cache.tex.texture.width,
+                    -(float)s_cache.tex.texture.height }, // flip Y
+        (Rectangle){ s_cache.worldRect.x,
+                     s_cache.worldRect.y,
+                     s_cache.worldRect.width,
+                     s_cache.worldRect.height },
+        (Vector2){ 0, 0 },
+        0.0f,
+        WHITE
     );
+
+    EndBlendMode();
 }
+
 
 // void mapDraw(hash map, Camera2D camera) {
 //     const int PAD_TILES_X = 2;         // extra tiles around the screen to reduce rebuilds

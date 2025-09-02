@@ -500,6 +500,22 @@ int main() {
         LoadTexture("tiles/dirt.png"),
         LoadTexture("tiles/stone.png")
     };
+    // Tile Types 
+    // [bottom_left, bottom_right, bottom, left, middle, right, top_left, top_right, top, bottom-left-1, bottom-right-1, bottom-1]
+    Texture2D stoneTiles[] = {
+        LoadTexture("tiles/stone2/bottom-left.png"),
+        LoadTexture("tiles/stone2/bottom-right.png"),
+        LoadTexture("tiles/stone2/bottom.png"),
+        LoadTexture("tiles/stone2/left.png"),
+        LoadTexture("tiles/stone2/middle.png"),
+        LoadTexture("tiles/stone2/right.png"),
+        LoadTexture("tiles/stone2/top-left.png"),
+        LoadTexture("tiles/stone2/top-right.png"),
+        LoadTexture("tiles/stone2/top.png"),
+        LoadTexture("tiles/stone2/bottom-left-1.png"),
+        LoadTexture("tiles/stone2/bottom-right-1.png"),
+        LoadTexture("tiles/stone2/bottom-1.png"),
+    };
     Texture2D enemyGunTex = LoadTexture("entities/enemy/pistol.png");
     closeDirectory();
     // Animation player_idle = loadAnimation("entities/player/", 4);
@@ -702,7 +718,7 @@ int main() {
 
         sprintf(enemyKey, "%d:%d", roomX, roomY);
 
-        MapEnsureCache(map, camera, tiles);
+        MapEnsureCache(map, camera, tiles, stoneTiles);
 
         if (transitioning) {
             transitionRadius -= transitionSpeed * delta;
@@ -722,7 +738,7 @@ int main() {
         }
 
         BeginTextureMode(target);
-            ClearBackground(RAYWHITE);
+            ClearBackground((Color) {0, 0, 0, 0});
 
             BeginMode2D(camera);
                 MapDrawCached(camera);
@@ -876,11 +892,11 @@ int main() {
         BeginDrawing();
             ClearBackground(BLACK);
 
-            BeginShaderMode(shader);
+            // BeginShaderMode(shader);
                 src = (Rectangle) { 0, 0, (float)target.texture.width, -(float)target.texture.height };
                 dst = (Rectangle) { 0, 0, (float)SCREEN_WIDTH * 2, (float)SCREEN_HEIGHT * 2 };
                 DrawTexturePro(target.texture, src, dst, (Vector2){0, 0}, 0.0f, WHITE);
-            EndShaderMode();
+            // EndShaderMode();i
 
             if (reloading) {
                 DrawText("Reloading...", 100, 30, 10, RED);

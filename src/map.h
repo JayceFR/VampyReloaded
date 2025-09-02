@@ -34,10 +34,16 @@ struct pathNode{
   bool isWalkable;
 };
 
+
+// Tile Types 
+// [bottom_left, bottom_right, bottom, left, right, top_left, top_right]
+
 struct rect{
   TILES tile; 
   Rectangle rectange; 
   pathNode node; 
+  // NOTE : Make it an union if you want to have different types of grass as well.
+  int tileType; // A number which holds the index.
 };
 typedef struct rect *rect;
 
@@ -59,7 +65,7 @@ typedef struct{
 extern mapData mapCreate(void);
 // extern void mapDraw(Camera2D camera);
 extern void MapDrawCached(Camera2D camera);
-extern void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap);
+void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap, Texture2D *stoneMap);
 extern dynarray rectsAround(hash map, Vector2 player_pos);
 extern void mapFree(hash map);
 extern rect mapGetRecAt(hash map, int x, int y);
