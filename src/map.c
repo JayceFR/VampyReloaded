@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <limits.h>
+#include <math.h>
 
 #include "raylib.h"
 
@@ -488,7 +489,7 @@ void placeProperty(hash map, hash offgridTiles, Texture2D prop, int index, int x
 }
 
 
-mapData mapCreate(offgrid *properties, int size_of_properties, hash offgridTiles, BIOME_DATA biome_data){
+mapData mapCreate(offgrid *properties, int size_of_properties, hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
   mapData data; 
   data.map = hashCreate(&tilesPrint, &tilesFree, NULL);
 
@@ -606,10 +607,24 @@ mapData mapCreate(offgrid *properties, int size_of_properties, hash offgridTiles
 
         if (r->tileType == STONE_MIDDLE){
 
-            float pathNoise = noise2d(x * 0.05f, y * 0.05f);
-            if (pathNoise > 0.45f && pathNoise < 0.55f){
-                continue;
-            }
+            // float pathNoise = noise2d(x * 0.03f, y * 0.03f);
+            float nx = x * 0.02f;
+            float ny = y * 0.02f;
+
+            // Base noise, smooth
+            float base = noise2d(nx, ny);
+
+            // Stretch it into stripes (like ridges/valleys)
+            float stripe = sinf(base * 6.28f * 2.0f); // 2.0f = density of paths
+
+            // Normalize to 0..1
+            stripe = (stripe + 1.0f) * 0.5f;
+            float hStripe = sinf(noise2d(nx, ny) * 6.28f * 1.5f);
+            float vStripe = sinf(noise2d(nx + 100, ny + 100) * 6.28f * 1.5f);
+
+            hStripe = fabsf(hStripe);
+            vStripe = fabsf(vStripe);
+
 
             float areaNoise = noise2d(x * 0.02f, y * 0.02f);
             int areaType; 
@@ -625,25 +640,44 @@ mapData mapCreate(offgrid *properties, int size_of_properties, hash offgridTiles
             switch (areaType)
             {
             case TOWN:
-                index = (int) (propNoise * (biome_data->size_of_texs[TOWN])) % biome_data->size_of_texs[TOWN];
-                chosen = biome_data->texs[TOWN][index];
-                if (canPlaceProperty(data.map, chosen, x, y)){
-                    placeProperty(data.map, offgridTiles, chosen, index, x, y);
+                // index = (int) (propNoise * (biome_data->size_of_texs[TOWN])) % biome_data->size_of_texs[TOWN];
+
+                if (hStripe < 0.2f || vStripe < 0.2f){
+                    if (canPlaceProperty(data.map, pathDirt, x, y)){
+                        placeProperty(data.map, offgridTiles, pathDirt, index, x, y);
+                    }
+                }
+                else{
+                    index = GetRandomValue(0, biome_data->size_of_texs[TOWN] - 1);
+                    chosen = biome_data->texs[TOWN][index];
+                    if (canPlaceProperty(data.map, chosen, x, y)){
+                        placeProperty(data.map, offgridTiles, chosen, index, x, y);
+                    }
                 }
                 break;
             case FOREST:
-                index = (int) (propNoise * (biome_data->size_of_texs[FOREST])) % biome_data->size_of_texs[FOREST];
+                // index = (int) (propNoise * (biome_data->size_of_texs[FOREST])) % biome_data->size_of_texs[FOREST];
+                index = GetRandomValue(0, biome_data->size_of_texs[FOREST] - 1);
                 chosen = biome_data->texs[FOREST][index];
                 if (canPlaceProperty(data.map, chosen, x, y)){
                     placeProperty(data.map, offgridTiles, chosen, index, x, y);
                 }
                 break;
             case VILLAGE:
-                index = (int) (propNoise * (biome_data->size_of_texs[VILLAGE])) % biome_data->size_of_texs[VILLAGE];
-                chosen = biome_data->texs[VILLAGE][index];
-                if (canPlaceProperty(data.map, chosen, x, y)){
-                    placeProperty(data.map, offgridTiles, chosen, index, x, y);
+                // index = (int) (propNoise * (biome_data->size_of_texs[VILLAGE])) % biome_data->size_of_texs[VILLAGE];
+
+                if (hStripe < 0.2f || vStripe < 0.2f){
+                    if (canPlaceProperty(data.map, pathDirt, x, y)){
+                        placeProperty(data.map, offgridTiles, pathDirt, index, x, y);
+                    }
                 }
+                else{
+                    index = GetRandomValue(0, biome_data->size_of_texs[VILLAGE] - 1);
+                    chosen = biome_data->texs[VILLAGE][index];
+                    if (canPlaceProperty(data.map, chosen, x, y)){
+                        placeProperty(data.map, offgridTiles, chosen, index, x, y);
+                    }
+                }   
                 break;
             default:
                 break;

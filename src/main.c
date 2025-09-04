@@ -571,6 +571,7 @@ int main() {
         LoadTexture("tiles/offgrid/19.png"), 
         LoadTexture("tiles/offgrid/20.png"),
     };
+    Texture2D pathDirt = LoadTexture("tiles/dirt/1.png");
     Texture2D enemyGunTex = LoadTexture("entities/enemy/pistol.png");
     closeDirectory();
     // Animation player_idle = loadAnimation("entities/player/", 4);
@@ -639,7 +640,7 @@ int main() {
     Vector2 swarmTarget = player->pos;
     Vector2 previousOffset = {0.0f, 0.0f};
 
-    mapData mData = mapCreate(offgridProperty, NO_OF_OFFGRID_TILES, offgridMap, biome_data);
+    mapData mData = mapCreate(offgridProperty, NO_OF_OFFGRID_TILES, offgridMap, biome_data, pathDirt);
     hash map = mData.map;
 
     Enemy enemy = enemyCreate(50, 60, 15, 15);
@@ -795,7 +796,7 @@ int main() {
                 mapFree(map);
                 hashFree(offgridMap);
                 offgridMap = hashCreate(NULL, &offgridsFree, NULL);
-                mData = mapCreate(offgridProperty, NO_OF_OFFGRID_TILES, offgridMap, biome_data);
+                mData = mapCreate(offgridProperty, NO_OF_OFFGRID_TILES, offgridMap, biome_data, pathDirt);
                 map = mData.map;
 
                 player->pos = (Vector2){ 400, 225 };

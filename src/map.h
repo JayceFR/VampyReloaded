@@ -104,7 +104,7 @@ struct offgridTile{
 };
 typedef struct offgridTile *offgridTile;
 
-extern mapData mapCreate(offgrid *properties, int size_of_properties, hash offgridTiles, BIOME_DATA biome_data);
+extern mapData mapCreate(offgrid *properties, int size_of_properties, hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt);
 // extern void mapDraw(Camera2D camera);
 extern void MapDrawCached(Camera2D camera);
 void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap, Texture2D *stoneMap, Texture2D *dirtMap, Texture2D *offgridMap);
