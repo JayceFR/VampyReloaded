@@ -606,6 +606,11 @@ mapData mapCreate(offgrid *properties, int size_of_properties, hash offgridTiles
 
         if (r->tileType == STONE_MIDDLE){
 
+            float pathNoise = noise2d(x * 0.05f, y * 0.05f);
+            if (pathNoise > 0.45f && pathNoise < 0.55f){
+                continue;
+            }
+
             float areaNoise = noise2d(x * 0.02f, y * 0.02f);
             int areaType; 
 
