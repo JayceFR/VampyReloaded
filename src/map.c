@@ -422,12 +422,13 @@ static int chooseStoneVariant(TILES (*m)[GAME_WIDTH], int x, int y) {
     return base;
 }
 
-bool canPlaceProperty(hash map, offgrid prop, int x, int y) {
-    if (!prop) return false;
+bool canPlaceProperty(hash map, Texture2D prop, int x, int y) {
+    // if (!prop) return false;
 
-    int w = (prop->width  + TILE_SIZE - 1) / TILE_SIZE;
-    int h = (prop->height + TILE_SIZE - 1) / TILE_SIZE;
+    int w = (prop.width  + TILE_SIZE - 1) / TILE_SIZE;
+    int h = (prop.height + TILE_SIZE - 1) / TILE_SIZE;
 
+    // printf("%d, %d", prop.width, prop.height);
     for (int dy = 0; dy < h; dy++) {
         for (int dx = 0; dx < w; dx++) {
             char buffer[32];
@@ -450,9 +451,9 @@ void offgridTileFree(DA_ELEMENT el){
     free(o);
 }
 
-void placeProperty(hash map, hash offgridTiles, offgrid prop, int index, int x, int y) {
-    int w = (prop->width  + TILE_SIZE - 1) / TILE_SIZE;
-    int h = (prop->height + TILE_SIZE - 1) / TILE_SIZE;
+void placeProperty(hash map, hash offgridTiles, Texture2D prop, int index, int x, int y) {
+    int w = (prop.width  + TILE_SIZE - 1) / TILE_SIZE;
+    int h = (prop.height + TILE_SIZE - 1) / TILE_SIZE;
 
     for (int dy = 0; dy < h; dy++) {
         for (int dx = 0; dx < w; dx++) {
@@ -470,7 +471,7 @@ void placeProperty(hash map, hash offgridTiles, offgrid prop, int index, int x, 
     dynarray tiles; 
 
     offgridTile o = malloc(sizeof(struct offgridTile));
-    o->texture = prop->texture;
+    o->texture = prop;
     o->x       = x * TILE_SIZE; 
     o->y       = y * TILE_SIZE; 
 
@@ -487,7 +488,7 @@ void placeProperty(hash map, hash offgridTiles, offgrid prop, int index, int x, 
 }
 
 
-mapData mapCreate(offgrid *properties, int size_of_properties, hash offgridTiles){
+mapData mapCreate(offgrid *properties, int size_of_properties, hash offgridTiles, BIOME_DATA biome_data){
   mapData data; 
   data.map = hashCreate(&tilesPrint, &tilesFree, NULL);
 
@@ -604,12 +605,45 @@ mapData mapCreate(offgrid *properties, int size_of_properties, hash offgridTiles
         rect r = hashFind(data.map, buffer);
 
         if (r->tileType == STONE_MIDDLE){
-            int index = GetRandomValue(0, size_of_properties - 1);
-            offgrid chosen = properties[index];
 
-            if (canPlaceProperty(data.map, chosen, x, y)) {
-                placeProperty(data.map, offgridTiles, chosen, index, x, y);
+            float areaNoise = noise2d(x * 0.02f, y * 0.02f);
+            int areaType; 
+
+            if (areaNoise < 0.33f) areaType = TOWN;
+            else if (areaNoise < 0.66f) areaType = FOREST;
+            else areaType = VILLAGE;
+
+            float propNoise = noise2d(x * 0.1f, y * 0.1f);
+            int index; 
+            Texture2D chosen; 
+
+            switch (areaType)
+            {
+            case TOWN:
+                index = (int) (propNoise * (biome_data->size_of_texs[TOWN])) % biome_data->size_of_texs[TOWN];
+                chosen = biome_data->texs[TOWN][index];
+                if (canPlaceProperty(data.map, chosen, x, y)){
+                    placeProperty(data.map, offgridTiles, chosen, index, x, y);
+                }
+                break;
+            case FOREST:
+                index = (int) (propNoise * (biome_data->size_of_texs[FOREST])) % biome_data->size_of_texs[FOREST];
+                chosen = biome_data->texs[FOREST][index];
+                if (canPlaceProperty(data.map, chosen, x, y)){
+                    placeProperty(data.map, offgridTiles, chosen, index, x, y);
+                }
+                break;
+            case VILLAGE:
+                index = (int) (propNoise * (biome_data->size_of_texs[VILLAGE])) % biome_data->size_of_texs[VILLAGE];
+                chosen = biome_data->texs[VILLAGE][index];
+                if (canPlaceProperty(data.map, chosen, x, y)){
+                    placeProperty(data.map, offgridTiles, chosen, index, x, y);
+                }
+                break;
+            default:
+                break;
             }
+
         }
     }
   }

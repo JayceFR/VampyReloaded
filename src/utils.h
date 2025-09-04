@@ -10,6 +10,7 @@ struct Animation{
 typedef struct Animation *Animation;
 
 extern Animation loadAnimation(char *path, int numberOfFrames);
+extern Texture2D *loadTexturesFromDirectory(char *path, int numberOfTexs);
 extern void loadDirectory();
 extern void closeDirectory();
 

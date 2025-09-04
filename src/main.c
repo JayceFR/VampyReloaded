@@ -499,6 +499,26 @@ int main() {
         loadAnimation("entities/enemy/idle/", 4),
         loadAnimation("entities/enemy/run/", 4),
     };
+    int NO_OF_BIOMES = 3; 
+    int NO_OF_FOREST_TEXS = 2;
+    int NO_OF_TOWN_TEXS = 9;
+    int NO_OF_VILLAGE_TEXS = 14;
+    Texture2D *forestTexs = loadTexturesFromDirectory("tiles/offgrid/forest/", NO_OF_FOREST_TEXS);
+    Texture2D *townTexs = loadTexturesFromDirectory("tiles/offgrid/town/", NO_OF_TOWN_TEXS);
+    Texture2D *villageTexs = loadTexturesFromDirectory("tiles/offgrid/village/", NO_OF_VILLAGE_TEXS);
+
+    BIOME_DATA biome_data = malloc(sizeof(struct BIOME_DATA)); 
+    biome_data->texs = malloc(sizeof(Texture2D *) * NO_OF_BIOMES);
+    biome_data->texs[FOREST] = forestTexs;
+    biome_data->texs[TOWN] = townTexs;
+    biome_data->texs[VILLAGE] = villageTexs;
+    biome_data->size_of_texs = malloc(sizeof(int) * NO_OF_BIOMES);
+    biome_data->size_of_texs[FOREST] = NO_OF_FOREST_TEXS;
+    biome_data->size_of_texs[TOWN] = NO_OF_TOWN_TEXS;
+    biome_data->size_of_texs[VILLAGE] = NO_OF_VILLAGE_TEXS;
+
+    // printf("%d", biome_data->texs[TOWN][0].height);
+
     loadDirectory();
     Texture2D gunTex = LoadTexture("entities/enemy/gun.png");
     Texture2D tiles[] = {
@@ -619,7 +639,7 @@ int main() {
     Vector2 swarmTarget = player->pos;
     Vector2 previousOffset = {0.0f, 0.0f};
 
-    mapData mData = mapCreate(offgridProperty, NO_OF_OFFGRID_TILES, offgridMap);
+    mapData mData = mapCreate(offgridProperty, NO_OF_OFFGRID_TILES, offgridMap, biome_data);
     hash map = mData.map;
 
     Enemy enemy = enemyCreate(50, 60, 15, 15);
@@ -775,7 +795,7 @@ int main() {
                 mapFree(map);
                 hashFree(offgridMap);
                 offgridMap = hashCreate(NULL, &offgridsFree, NULL);
-                mData = mapCreate(offgridProperty, NO_OF_OFFGRID_TILES, offgridMap);
+                mData = mapCreate(offgridProperty, NO_OF_OFFGRID_TILES, offgridMap, biome_data);
                 map = mData.map;
 
                 player->pos = (Vector2){ 400, 225 };

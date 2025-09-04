@@ -19,6 +19,18 @@ typedef enum{
   AIR
 } TILES; 
 
+typedef enum{
+  TOWN, 
+  VILLAGE,
+  FOREST
+} BIOME; 
+
+struct BIOME_DATA{
+  Texture2D **texs; 
+  int *size_of_texs; 
+};
+typedef struct BIOME_DATA *BIOME_DATA;
+
 struct pathNode;
 typedef struct pathNode *pathNode;
 
@@ -92,7 +104,7 @@ struct offgridTile{
 };
 typedef struct offgridTile *offgridTile;
 
-extern mapData mapCreate(offgrid *properties, int size_of_properties, hash offgridTiles);
+extern mapData mapCreate(offgrid *properties, int size_of_properties, hash offgridTiles, BIOME_DATA biome_data);
 // extern void mapDraw(Camera2D camera);
 extern void MapDrawCached(Camera2D camera);
 void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap, Texture2D *stoneMap, Texture2D *dirtMap, Texture2D *offgridMap);

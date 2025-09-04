@@ -33,3 +33,15 @@ Animation loadAnimation(char *path, int numberOfFrames){
     closeDirectory();
     return animation;
 }
+
+Texture2D *loadTexturesFromDirectory(char *path, int numberOfTexs){
+    loadDirectory();
+    Texture2D *texs = malloc(sizeof(Texture2D) * numberOfTexs);
+    char buffer[50];
+    for (int i = 1; i < numberOfTexs + 1; i++){
+        sprintf(buffer, "%s%d.png", path, i);
+        texs[i-1] = LoadTexture(buffer);
+    }
+    closeDirectory();
+    return texs;
+}
