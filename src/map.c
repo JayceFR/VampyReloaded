@@ -10,6 +10,7 @@
 #include "dynarray.h"
 #include "map.h"
 #include "enemy.h"
+#include "noise.h"
 
 void tilesFree(hashvalue val){
   rect r = (rect) val; 
@@ -515,7 +516,8 @@ mapData mapCreate(offgrid *properties, int size_of_properties, hash offgridTiles
         r->tileType = chooseStoneVariant(mappy, x, y);
       }
       else{
-        r->tileType = GetRandomValue(0,3);
+        int var = GetRandomValue(0,3);
+        r->tileType = var;
       }
 
       char buffer[22];
