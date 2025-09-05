@@ -682,7 +682,7 @@ int main() {
         }
 
         if (isHacking && currComputer){
-            currComputer->amountLeftToHack -= GetFrameTime() * 10; // speed factor
+            currComputer->amountLeftToHack -= GetFrameTime() * 5; // speed factor
             if (currComputer->amountLeftToHack <= 0) {
                 currComputer->hacked = true;
                 isHacking = false;  // stop hacking once done
@@ -822,7 +822,7 @@ int main() {
                 if ((enemies = hashFind(mData.enemies, enemyKey)) != NULL) {
                     for (int i = 0; i < enemies->len; i++) {
                         Enemy e = enemies->data[i];
-                        Vector2 vel = computeVelOfEnemy(e, player, map, eprojectiles);
+                        Vector2 vel = computeVelOfEnemy(e, player, map, eprojectiles, isHacking);
                         update(e->e, map, vel);
                         enemyDraw(e, player, map, EnemyAnimations, enemyGunTex);
                     }

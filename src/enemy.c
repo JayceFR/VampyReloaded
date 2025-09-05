@@ -265,7 +265,7 @@ static inline void worldCenterOfNode(pathNode n, Rectangle entRect, Vector2 *out
     out->y = n->y * TILE_SIZE + TILE_SIZE/2.0f - entRect.height / 2.0f;
 }
 
-Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map, dynarray projectiles) {
+Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map, dynarray projectiles, bool isHacking) {
     const float dt = GetFrameTime();
 
     // --- Animation ---
@@ -287,9 +287,24 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map, dynarray project
     }
 
     // --- State update (cheap) ---
+    // float distToLastKnown = Vector2Distance(enemy->e->pos, enemy->lastKnownPlayerPos);
+    // if (enemy->playerVisible)       enemy->state = ACTIVE;
+    // else if (distToLastKnown > torchRadius * 1.5f) enemy->state = IDLE;
+
+    // --- State update (cheap) ---
     float distToLastKnown = Vector2Distance(enemy->e->pos, enemy->lastKnownPlayerPos);
-    if (enemy->playerVisible)       enemy->state = ACTIVE;
-    else if (distToLastKnown > torchRadius * 1.5f) enemy->state = IDLE;
+
+    if (isHacking) {
+        // Force enemy into ACTIVE and lock it there while hacking
+        enemy->state = ACTIVE;
+        enemy->lastKnownPlayerPos = player->pos;
+        // enemy->playerVisible = true;  // treat as if player is always "seen"
+    } else {
+        if (enemy->playerVisible)       
+            enemy->state = ACTIVE;
+        else if (distToLastKnown > torchRadius * 1.5f) 
+            enemy->state = IDLE;
+    }
 
     // --- ACTIVE: follow player path ---
     if (enemy->state == ACTIVE) {
