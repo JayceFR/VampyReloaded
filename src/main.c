@@ -682,7 +682,7 @@ int main() {
         }
 
         if (isHacking && currComputer){
-            currComputer->amountLeftToHack -= GetFrameTime() * 20; // speed factor
+            currComputer->amountLeftToHack -= GetFrameTime() * 10; // speed factor
             if (currComputer->amountLeftToHack <= 0) {
                 currComputer->hacked = true;
                 isHacking = false;  // stop hacking once done
