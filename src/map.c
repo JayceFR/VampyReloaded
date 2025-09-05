@@ -177,7 +177,7 @@ static void connect_room_centers_world(TILES *world, int W, int H,
     carve_corridor_grid(world, W, H, x1, y1, x2, y2, corridorWidth);
 }
 
-void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies) {
+void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies, hash computers) {
     Room worldRooms[WORLD_H][WORLD_W][MAX_ROOMS];
     int roomCount[WORLD_H][WORLD_W];
     // dynarray doors = create_dynarray(NULL, NULL);
@@ -191,6 +191,7 @@ void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies) {
     // TODO: ADD in level difficulty as well, and lower the range for higher levels
     char buffer[22];
     dynarray enemy; 
+    dynarray computer; 
     // generate chunks and paste
     for (int cy=0; cy<WORLD_H; cy++){
         for (int cx=0; cx<WORLD_W; cx++){
@@ -210,12 +211,31 @@ void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies) {
                         sprintf(buffer, "%d:%d", cx, cy); 
                         if (hashFind(enemies, buffer) == NULL){
                             hashSet(enemies, buffer, create_dynarray(NULL, NULL));
-                        } 
+                        }
                         if ((enemy = hashFind(enemies, buffer)) != NULL){
                             add_dynarray(enemy, e);
                         }
                     }
+
+                    if (chunk[y][x] == DIRT && GetRandomValue(1, 100) == 2){
+                        // Spawn a computer 
+                        entity e = entityCreate(
+                            (cx * CHUNK_SIZE + x) * TILE_SIZE,
+                            (cy * CHUNK_SIZE + y) * TILE_SIZE,
+                            15,
+                            15 
+                        );
+                        sprintf(buffer, "%d:%d", cx, cy); 
+                        if (hashFind(computers, buffer) == NULL){
+                            hashSet(computers, buffer, create_dynarray(NULL, NULL));
+                        }
+                        if ((computer = hashFind(computers, buffer)) != NULL){
+                            add_dynarray(computer, e);
+                        }
+                    }
+
                     world[cy*CHUNK_SIZE+y][cx*CHUNK_SIZE+x] = chunk[y][x];
+
                 }
             }
         }
@@ -413,7 +433,8 @@ mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
   srand(time(NULL));
   // generatePuzzleMap(mappy);
   data.enemies = hashCreate(NULL, NULL, NULL);
-  generateWorld(mappy, data.enemies);
+  data.computers = hashCreate(NULL, NULL, NULL);
+  generateWorld(mappy, data.enemies, data.computers);
 
   for (int y = 0; y < GAME_HEIGHT; y++){
     for (int x = 0; x < GAME_WIDTH; x++){

@@ -655,10 +655,13 @@ int main() {
     g.maxAmmo = 10; 
     g.reloadTime = 2.0f;
 
-
     int ammo = g.maxAmmo;
     float reloadTimer = 0.0f; 
     bool reloading = false;
+
+    // Computer time 
+    hash computers = mData.computers;
+    dynarray computer; 
 
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
@@ -765,6 +768,7 @@ int main() {
                 offgridMap = hashCreate(NULL, &offgridsFree, NULL);
                 mData = mapCreate(offgridMap, biome_data, pathDirt);
                 map = mData.map;
+                computers = mData.computers;
 
                 player->pos = (Vector2){ 400, 225 };
                 player->rect.x = player->pos.x;
@@ -796,6 +800,14 @@ int main() {
                         enemyDraw(e, player, map, EnemyAnimations, enemyGunTex);
                     }
                 }
+
+                if ((computer = hashFind(computers, enemyKey)) != NULL){
+                    for (int i = 0; i < computer->len; i++){
+                        entity e = computer->data[i];
+                        DrawRectangleRec(e->rect, RED);
+                    }
+                }
+
                 // Draw Player
                 // DrawTexture(PlayerAnimations[pState]->frames[currentFrame], player->rect.x, player->rect.y, WHITE);
                 Texture2D frame = PlayerAnimations[pState]->frames[currentFrame];
