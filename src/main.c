@@ -665,6 +665,7 @@ int main() {
     dynarray computer; 
     bool collidingComputer = false;
     Computer currComputer; 
+    bool isHacking = false;
 
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
@@ -680,7 +681,17 @@ int main() {
             currentFrame = (currentFrame + 1) % 4;
         }
 
-        UpdateJoysticks(&joy, &aim);
+        if (isHacking && currComputer){
+            currComputer->amountLeftToHack -= GetFrameTime() * 20; // speed factor
+            if (currComputer->amountLeftToHack <= 0) {
+                currComputer->hacked = true;
+                isHacking = false;  // stop hacking once done
+                printf("Computer hacked!\n");
+            }
+        }
+        else{
+            UpdateJoysticks(&joy, &aim);
+        }
 
         float aimAngle = atan2f(aim.value.y, aim.value.x) * RAD2DEG;
         if (fabsf(aim.value.x) < 0.1f && fabsf(aim.value.y) < 0.1f) {
@@ -978,23 +989,26 @@ int main() {
             }
 
             // Draw Hack Button
-            if (collidingComputer) {
+            if (collidingComputer && currComputer && !currComputer->hacked) {
                 Vector2 hackButtonCenter = {
                     aim.basePos.x,
                     aim.basePos.y - aim.baseRadius - 50
                 };
                 float hackButtonRadius = 40;
+
                 Vector2 mouse = GetMousePosition();
-                float dist = Vector2Distance(mouse, hackButtonCenter);
-                bool hovering = dist <= hackButtonRadius;
+                bool hovering = Vector2Distance(mouse, hackButtonCenter) <= hackButtonRadius;
 
+                // Draw button background
                 DrawCircleV(hackButtonCenter, hackButtonRadius,
-                            hovering ? DARKGREEN : GREEN);
+                            isHacking ? RED : (hovering ? DARKGREEN : GREEN));
 
+                // Draw border
                 DrawCircleLines(hackButtonCenter.x, hackButtonCenter.y,
                                 hackButtonRadius, BLACK);
 
-                const char *label = "HACK";
+                // Label changes depending on state
+                const char *label = isHacking ? "STOP" : "HACK";
                 int fontSize = 20;
                 int textWidth = MeasureText(label, fontSize);
                 DrawText(label,
@@ -1002,10 +1016,18 @@ int main() {
                         hackButtonCenter.y - fontSize / 2,
                         fontSize, WHITE);
 
+                // Handle click
                 if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && hovering) {
-                    printf("Hack button clicked!\n");
-                    if (currComputer) currComputer->hacked = true;
+                    isHacking = !isHacking;  // toggle hack mode
+                    printf("Hack button %s!\n", isHacking ? "started" : "stopped");
                 }
+            }
+
+            if (isHacking && currComputer) {
+                float progress = (100 - currComputer->amountLeftToHack) / 100.0f;
+                DrawRectangle(50, SCREEN_HEIGHT - 40, 200, 20, DARKGRAY);
+                DrawRectangle(50, SCREEN_HEIGHT - 40, (int)(200 * progress), 20, GREEN);
+                DrawRectangleLines(50, SCREEN_HEIGHT - 40, 200, 20, BLACK);
             }
 
 
