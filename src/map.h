@@ -88,6 +88,7 @@ typedef struct Door *Door;
 typedef struct{
   hash map;
   hash enemies; 
+  hash computers;
 } mapData;
 
 struct offgrid{

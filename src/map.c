@@ -177,8 +177,7 @@ static void connect_room_centers_world(TILES *world, int W, int H,
     carve_corridor_grid(world, W, H, x1, y1, x2, y2, corridorWidth);
 }
 
-
-hash generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH]) {
+void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies) {
     Room worldRooms[WORLD_H][WORLD_W][MAX_ROOMS];
     int roomCount[WORLD_H][WORLD_W];
     // dynarray doors = create_dynarray(NULL, NULL);
@@ -190,7 +189,6 @@ hash generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH]) {
 
     // Enemy Spawner 
     // TODO: ADD in level difficulty as well, and lower the range for higher levels
-    hash enemies = hashCreate(NULL, NULL, NULL);
     char buffer[22];
     dynarray enemy; 
     // generate chunks and paste
@@ -254,7 +252,7 @@ hash generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH]) {
         }
     }
 
-    return enemies;
+    // return enemies;
     // return doors;
 
     // (optional but recommended) flood-fill connectivity fixup:
@@ -414,7 +412,8 @@ mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
   TILES mappy[GAME_HEIGHT][GAME_WIDTH];
   srand(time(NULL));
   // generatePuzzleMap(mappy);
-  data.enemies = generateWorld(mappy);
+  data.enemies = hashCreate(NULL, NULL, NULL);
+  generateWorld(mappy, data.enemies);
 
   for (int y = 0; y < GAME_HEIGHT; y++){
     for (int x = 0; x < GAME_WIDTH; x++){
