@@ -175,88 +175,6 @@ static void connect_room_centers_world(TILES *world, int W, int H,
 
     // 1) carve the corridor (random L orientation inside)
     carve_corridor_grid(world, W, H, x1, y1, x2, y2, corridorWidth);
-
-    // // 2) find crossing tile on the chunk boundary
-    // int doorTileX = -1, doorTileY = -1;
-
-    // if (ay == by && ax + 1 == bx) {
-    //     // ---- horizontal neighbors: boundary is a vertical line ----
-    //     int boundaryX = bx * CHUNK_SIZE; // leftmost column of the right chunk
-
-    //     // Try both possible L-crossing rows (y1 for H-first, y2 for V-first),
-    //     // widened by corridorWidth.
-    //     int ys[2] = { y1, y2 };
-    //     for (int i = 0; i < 2 && doorTileX == -1; ++i) {
-    //         for (int dy = -corridorWidth/2; dy <= corridorWidth/2 && doorTileX == -1; ++dy) {
-    //             int yy = ys[i] + dy;
-    //             if (IN_BOUNDS(boundaryX, yy, W, H) && CELL(world, W, boundaryX, yy) == DIRT) {
-    //                 doorTileX = boundaryX;
-    //                 doorTileY = yy;
-    //             }
-    //         }
-    //     }
-    //     // Fallback: scan a small vertical band between y1..y2 on the boundary
-    //     if (doorTileX == -1) {
-    //         int ya = (y1 < y2 ? y1 : y2), yb = (y1 > y2 ? y1 : y2);
-    //         for (int yy = ya; yy <= yb && doorTileX == -1; ++yy) {
-    //             if (IN_BOUNDS(boundaryX, yy, W, H) && CELL(world, W, boundaryX, yy) == DIRT) {
-    //                 doorTileX = boundaryX;
-    //                 doorTileY = yy;
-    //             }
-    //         }
-    //     }
-    // } else if (ax == bx && ay + 1 == by) {
-    //     // ---- vertical neighbors: boundary is a horizontal line ----
-    //     int boundaryY = by * CHUNK_SIZE; // top row of the bottom chunk
-
-    //     // Try both possible L-crossing columns (x1 for V-first, x2 for H-first),
-    //     // widened by corridorWidth.
-    //     int xs[2] = { x1, x2 };
-    //     for (int i = 0; i < 2 && doorTileY == -1; ++i) {
-    //         for (int dx = -corridorWidth/2; dx <= corridorWidth/2 && doorTileY == -1; ++dx) {
-    //             int xx = xs[i] + dx;
-    //             if (IN_BOUNDS(xx, boundaryY, W, H) && CELL(world, W, xx, boundaryY) == DIRT) {
-    //                 doorTileX = xx;
-    //                 doorTileY = boundaryY;
-    //             }
-    //         }
-    //     }
-    //     // Fallback: scan a small horizontal band between x1..x2 on the boundary
-    //     if (doorTileY == -1) {
-    //         int xa = (x1 < x2 ? x1 : x2), xb = (x1 > x2 ? x1 : x2);
-    //         for (int xx = xa; xx <= xb && doorTileY == -1; ++xx) {
-    //             if (IN_BOUNDS(xx, boundaryY, W, H) && CELL(world, W, xx, boundaryY) == DIRT) {
-    //                 doorTileX = xx;
-    //                 doorTileY = boundaryY;
-    //             }
-    //         }
-    //     }
-    // } else {
-    //     // Not direct neighbors (shouldn't happen in your calls) — fallback to midpoint
-    //     doorTileX = (x1 + x2) / 2;
-    //     doorTileY = (y1 + y2) / 2;
-    // }
-
-    // // 3) store door in pixel coords (top-left of tile)
-    // if (doorTileX != -1) {
-    //     Door door = malloc(sizeof(struct Door));
-    //     door->ax = ax * CHUNK_SIZE;
-    //     door->ay = ay * CHUNK_SIZE;
-    //     door->aw = CHUNK_SIZE; 
-    //     door->ah = CHUNK_SIZE; 
-
-    //     door->bx = bx * CHUNK_SIZE;
-    //     door->by = by * CHUNK_SIZE;
-    //     door->bw = CHUNK_SIZE; 
-    //     door->bh = CHUNK_SIZE;
-    //     door->locked = true;
-
-    //     door->pos = (Vector2){
-    //         doorTileX * TILE_SIZE,
-    //         doorTileY * TILE_SIZE
-    //     };
-    //     add_dynarray(doors, door);
-    // }
 }
 
 
@@ -489,7 +407,7 @@ void placeProperty(hash map, hash offgridTiles, Texture2D prop, int index, int x
 }
 
 
-mapData mapCreate(offgrid *properties, int size_of_properties, hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
+mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
   mapData data; 
   data.map = hashCreate(&tilesPrint, &tilesFree, NULL);
 
@@ -734,7 +652,7 @@ static Rectangle GetCameraWorldBounds(Camera2D cam) {
 }
 
 
-void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap, Texture2D *stoneMap, Texture2D *dirtMap, Texture2D *offgridMap) {
+void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap, Texture2D *stoneMap, Texture2D *dirtMap) {
     const int PAD_TILES_X = 2, PAD_TILES_Y = 2;
 
     Rectangle view = GetCameraWorldBounds(camera);

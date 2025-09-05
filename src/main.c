@@ -549,42 +549,9 @@ int main() {
         LoadTexture("tiles/dirt2/4.png"),
     };
 
-    Texture2D offgridTiles[] = {
-        LoadTexture("tiles/offgrid/1.png"),
-        LoadTexture("tiles/offgrid/2.png"), 
-        LoadTexture("tiles/offgrid/3.png"), 
-        LoadTexture("tiles/offgrid/4.png"), 
-        LoadTexture("tiles/offgrid/5.png"), 
-        LoadTexture("tiles/offgrid/6.png"), 
-        LoadTexture("tiles/offgrid/7.png"), 
-        LoadTexture("tiles/offgrid/8.png"), 
-        LoadTexture("tiles/offgrid/9.png"), 
-        LoadTexture("tiles/offgrid/10.png"), 
-        LoadTexture("tiles/offgrid/11.png"), 
-        LoadTexture("tiles/offgrid/12.png"), 
-        LoadTexture("tiles/offgrid/13.png"), 
-        LoadTexture("tiles/offgrid/14.png"), 
-        LoadTexture("tiles/offgrid/15.png"), 
-        LoadTexture("tiles/offgrid/16.png"), 
-        LoadTexture("tiles/offgrid/17.png"), 
-        LoadTexture("tiles/offgrid/18.png"), 
-        LoadTexture("tiles/offgrid/19.png"), 
-        LoadTexture("tiles/offgrid/20.png"),
-    };
     Texture2D pathDirt = LoadTexture("tiles/dirt/1.png");
     Texture2D enemyGunTex = LoadTexture("entities/enemy/pistol.png");
     closeDirectory();
-    // Animation player_idle = loadAnimation("entities/player/", 4);
-    int NO_OF_OFFGRID_TILES = 20;
-    offgrid offgridProperty[NO_OF_OFFGRID_TILES];
-    for (int i = 0; i < NO_OF_OFFGRID_TILES; i++){
-        offgrid o = malloc(sizeof(struct offgrid));
-        o->width = offgridTiles[i].width;
-        o->height = offgridTiles[i].height;
-        o->texture = offgridTiles[i];
-        printf("width : %d, height : %d\n", o->width, o->height);
-        offgridProperty[i] = o;
-    }
 
     Joystick joy = CreateJoystick((Vector2){100, 350}, 60);
     Joystick aim = CreateJoystick((Vector2){700, 350}, 60);
@@ -640,7 +607,7 @@ int main() {
     Vector2 swarmTarget = player->pos;
     Vector2 previousOffset = {0.0f, 0.0f};
 
-    mapData mData = mapCreate(offgridProperty, NO_OF_OFFGRID_TILES, offgridMap, biome_data, pathDirt);
+    mapData mData = mapCreate(offgridMap, biome_data, pathDirt);
     hash map = mData.map;
 
     Enemy enemy = enemyCreate(50, 60, 15, 15);
@@ -787,7 +754,7 @@ int main() {
 
         sprintf(enemyKey, "%d:%d", roomX, roomY);
 
-        MapEnsureCache(map, camera, tiles, stoneTiles, dirtTiles, offgridTiles);
+        MapEnsureCache(map, camera, tiles, stoneTiles, dirtTiles);
 
         if (transitioning) {
             transitionRadius -= transitionSpeed * delta;
@@ -796,7 +763,7 @@ int main() {
                 mapFree(map);
                 hashFree(offgridMap);
                 offgridMap = hashCreate(NULL, &offgridsFree, NULL);
-                mData = mapCreate(offgridProperty, NO_OF_OFFGRID_TILES, offgridMap, biome_data, pathDirt);
+                mData = mapCreate(offgridMap, biome_data, pathDirt);
                 map = mData.map;
 
                 player->pos = (Vector2){ 400, 225 };
