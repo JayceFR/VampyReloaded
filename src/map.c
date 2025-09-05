@@ -12,6 +12,7 @@
 #include "map.h"
 #include "enemy.h"
 #include "noise.h"
+#include "computer.h"
 
 void tilesFree(hashvalue val){
   rect r = (rect) val; 
@@ -219,18 +220,22 @@ void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies, hash comp
 
                     if (chunk[y][x] == DIRT && GetRandomValue(1, 100) == 2){
                         // Spawn a computer 
-                        entity e = entityCreate(
+                        Computer comp = malloc(sizeof(struct Computer));
+                        assert(comp != NULL);
+                        comp->e = entityCreate(
                             (cx * CHUNK_SIZE + x) * TILE_SIZE,
                             (cy * CHUNK_SIZE + y) * TILE_SIZE,
                             15,
                             15 
-                        );
+                        ); 
+                        comp->hacked = false;
+                        comp->amountLeftToHack = 100; 
                         sprintf(buffer, "%d:%d", cx, cy); 
                         if (hashFind(computers, buffer) == NULL){
                             hashSet(computers, buffer, create_dynarray(NULL, NULL));
                         }
                         if ((computer = hashFind(computers, buffer)) != NULL){
-                            add_dynarray(computer, e);
+                            add_dynarray(computer, comp);
                         }
                     }
 

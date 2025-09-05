@@ -16,6 +16,7 @@
 #include "impact.h"
 #include "utils.h"
 #include "gun.h"
+#include "computer.h"
 // #include <math.h>
 
 #define MAX_BOIDS 100
@@ -662,6 +663,8 @@ int main() {
     // Computer time 
     hash computers = mData.computers;
     dynarray computer; 
+    bool collidingComputer = false;
+    Computer currComputer; 
 
     while (!WindowShouldClose()) {
         float delta = GetFrameTime();
@@ -779,6 +782,19 @@ int main() {
             }
         }
 
+        collidingComputer = false;
+        currComputer = NULL;
+        if ((computer = hashFind(computers, enemyKey)) != NULL){
+            for (int i = 0; i < computer->len; i++){
+                Computer comp = computer->data[i];
+                if (CheckCollisionRecs(comp->e->rect, player->rect)){
+                    collidingComputer = true;
+                    currComputer = comp;
+                }
+            }
+        }
+           
+
         BeginTextureMode(target);
             ClearBackground((Color) {0, 0, 0, 0});
 
@@ -803,8 +819,8 @@ int main() {
 
                 if ((computer = hashFind(computers, enemyKey)) != NULL){
                     for (int i = 0; i < computer->len; i++){
-                        entity e = computer->data[i];
-                        DrawRectangleRec(e->rect, RED);
+                        Computer comp = computer->data[i];
+                        DrawRectangleRec(comp->e->rect, RED);
                     }
                 }
 
@@ -960,6 +976,38 @@ int main() {
             } else {
                 DrawText(TextFormat("Ammo: %d/%d", ammo, g.maxAmmo), 100, 30, 10, RED);
             }
+
+            // Draw Hack Button
+            if (collidingComputer) {
+                Vector2 hackButtonCenter = {
+                    aim.basePos.x,
+                    aim.basePos.y - aim.baseRadius - 50
+                };
+                float hackButtonRadius = 40;
+                Vector2 mouse = GetMousePosition();
+                float dist = Vector2Distance(mouse, hackButtonCenter);
+                bool hovering = dist <= hackButtonRadius;
+
+                DrawCircleV(hackButtonCenter, hackButtonRadius,
+                            hovering ? DARKGREEN : GREEN);
+
+                DrawCircleLines(hackButtonCenter.x, hackButtonCenter.y,
+                                hackButtonRadius, BLACK);
+
+                const char *label = "HACK";
+                int fontSize = 20;
+                int textWidth = MeasureText(label, fontSize);
+                DrawText(label,
+                        hackButtonCenter.x - textWidth / 2,
+                        hackButtonCenter.y - fontSize / 2,
+                        fontSize, WHITE);
+
+                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && hovering) {
+                    printf("Hack button clicked!\n");
+                    if (currComputer) currComputer->hacked = true;
+                }
+            }
+
 
             
             if (transitioning) {
