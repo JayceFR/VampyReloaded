@@ -552,6 +552,7 @@ int main() {
 
     Texture2D pathDirt = LoadTexture("tiles/dirt/1.png");
     Texture2D enemyGunTex = LoadTexture("entities/enemy/pistol.png");
+    Texture2D computerTex = LoadTexture("entities/computer/computer.png");
     closeDirectory();
 
     Joystick joy = CreateJoystick((Vector2){100, 350}, 60);
@@ -779,6 +780,8 @@ int main() {
                 // Reset map + player here
                 mapFree(map);
                 hashFree(offgridMap);
+                hashFree(mData.enemies);
+                hashFree(mData.computers);
                 offgridMap = hashCreate(NULL, &offgridsFree, NULL);
                 mData = mapCreate(offgridMap, biome_data, pathDirt);
                 map = mData.map;
@@ -831,7 +834,8 @@ int main() {
                 if ((computer = hashFind(computers, enemyKey)) != NULL){
                     for (int i = 0; i < computer->len; i++){
                         Computer comp = computer->data[i];
-                        DrawRectangleRec(comp->e->rect, RED);
+                        // DrawRectangleRec(comp->e->rect, RED);
+                        DrawTexture(computerTex, comp->e->rect.x - 10, comp->e->rect.y - 10, WHITE);
                     }
                 }
 
@@ -1041,6 +1045,7 @@ int main() {
                     WHITE
                 );
                 EndBlendMode();
+                
             }
 
             DrawJoystick(joy);

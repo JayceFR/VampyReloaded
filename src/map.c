@@ -178,6 +178,11 @@ static void connect_room_centers_world(TILES *world, int W, int H,
     carve_corridor_grid(world, W, H, x1, y1, x2, y2, corridorWidth);
 }
 
+static void computerFree(DA_ELEMENT el){
+    Computer c = (Computer) el; 
+    free(c->e);
+}
+
 void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies, hash computers) {
     Room worldRooms[WORLD_H][WORLD_W][MAX_ROOMS];
     int roomCount[WORLD_H][WORLD_W];
@@ -211,7 +216,7 @@ void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies, hash comp
                         );
                         sprintf(buffer, "%d:%d", cx, cy); 
                         if (hashFind(enemies, buffer) == NULL){
-                            hashSet(enemies, buffer, create_dynarray(NULL, NULL));
+                            hashSet(enemies, buffer, create_dynarray(&enemyFree, NULL));
                         }
                         if ((enemy = hashFind(enemies, buffer)) != NULL){
                             add_dynarray(enemy, e);
@@ -232,7 +237,7 @@ void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies, hash comp
                         comp->amountLeftToHack = 100; 
                         sprintf(buffer, "%d:%d", cx, cy); 
                         if (hashFind(computers, buffer) == NULL){
-                            hashSet(computers, buffer, create_dynarray(NULL, NULL));
+                            hashSet(computers, buffer, create_dynarray(&computerFree, NULL));
                         }
                         if ((computer = hashFind(computers, buffer)) != NULL){
                             add_dynarray(computer, comp);
@@ -429,6 +434,15 @@ void placeProperty(hash map, hash offgridTiles, Texture2D prop, int index, int x
 
 }
 
+static void enemyHashFree(hashvalue val){
+    dynarray enemy = (dynarray) val;
+    free_dynarray(enemy);
+}
+
+static void computerHashFree(hashvalue val){
+    dynarray computers = (dynarray) val;
+    free_dynarray(computers);
+}
 
 mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
   mapData data; 
@@ -437,8 +451,8 @@ mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
   TILES mappy[GAME_HEIGHT][GAME_WIDTH];
   srand(time(NULL));
   // generatePuzzleMap(mappy);
-  data.enemies = hashCreate(NULL, NULL, NULL);
-  data.computers = hashCreate(NULL, NULL, NULL);
+  data.enemies = hashCreate(NULL, &enemyHashFree, NULL);
+  data.computers = hashCreate(NULL, &computerHashFree, NULL);
   generateWorld(mappy, data.enemies, data.computers);
 
   for (int y = 0; y < GAME_HEIGHT; y++){

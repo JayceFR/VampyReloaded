@@ -38,6 +38,24 @@ static pathNode getLowestFCostNode(dynarray list, int *pos){
     return lowestCostNode;
 }
 
+void pathNodeFree(DA_ELEMENT el){
+    pathNode p = (pathNode) el;
+    free(p);
+}
+
+void enemyFree(DA_ELEMENT el) {
+    Enemy enemy = (Enemy) el;
+    if (!enemy) return;
+    if (enemy->path) {
+        free_dynarray(enemy->path); // Only free the container
+        enemy->path = NULL;
+    }
+    if (enemy->e) {
+        free(enemy->e);
+    }
+    free(enemy);
+}
+
 static dynarray calculatePath(pathNode endNode){
     dynarray path = create_dynarray(NULL, NULL);
     pathNode currentNode = endNode;
@@ -302,7 +320,7 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map, dynarray project
     } else {
         if (enemy->playerVisible)       
             enemy->state = ACTIVE;
-        else if (distToLastKnown > torchRadius * 1.5f) 
+        else if (distToLastKnown > torchRadius * 2.5f) 
             enemy->state = IDLE;
     }
 
