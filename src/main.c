@@ -829,7 +829,7 @@ int main() {
                 if ((npcs = hashFind(mData.npcs, enemyKey)) != NULL){
                     for (int i = 0; i < npcs->len; i++){
                         NPC n = npcs->data[i];
-                        npcUpdate(n);
+                        npcUpdate(n, map);
                         Texture2D npcFrame = CowAnimations[n->state]->frames[n->currentFrame];
                         DrawTexture(npcFrame, n->e->rect.x, n->e->rect.y, WHITE);
                     }

@@ -623,7 +623,7 @@ mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
                     if (canPlaceProperty(data.map, pathDirt, x, y)){
                         placeProperty(data.map, offgridTiles, pathDirt, 100, x, y);
                         // Add NPC
-                        if (GetRandomValue(1,100) < 5)
+                        if (GetRandomValue(1,100) < 20)
                             npcAdd(x, y, data);
                     }
                     
@@ -651,7 +651,7 @@ mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
                     if (canPlaceProperty(data.map, pathDirt, x, y)){
                         placeProperty(data.map, offgridTiles, pathDirt, 100, x, y);
                         // Add NPC
-                        if (GetRandomValue(1,100) < 5)
+                        if (GetRandomValue(1,100) < 20)
                             npcAdd(x, y, data);
                     }
                 }
