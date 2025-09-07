@@ -446,9 +446,12 @@ static void computerHashFree(hashvalue val){
 }
 
 static void npcAdd(int x, int y, mapData data){
-    NPC npc = malloc(sizeof(struct NPC));
-    npc->e = entityCreate(x * TILE_SIZE, y * TILE_SIZE, 15, 15);
-    npc->type = NPC_TYPE_COW;
+    NPC npc = npcCreate(
+        x * TILE_SIZE,
+        y * TILE_SIZE,
+        15,
+        15
+    );
     char buffer[22];
     sprintf(buffer, "%d:%d", x / CHUNK_SIZE, y / CHUNK_SIZE);
     dynarray npcArr;
@@ -620,7 +623,8 @@ mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
                     if (canPlaceProperty(data.map, pathDirt, x, y)){
                         placeProperty(data.map, offgridTiles, pathDirt, 100, x, y);
                         // Add NPC
-                        npcAdd(x, y, data);
+                        if (GetRandomValue(1,100) < 5)
+                            npcAdd(x, y, data);
                     }
                     
                 }
@@ -646,7 +650,9 @@ mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
                 if (hStripe < 0.2f || vStripe < 0.2f){
                     if (canPlaceProperty(data.map, pathDirt, x, y)){
                         placeProperty(data.map, offgridTiles, pathDirt, 100, x, y);
-                        npcAdd(x, y, data);
+                        // Add NPC
+                        if (GetRandomValue(1,100) < 5)
+                            npcAdd(x, y, data);
                     }
                 }
                 else{

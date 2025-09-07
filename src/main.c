@@ -501,6 +501,12 @@ int main() {
         loadAnimation("entities/enemy/idle/", 4),
         loadAnimation("entities/enemy/run/", 4),
     };
+
+    Animation CowAnimations[] = {
+        loadAnimation("entities/npcs/cow/idle/", 4),
+        loadAnimation("entities/npcs/cow/run/", 4),
+    };
+
     int NO_OF_BIOMES = 3; 
     int NO_OF_FOREST_TEXS = 2;
     int NO_OF_TOWN_TEXS = 9;
@@ -823,8 +829,9 @@ int main() {
                 if ((npcs = hashFind(mData.npcs, enemyKey)) != NULL){
                     for (int i = 0; i < npcs->len; i++){
                         NPC n = npcs->data[i];
-                        // DrawTexture(n->texture, n->e->rect.x, n->e->rect.y, WHITE);
-                        DrawRectangleRec(n->e->rect, WHITE);
+                        npcUpdate(n);
+                        Texture2D npcFrame = CowAnimations[n->state]->frames[n->currentFrame];
+                        DrawTexture(npcFrame, n->e->rect.x, n->e->rect.y, WHITE);
                     }
                 }
 
