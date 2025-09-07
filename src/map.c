@@ -13,6 +13,7 @@
 #include "enemy.h"
 #include "noise.h"
 #include "computer.h"
+#include "npc.h"
 
 void tilesFree(hashvalue val){
   rect r = (rect) val; 
@@ -444,6 +445,21 @@ static void computerHashFree(hashvalue val){
     free_dynarray(computers);
 }
 
+static void npcAdd(int x, int y, mapData data){
+    NPC npc = malloc(sizeof(struct NPC));
+    npc->e = entityCreate(x * TILE_SIZE, y * TILE_SIZE, 15, 15);
+    npc->type = NPC_TYPE_COW;
+    char buffer[22];
+    sprintf(buffer, "%d:%d", x / CHUNK_SIZE, y / CHUNK_SIZE);
+    dynarray npcArr;
+    if (hashFind(data.npcs, buffer) == NULL){
+        hashSet(data.npcs, buffer, create_dynarray(NULL, NULL));
+    }
+    if ((npcArr = hashFind(data.npcs, buffer)) != NULL){
+        add_dynarray(npcArr, npc);
+    }
+}
+
 mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
   mapData data; 
   data.map = hashCreate(&tilesPrint, &tilesFree, NULL);
@@ -453,6 +469,7 @@ mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
   // generatePuzzleMap(mappy);
   data.enemies = hashCreate(NULL, &enemyHashFree, NULL);
   data.computers = hashCreate(NULL, &computerHashFree, NULL);
+  data.npcs = hashCreate(NULL, NULL, NULL);
   generateWorld(mappy, data.enemies, data.computers);
 
   for (int y = 0; y < GAME_HEIGHT; y++){
@@ -601,8 +618,11 @@ mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
 
                 if (hStripe < 0.2f || vStripe < 0.2f){
                     if (canPlaceProperty(data.map, pathDirt, x, y)){
-                        placeProperty(data.map, offgridTiles, pathDirt, index, x, y);
+                        placeProperty(data.map, offgridTiles, pathDirt, 100, x, y);
+                        // Add NPC
+                        npcAdd(x, y, data);
                     }
+                    
                 }
                 else{
                     index = GetRandomValue(0, biome_data->size_of_texs[TOWN] - 1);
@@ -625,7 +645,8 @@ mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
 
                 if (hStripe < 0.2f || vStripe < 0.2f){
                     if (canPlaceProperty(data.map, pathDirt, x, y)){
-                        placeProperty(data.map, offgridTiles, pathDirt, index, x, y);
+                        placeProperty(data.map, offgridTiles, pathDirt, 100, x, y);
+                        npcAdd(x, y, data);
                     }
                 }
                 else{
@@ -664,7 +685,7 @@ dynarray rectsAround(hash map, Vector2 player_pos){
       sprintf(buffer, "%d:%d", x, y);
       rect rec; 
       if ((rec = hashFind(map, buffer)) != NULL){
-        if (rec->tile == STONE){
+        if (rec->tile == STONE && rec->offGridType != 100){
           rect r = malloc(sizeof(struct rect));
           r->tile = rec->tile; 
           r->rectange = (Rectangle) {x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE};

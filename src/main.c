@@ -17,6 +17,7 @@
 #include "utils.h"
 #include "gun.h"
 #include "computer.h"
+#include "npc.h"
 // #include <math.h>
 
 #define MAX_BOIDS 100
@@ -668,6 +669,9 @@ int main() {
     Computer currComputer; 
     bool isHacking = false;
 
+    // NPCs
+    dynarray npcs; 
+
     while (!WindowShouldClose()) {
         double t_frame_start = GetTime();
 
@@ -812,6 +816,15 @@ int main() {
                     for (int i = 0; i < computer->len; i++){
                         Computer comp = computer->data[i];
                         DrawTexture(computerTex, comp->e->rect.x - 10, comp->e->rect.y - 10, WHITE);
+                    }
+                }
+
+                // Draw NPCS
+                if ((npcs = hashFind(mData.npcs, enemyKey)) != NULL){
+                    for (int i = 0; i < npcs->len; i++){
+                        NPC n = npcs->data[i];
+                        // DrawTexture(n->texture, n->e->rect.x, n->e->rect.y, WHITE);
+                        DrawRectangleRec(n->e->rect, WHITE);
                     }
                 }
 
