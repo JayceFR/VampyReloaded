@@ -831,7 +831,11 @@ int main() {
                         NPC n = npcs->data[i];
                         npcUpdate(n, map);
                         Texture2D npcFrame = CowAnimations[n->state]->frames[n->currentFrame];
-                        DrawTexture(npcFrame, n->e->rect.x, n->e->rect.y, WHITE);
+                        // Flip based on facingRight using DrawTexturePro
+                        Rectangle nsrc = (Rectangle){ 0, 0, (float)npcFrame.width * n->facingRight, (float)npcFrame.height };
+                        Rectangle ndst = (Rectangle){ n->e->rect.x, n->e->rect.y, (float)npcFrame.width, (float)npcFrame.height };
+                        Vector2 norigin = (Vector2){ 0, 0 };
+                        DrawTexturePro(npcFrame, nsrc, ndst, norigin, 0.0f, WHITE);
                     }
                 }
 

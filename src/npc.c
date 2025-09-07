@@ -19,7 +19,12 @@ NPC npcCreate(int x, int y, int width, int height){
     npc->vel = (Vector2){0.0f, 0.0f};
     npc->stateTimer = (GetRandomValue(50,300) / 100.0f); // 0.5 - 3.0s idle initially
     npc->moveTimer = 0.0f;
-    npc->speed = (GetRandomValue(20,80) / 60.0f); // ~0.33 - 1.33 per-frame
+    //npc->speed = (GetRandomValue(20,80) / 60.0f); // ~0.33 - 1.33 per-frame
+    // slower speeds: ~0.11 - 0.44 per-frame
+    npc->speed = (GetRandomValue(10,40) / 90.0f); // ~0.11 - 0.44 per-frame
+
+    // initialize facing
+    npc->facingRight = 1;
 
     return npc; 
 }
@@ -30,7 +35,7 @@ void npcUpdate(NPC npc, hash map){
 
     // Animation update (same for idle/wander)
     npc->animTimer += dt;
-    if (npc->animTimer > 0.18f) {
+    if (npc->animTimer > 0.1f) {
         npc->animTimer = 0.0f;
         npc->currentFrame = (npc->currentFrame + 1) % 4;
     }
@@ -51,6 +56,9 @@ void npcUpdate(NPC npc, hash map){
                 npc->vel.x = npc->speed;
                 npc->vel.y = 0;
             }
+            // update facing from new velocity
+            if (npc->vel.x > 0.1f) npc->facingRight = 1;
+            else if (npc->vel.x < -0.1f) npc->facingRight = -1;
         }
     } else {
         // wander: move and count down; if collision, pick new direction
@@ -62,12 +70,18 @@ void npcUpdate(NPC npc, hash map){
             npc->vel.x = cosf(ang) * npc->speed;
             npc->vel.y = sinf(ang) * npc->speed;
             npc->moveTimer = fmaxf(0.1f, npc->moveTimer - 0.05f);
+            if (npc->vel.x > 0.1f) npc->facingRight = 1;
+            else if (npc->vel.x < -0.1f) npc->facingRight = -1;
         }
         // if wander time finished, snap to idle
         if (npc->moveTimer <= 0.0f) {
             npc->state = 0;
             npc->stateTimer = (GetRandomValue(50,300) / 100.0f); // 0.5 - 3.0s
             npc->vel = (Vector2){0.0f, 0.0f};
+        } else {
+            // update facing while moving
+            if (npc->vel.x > 0.1f) npc->facingRight = 1;
+            else if (npc->vel.x < -0.1f) npc->facingRight = -1;
         }
     }
 }

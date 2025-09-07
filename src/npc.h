@@ -21,6 +21,9 @@ struct NPC{
     float stateTimer;   // time left in current idle/wait state (seconds)
     float moveTimer;    // time left while wandering (seconds)
     float speed;        // movement speed (per-frame units)
+
+    // Facing for sprite flip: 1 = right, -1 = left
+    int facingRight;
 };
 typedef struct NPC *NPC;
 
