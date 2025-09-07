@@ -669,40 +669,43 @@ int main() {
     bool isHacking = false;
 
     while (!WindowShouldClose()) {
-        float delta = GetFrameTime();
-        // printf("%f\n", delta);
+        double t_frame_start = GetTime();
 
         int roomX = player->pos.x / ROOM_SIZE;
         int roomY = player->pos.y / ROOM_SIZE;
 
+        float delta = GetFrameTime();
+
+        double t_anim_start = GetTime();
         // Animation frame timer
         timer += delta;
         if (timer > frameTime) {
             timer = 0;
             currentFrame = (currentFrame + 1) % 4;
         }
+        double t_anim_end = GetTime();
 
+        double t_input_start = GetTime();
         if (isHacking && currComputer){
-            currComputer->amountLeftToHack -= GetFrameTime() * 5; // speed factor
+            currComputer->amountLeftToHack -= GetFrameTime() * 5;
             if (currComputer->amountLeftToHack <= 0) {
                 currComputer->hacked = true;
-                isHacking = false;  // stop hacking once done
+                isHacking = false;
                 printf("Computer hacked!\n");
             }
         }
         else{
             UpdateJoysticks(&joy, &aim);
         }
+        double t_input_end = GetTime();
 
+        double t_logic_start = GetTime();
+        // --- Game logic ---
+        // (all your logic code here, e.g. update, Impact_UpdateShake, etc.)
         float aimAngle = atan2f(aim.value.y, aim.value.x) * RAD2DEG;
         if (fabsf(aim.value.x) < 0.1f && fabsf(aim.value.y) < 0.1f) {
             aimAngle = facingRight ? 0.0f : 180.0f;
         }
-
-        // if (Vector2Length(aim.value) > 0.1f) {
-        //     aimAngle = atan2f(aim.value.y, aim.value.x) * RAD2DEG;
-        // }
-
         if (reloading) {
             reloadTimer -= delta;
             if (reloadTimer <= 0.0f){
@@ -710,74 +713,53 @@ int main() {
                 reloading = false;
             }
         }
-
-
         shootCooldown = fmaxf(0.0f, shootCooldown - delta);
-
         offset = (Vector2){ joy.value.x * 5, joy.value.y * 5 };
-
         if (aim.state == JOY_SHOOTING && shootCooldown <= 0.0f && !reloading && ammo > 0) {
             projectileShoot(projectiles, player->pos, aim.value, 10.0f);
             shootCooldown = g.cooldown;
             ammo--; 
-
             offset.x -= (aim.value.x * 5); 
             offset.y -= (aim.value.y * 5);  
             Impact_StartShake(0.4f, 8.0f);
-
             if (ammo <= 0){
                 reloading = true;
                 reloadTimer = g.reloadTime;
             }
         }
-
         if (Vector2Length(offset) > 0.1f) {
             pState = P_RUN;
         } else {
             pState = P_IDLE;
         }
-
-        // Decide facing based on aim if active, else based on move joystick
         if (Vector2Length(aim.value) > 0.1f) {
-            // Aim joystick decides direction
             if (aim.value.x > 0.1f) facingRight = 1;
             else if (aim.value.x < -0.1f) facingRight = -1;
         } else {
-            // Fall back to movement joystick
             if (offset.x > 0.1f) facingRight = 1;
             else if (offset.x < -0.1f) facingRight = -1;
         }
-
-        // Update shader stuff
-        // float t = GetTime();
         float t = GetTime() - startTime;
         SetShaderValue(shader, timeLoc, &t, SHADER_UNIFORM_FLOAT);
         SetShaderValue(shader, itimeLoc, &t, SHADER_UNIFORM_FLOAT);
-
-        float darkness = 0.0f; // adjust dynamically if you want
+        float darkness = 0.0f;
         SetShaderValue(shader, darknessLoc, &darkness, SHADER_UNIFORM_FLOAT);
-
-        int jekyllVal = 1; // toggle with key if you like
+        int jekyllVal = 1;
         SetShaderValue(shader, jekyllLoc, &jekyllVal, SHADER_UNIFORM_INT);
-
         Vector2 camScroll = camera.target;
         SetShaderValue(shader, camScrollLoc, &camScroll, SHADER_UNIFORM_VEC2);
 
-
         update(player, map, offset);
         UpdateCameraRoom(&camera, player);
-
         Impact_UpdateShake(&camera, delta);
         Impact_UpdateParticles(delta);
 
         sprintf(enemyKey, "%d:%d", roomX, roomY);
-
         MapEnsureCache(map, camera, tiles, stoneTiles, dirtTiles);
 
         if (transitioning) {
             transitionRadius -= transitionSpeed * delta;
             if (transitionRadius <= 0.0f) {
-                // Reset map + player here
                 mapFree(map);
                 hashFree(offgridMap);
                 hashFree(mData.enemies);
@@ -786,16 +768,13 @@ int main() {
                 mData = mapCreate(offgridMap, biome_data, pathDirt);
                 map = mData.map;
                 computers = mData.computers;
-
                 player->pos = (Vector2){ 400, 225 };
                 player->rect.x = player->pos.x;
                 player->rect.y = player->pos.y;
-
                 playerAlive = true;
                 transitioning = false;
             }
         }
-
         collidingComputer = false;
         currComputer = NULL;
         if ((computer = hashFind(computers, enemyKey)) != NULL){
@@ -807,21 +786,20 @@ int main() {
                 }
             }
         }
-           
+        double t_logic_end = GetTime();
 
+        double t_draw_start = GetTime();
+        // --- Drawing ---
         BeginTextureMode(target);
             ClearBackground((Color) {0, 0, 0, 0});
-
             BeginMode2D(camera);
                 MapDrawCached(camera);
-
                 if ((offgrids = hashFind(offgridMap, enemyKey)) != NULL){
                     for (int i = 0; i < offgrids->len; i++){
                         offgridTile o = (offgridTile) offgrids->data[i];
                         DrawTexture(o->texture, o->x , o->y , WHITE);
                     }
                 }
-                
                 if ((enemies = hashFind(mData.enemies, enemyKey)) != NULL) {
                     for (int i = 0; i < enemies->len; i++) {
                         Enemy e = enemies->data[i];
@@ -830,11 +808,9 @@ int main() {
                         enemyDraw(e, player, map, EnemyAnimations, enemyGunTex);
                     }
                 }
-
                 if ((computer = hashFind(computers, enemyKey)) != NULL){
                     for (int i = 0; i < computer->len; i++){
                         Computer comp = computer->data[i];
-                        // DrawRectangleRec(comp->e->rect, RED);
                         DrawTexture(computerTex, comp->e->rect.x - 10, comp->e->rect.y - 10, WHITE);
                     }
                 }
@@ -972,18 +948,16 @@ int main() {
 
             DrawText(TextFormat("fps: %d", GetFPS()), 10, 10, 10, RED);
         EndTextureMode();
+        double t_draw_end = GetTime();
 
-        // Bind main render target to texture0 in shader
+        double t_present_start = GetTime();
+        // --- Present ---
         SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), target.texture);
-
-        // === 🎯 Draw scaled texture to screen ===
         BeginDrawing();
             ClearBackground(BLACK);
-
-            // BeginShaderMode(shader);
-                src = (Rectangle) { 0, 0, (float)target.texture.width, -(float)target.texture.height };
-                dst = (Rectangle) { 0, 0, (float)SCREEN_WIDTH * 2, (float)SCREEN_HEIGHT * 2 };
-                DrawTexturePro(target.texture, src, dst, (Vector2){0, 0}, 0.0f, WHITE);
+            src = (Rectangle) { 0, 0, (float)target.texture.width, -(float)target.texture.height };
+            dst = (Rectangle) { 0, 0, (float)SCREEN_WIDTH * 2, (float)SCREEN_HEIGHT * 2 };
+            DrawTexturePro(target.texture, src, dst, (Vector2){0, 0}, 0.0f, WHITE);
             // EndShaderMode();i
 
             if (reloading) {
@@ -1054,6 +1028,20 @@ int main() {
 
 
         EndDrawing();
+        double t_present_end = GetTime();
+
+        double t_frame_end = GetTime();
+
+        // --- Print timings ---
+        TraceLog(LOG_INFO,
+            "Frame: total=%.3fms anim=%.3fms input=%.3fms logic=%.3fms draw=%.3fms present=%.3fms\n",
+            (t_frame_end - t_frame_start) * 1000.0,
+            (t_anim_end - t_anim_start) * 1000.0,
+            (t_input_end - t_input_start) * 1000.0,
+            (t_logic_end - t_logic_start) * 1000.0,
+            (t_draw_end - t_draw_start) * 1000.0,
+            (t_present_end - t_present_start) * 1000.0
+        );
     }
 
     UnloadRenderTexture(target);

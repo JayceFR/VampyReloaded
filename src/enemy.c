@@ -124,7 +124,86 @@ static void resetNode(pathNode node) {
 }
 
 
-static dynarray pathFinding(Vector2 playerPos, Vector2 enemyPos, hash map){
+// static dynarray pathFinding(Vector2 playerPos, Vector2 enemyPos, hash map){
+//     int pcx = ((int) playerPos.x) / TILE_SIZE;
+//     int pcy = ((int) playerPos.y) / TILE_SIZE;
+//     int ecx = ((int) enemyPos.x) / TILE_SIZE;
+//     int ecy = ((int) enemyPos.y) / TILE_SIZE;
+
+//     if (pcx == ecx && pcy == ecy) {
+//         // Already at goal tile: create a 1-node path
+//         dynarray p = create_dynarray(NULL, NULL);
+//         rect r = mapGetRecAt(map, ecx, ecy);
+//         if (r) add_dynarray(p, r->node);
+//         return p;
+//     }
+
+//     pathNode startNode = mapGetRecAt(map, ecx, ecy)->node;
+//     pathNode endNode   = mapGetRecAt(map, pcx, pcy)->node;
+
+//     dynarray openList = create_dynarray(NULL, NULL);
+//     dynarray closedList = create_dynarray(NULL, NULL);
+
+//     add_dynarray(openList, startNode);
+
+//     startNode->gCost = 0;
+//     startNode->hCost = calculateDistanceCost(startNode, endNode);
+//     startNode->fCost = startNode->gCost + startNode->hCost;
+
+//     while (openList->len > 0){
+//         int pos = 0; 
+//         pathNode currentNode = getLowestFCostNode(openList, &pos);
+//         if (currentNode == endNode){
+//             dynarray path = calculatePath(endNode);
+//             for (int i = 0; i < openList->len; i++)
+//                 resetNode(openList->data[i]);
+//             for (int i = 0; i < closedList->len; i++)
+//                 resetNode(closedList->data[i]);
+//             free_dynarray(openList);
+//             free_dynarray(closedList);
+//             return path;
+//         }
+//         remove_dynarray(openList, pos);
+//         add_dynarray(closedList, currentNode);
+
+//         dynarray neighbourList = getNeighbourList(currentNode, map);
+//         for (int i = 0; i < neighbourList->len; i++){
+//             pathNode neighbour = neighbourList->data[i];
+//             if (isIn(closedList, neighbour)){
+//                 continue;
+//             }
+//             if (!neighbour->isWalkable){
+//                 add_dynarray(closedList, neighbour);
+//                 continue;
+//             }
+//             int tentaiveGCost = currentNode->gCost + calculateDistanceCost(currentNode, neighbour);
+//             if (tentaiveGCost < neighbour->gCost){
+//                 neighbour->prev = currentNode;
+//                 neighbour->gCost = tentaiveGCost;
+//                 neighbour->hCost = calculateDistanceCost(neighbour, endNode);
+//                 neighbour->fCost = neighbour->gCost + neighbour->hCost;
+
+//                 if (!isIn(openList, neighbour)){
+//                     add_dynarray(openList, neighbour);
+//                 }
+
+//             }
+//         }
+//     }
+
+//     for (int i = 0; i < openList->len; i++)
+//         resetNode(openList->data[i]);
+//     for (int i = 0; i < closedList->len; i++)
+//         resetNode(closedList->data[i]);
+
+//     free_dynarray(openList);
+//     free_dynarray(closedList);
+
+//     return NULL;
+
+// }
+
+static dynarray pathFinding(Vector2 playerPos, Vector2 enemyPos, hash map) {
     int pcx = ((int) playerPos.x) / TILE_SIZE;
     int pcy = ((int) playerPos.y) / TILE_SIZE;
     int ecx = ((int) enemyPos.x) / TILE_SIZE;
@@ -138,8 +217,15 @@ static dynarray pathFinding(Vector2 playerPos, Vector2 enemyPos, hash map){
         return p;
     }
 
-    pathNode startNode = mapGetRecAt(map, ecx, ecy)->node;
-    pathNode endNode   = mapGetRecAt(map, pcx, pcy)->node;
+    rect startRect = mapGetRecAt(map, ecx, ecy);
+    rect goalRect  = mapGetRecAt(map, pcx, pcy);
+    if (!startRect || !goalRect) return NULL;
+
+    pathNode startNode = startRect->node;
+    pathNode endNode   = goalRect->node;
+
+    // quick reject if either is blocked
+    if (!startNode->isWalkable || !endNode->isWalkable) return NULL;
 
     dynarray openList = create_dynarray(NULL, NULL);
     dynarray closedList = create_dynarray(NULL, NULL);
@@ -150,10 +236,19 @@ static dynarray pathFinding(Vector2 playerPos, Vector2 enemyPos, hash map){
     startNode->hCost = calculateDistanceCost(startNode, endNode);
     startNode->fCost = startNode->gCost + startNode->hCost;
 
-    while (openList->len > 0){
-        int pos = 0; 
+    // expansion limit (prevents stalls)
+    int expanded = 0;
+    const int EXPANSION_LIMIT = 4000;
+
+    while (openList->len > 0) {
+        if (++expanded > EXPANSION_LIMIT) {
+            TraceLog(LOG_WARNING, "Pathfinding aborted after %d expansions", expanded);
+            break; // bail out
+        }
+
+        int pos = 0;
         pathNode currentNode = getLowestFCostNode(openList, &pos);
-        if (currentNode == endNode){
+        if (currentNode == endNode) {
             dynarray path = calculatePath(endNode);
             for (int i = 0; i < openList->len; i++)
                 resetNode(openList->data[i]);
@@ -167,26 +262,25 @@ static dynarray pathFinding(Vector2 playerPos, Vector2 enemyPos, hash map){
         add_dynarray(closedList, currentNode);
 
         dynarray neighbourList = getNeighbourList(currentNode, map);
-        for (int i = 0; i < neighbourList->len; i++){
+        for (int i = 0; i < neighbourList->len; i++) {
             pathNode neighbour = neighbourList->data[i];
-            if (isIn(closedList, neighbour)){
+            if (isIn(closedList, neighbour)) {
                 continue;
             }
-            if (!neighbour->isWalkable){
+            if (!neighbour->isWalkable) {
                 add_dynarray(closedList, neighbour);
                 continue;
             }
-            int tentaiveGCost = currentNode->gCost + calculateDistanceCost(currentNode, neighbour);
-            if (tentaiveGCost < neighbour->gCost){
+            int tentativeGCost = currentNode->gCost + calculateDistanceCost(currentNode, neighbour);
+            if (tentativeGCost < neighbour->gCost) {
                 neighbour->prev = currentNode;
-                neighbour->gCost = tentaiveGCost;
+                neighbour->gCost = tentativeGCost;
                 neighbour->hCost = calculateDistanceCost(neighbour, endNode);
                 neighbour->fCost = neighbour->gCost + neighbour->hCost;
 
-                if (!isIn(openList, neighbour)){
+                if (!isIn(openList, neighbour)) {
                     add_dynarray(openList, neighbour);
                 }
-
             }
         }
     }
@@ -200,8 +294,8 @@ static dynarray pathFinding(Vector2 playerPos, Vector2 enemyPos, hash map){
     free_dynarray(closedList);
 
     return NULL;
-
 }
+
 
 void updateAngle(Enemy e, Vector2 vel){
     e->angle = atan2f(vel.y , vel.x);
@@ -335,9 +429,16 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map, dynarray project
 
         enemy->repathCooldown -= dt;
 
+        // TraceLog(LOG_INFO, "Enemy ACTIVE: distToLastKnown=%.1f, playerVisible=%d, needRecompute=%d, repathCooldown=%.2f",
+                //  distToLastKnown, enemy->playerVisible, needRecompute, enemy->repathCooldown);
+
+        
         if (needRecompute && enemy->repathCooldown <= 0.0f) {
             if (enemy->path) { free_dynarray(enemy->path); enemy->path = NULL; }
+            double startTime = GetTime();
             enemy->path = pathFinding(player->pos, enemy->e->pos, map);
+            double endTime = GetTime();
+            TraceLog(LOG_INFO, "Pathfinding took %.3f ms, path len=%d", (endTime - startTime)*1000.0, enemy->path ? enemy->path->len : 0);
             enemy->lastGoalTileX = goalX;
             enemy->lastGoalTileY = goalY;
             enemy->currentStep = 1;
