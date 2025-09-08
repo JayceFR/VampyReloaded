@@ -19,13 +19,15 @@ NPC npcCreate(int x, int y, int width, int height){
     npc->vel = (Vector2){0.0f, 0.0f};
     npc->stateTimer = (GetRandomValue(50,300) / 100.0f); // 0.5 - 3.0s idle initially
     npc->moveTimer = 0.0f;
-    //npc->speed = (GetRandomValue(20,80) / 60.0f); // ~0.33 - 1.33 per-frame
-    // slower speeds: ~0.11 - 0.44 per-frame
-    npc->speed = (GetRandomValue(10,40) / 90.0f); // ~0.11 - 0.44 per-frame
+    npc->speed = (GetRandomValue(10,40) / 90.0f); // slower speeds
 
     // initialize facing
     npc->facingRight = 1;
 
+    // turning smoothing
+    npc->facingTimer = 0.0f;
+    npc->facingDelay = 0.12f; // hold new direction for 120ms before flipping
+    npc->lastVelX = 0.0f;
     return npc; 
 }
 
@@ -35,7 +37,8 @@ void npcUpdate(NPC npc, hash map){
 
     // Animation update (same for idle/wander)
     npc->animTimer += dt;
-    if (npc->animTimer > 0.1f) {
+    float maxAnimTime = (npc->state == 0) ? 0.3f : 0.1f;
+    if (npc->animTimer > maxAnimTime) {
         npc->animTimer = 0.0f;
         npc->currentFrame = (npc->currentFrame + 1) % 4;
     }
@@ -56,9 +59,9 @@ void npcUpdate(NPC npc, hash map){
                 npc->vel.x = npc->speed;
                 npc->vel.y = 0;
             }
-            // update facing from new velocity
-            if (npc->vel.x > 0.1f) npc->facingRight = 1;
-            else if (npc->vel.x < -0.1f) npc->facingRight = -1;
+            // if strong horizontal intent on start, immediately set facing target but still respect delay
+            npc->lastVelX = npc->vel.x;
+            npc->facingTimer = 0.0f;
         }
     } else {
         // wander: move and count down; if collision, pick new direction
@@ -70,8 +73,8 @@ void npcUpdate(NPC npc, hash map){
             npc->vel.x = cosf(ang) * npc->speed;
             npc->vel.y = sinf(ang) * npc->speed;
             npc->moveTimer = fmaxf(0.1f, npc->moveTimer - 0.05f);
-            if (npc->vel.x > 0.1f) npc->facingRight = 1;
-            else if (npc->vel.x < -0.1f) npc->facingRight = -1;
+            npc->lastVelX = npc->vel.x;
+            npc->facingTimer = 0.0f;
         }
         // if wander time finished, snap to idle
         if (npc->moveTimer <= 0.0f) {
@@ -79,9 +82,31 @@ void npcUpdate(NPC npc, hash map){
             npc->stateTimer = (GetRandomValue(50,300) / 100.0f); // 0.5 - 3.0s
             npc->vel = (Vector2){0.0f, 0.0f};
         } else {
-            // update facing while moving
-            if (npc->vel.x > 0.1f) npc->facingRight = 1;
-            else if (npc->vel.x < -0.1f) npc->facingRight = -1;
+            // update facing while moving (with smoothing below)
+            // nothing here; handled after state machine
         }
+    }
+
+    // --- Smooth facing logic (hysteresis + delay) ---
+    {
+        const float FLIP_THRESHOLD = fmaxf(0.04f, npc->speed * 0.15f); // avoid flips on tiny jitter
+        float horiz = npc->vel.x;
+        float absH = fabsf(horiz);
+        if (absH > FLIP_THRESHOLD) {
+            int want = (horiz > 0.0f) ? 1 : -1;
+            if (want != npc->facingRight) {
+                npc->facingTimer += dt;
+                if (npc->facingTimer >= npc->facingDelay) {
+                    npc->facingRight = want;
+                    npc->facingTimer = 0.0f;
+                }
+            } else {
+                npc->facingTimer = 0.0f;
+            }
+        } else {
+            // when horizontal input small, decay timer but don't flip
+            npc->facingTimer = fmaxf(0.0f, npc->facingTimer - dt);
+        }
+        npc->lastVelX = npc->vel.x;
     }
 }

@@ -24,6 +24,11 @@ struct NPC{
 
     // Facing for sprite flip: 1 = right, -1 = left
     int facingRight;
+
+    // Smooth turning helpers
+    float facingTimer;   // accumulated time wanting to flip
+    float facingDelay;   // required time before flip (seconds)
+    float lastVelX;      // previous frame horizontal velocity
 };
 typedef struct NPC *NPC;
 

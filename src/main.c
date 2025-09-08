@@ -1057,15 +1057,15 @@ int main() {
         double t_frame_end = GetTime();
 
         // --- Print timings ---
-        TraceLog(LOG_INFO,
-            "Frame: total=%.3fms anim=%.3fms input=%.3fms logic=%.3fms draw=%.3fms present=%.3fms\n",
-            (t_frame_end - t_frame_start) * 1000.0,
-            (t_anim_end - t_anim_start) * 1000.0,
-            (t_input_end - t_input_start) * 1000.0,
-            (t_logic_end - t_logic_start) * 1000.0,
-            (t_draw_end - t_draw_start) * 1000.0,
-            (t_present_end - t_present_start) * 1000.0
-        );
+        // TraceLog(LOG_INFO,
+        //     "Frame: total=%.3fms anim=%.3fms input=%.3fms logic=%.3fms draw=%.3fms present=%.3fms\n",
+        //     (t_frame_end - t_frame_start) * 1000.0,
+        //     (t_anim_end - t_anim_start) * 1000.0,
+        //     (t_input_end - t_input_start) * 1000.0,
+        //     (t_logic_end - t_logic_start) * 1000.0,
+        //     (t_draw_end - t_draw_start) * 1000.0,
+        //     (t_present_end - t_present_start) * 1000.0
+        // );
     }
 
     UnloadRenderTexture(target);
