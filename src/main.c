@@ -507,6 +507,11 @@ int main() {
         loadAnimation("entities/npcs/cow/run/", 4),
     };
 
+    Animation CitizenAnimations[] = {
+        loadAnimation("entities/npcs/citizen/idle/", 4),
+        loadAnimation("entities/npcs/citizen/run/", 4),
+    };
+
     int NO_OF_BIOMES = 3; 
     int NO_OF_FOREST_TEXS = 2;
     int NO_OF_TOWN_TEXS = 9;
@@ -830,7 +835,7 @@ int main() {
                     for (int i = 0; i < npcs->len; i++){
                         NPC n = npcs->data[i];
                         npcUpdate(n, map);
-                        Texture2D npcFrame = CowAnimations[n->state]->frames[n->currentFrame];
+                        Texture2D npcFrame = CitizenAnimations[n->state]->frames[n->currentFrame];
                         // Flip based on facingRight using DrawTexturePro
                         Rectangle nsrc = (Rectangle){ 0, 0, (float)npcFrame.width * n->facingRight, (float)npcFrame.height };
                         Rectangle ndst = (Rectangle){ n->e->rect.x, n->e->rect.y, (float)npcFrame.width, (float)npcFrame.height };
