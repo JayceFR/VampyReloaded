@@ -677,6 +677,8 @@ int main() {
     guns[0].texture = gunTexs[0];
     guns[0].damage = 100.0f;
     guns[0].speed = 16.0f;
+    guns[0].numberOfProjectiles = 1;
+
     // submachine gun 
     guns[1].cooldown = 0.3f;
     guns[1].maxAmmo = 30;
@@ -684,6 +686,7 @@ int main() {
     guns[1].texture = gunTexs[1];
     guns[1].damage = 20.0f;
     guns[1].speed = 12.0f;
+    guns[1].numberOfProjectiles = 1;
     // Double uzi 
     guns[2].cooldown = 0.2f;
     guns[2].maxAmmo = 20;
@@ -691,6 +694,7 @@ int main() {
     guns[2].texture = gunTexs[2];
     guns[2].damage = 15.0f;
     guns[2].speed = 13.0f;
+    guns[2].numberOfProjectiles = 2;
     // pistol 
     guns[3].cooldown = 40.0f / 60.0f;
     guns[3].maxAmmo = 10;
@@ -698,8 +702,10 @@ int main() {
     guns[3].texture = gunTexs[3];
     guns[3].damage = 25.0f;
     guns[3].speed = 10.0f;
+    guns[3].numberOfProjectiles = 1;
 
-    Gun g = guns[GetRandomValue(0, 3)]; // start with random gun
+    // Gun g = guns[GetRandomValue(0, 3)]; // start with random gun
+    Gun g = guns[2];
     int ammo = g.maxAmmo;
     float reloadTimer = 0.0f; 
     bool reloading = false;
@@ -762,7 +768,40 @@ int main() {
         shootCooldown = fmaxf(0.0f, shootCooldown - delta);
         offset = (Vector2){ joy.value.x * 5, joy.value.y * 5 };
         if (aim.state == JOY_SHOOTING && shootCooldown <= 0.0f && !reloading && ammo > 0) {
-            projectileShoot(projectiles, player->pos, aim.value, g.speed);
+            if (g.numberOfProjectiles == 2) {
+                // Ensure we have a valid direction
+                Vector2 dir = Vector2Normalize(aim.value);
+                if (Vector2Length(dir) < 0.001f) {
+                    // fallback (use facing direction if no aim)
+                    dir = (Vector2){ (facingRight == 1) ? 1.0f : -1.0f, 0.0f };
+                }
+
+                // Perp vector (left/right relative to aim)
+                Vector2 perp = (Vector2){ -dir.y, dir.x };
+
+                // Tweak these to taste:
+                float barrelHalfSeparation = 6.0f;   // half distance between barrels (pixels). increase to see them farther apart.
+                float forwardOffset = player->rect.height * 0.6f + 4.0f; // push spawn in front of player so it doesn't immediately hit player
+
+                // Build final spawn positions
+                Vector2 muzzleCenter = Vector2Add(player->pos, Vector2Scale(dir, forwardOffset));
+                Vector2 spawn1 = Vector2Add(muzzleCenter, Vector2Scale(perp,  barrelHalfSeparation));
+                Vector2 spawn2 = Vector2Add(muzzleCenter, Vector2Scale(perp, -barrelHalfSeparation));
+
+                // Shoot both bullets (same direction)
+                projectileShoot(projectiles, spawn1, dir, g.speed);
+                projectileShoot(projectiles, spawn2, dir, g.speed);
+
+                // --- Optional debug: draw tiny markers for the two spawns ---
+                // Draw these temporarily (put them in the draw/update area after shooting)
+                // DrawCircleV(spawn1, 2, RED);
+                // DrawCircleV(spawn2, 2, BLUE);
+
+            } else {
+                projectileShoot(projectiles, player->pos, aim.value, g.speed);
+            }
+
+
             shootCooldown = g.cooldown;
             ammo--; 
             offset.x -= (aim.value.x * 5); 
@@ -942,7 +981,6 @@ int main() {
 
                                 if (e->health <= 0){
                                     remove_dynarray(enemies, epos);
-                                    continue; 
                                 }
 
                                 break;

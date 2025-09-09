@@ -12,6 +12,7 @@ typedef struct{
     Texture2D texture;
 
     // projectile
+    int numberOfProjectiles;
     float damage; 
     float speed; 
 } Gun;
