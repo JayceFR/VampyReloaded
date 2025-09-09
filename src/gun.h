@@ -10,6 +10,10 @@ typedef struct{
     int maxAmmo; 
     float reloadTime; 
     Texture2D texture;
+
+    // projectile
+    float damage; 
+    float speed; 
 } Gun;
 
 

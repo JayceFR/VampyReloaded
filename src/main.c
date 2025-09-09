@@ -675,21 +675,29 @@ int main() {
     guns[0].maxAmmo = 3;
     guns[0].reloadTime = 3.0f;
     guns[0].texture = gunTexs[0];
+    guns[0].damage = 100.0f;
+    guns[0].speed = 16.0f;
     // submachine gun 
     guns[1].cooldown = 0.3f;
     guns[1].maxAmmo = 30;
     guns[1].reloadTime = 2.5f;
     guns[1].texture = gunTexs[1];
+    guns[1].damage = 20.0f;
+    guns[1].speed = 12.0f;
     // Double uzi 
     guns[2].cooldown = 0.2f;
     guns[2].maxAmmo = 20;
     guns[2].reloadTime = 2.0f;
     guns[2].texture = gunTexs[2];
+    guns[2].damage = 15.0f;
+    guns[2].speed = 13.0f;
     // pistol 
     guns[3].cooldown = 40.0f / 60.0f;
     guns[3].maxAmmo = 10;
     guns[3].reloadTime = 2.0f;
     guns[3].texture = gunTexs[3];
+    guns[3].damage = 25.0f;
+    guns[3].speed = 10.0f;
 
     Gun g = guns[GetRandomValue(0, 3)]; // start with random gun
     int ammo = g.maxAmmo;
@@ -754,7 +762,7 @@ int main() {
         shootCooldown = fmaxf(0.0f, shootCooldown - delta);
         offset = (Vector2){ joy.value.x * 5, joy.value.y * 5 };
         if (aim.state == JOY_SHOOTING && shootCooldown <= 0.0f && !reloading && ammo > 0) {
-            projectileShoot(projectiles, player->pos, aim.value, 10.0f);
+            projectileShoot(projectiles, player->pos, aim.value, g.speed);
             shootCooldown = g.cooldown;
             ammo--; 
             offset.x -= (aim.value.x * 5); 
@@ -924,20 +932,22 @@ int main() {
                             Enemy e = enemies->data[epos];
 
                             if (CheckCollisionRecs(e->e->rect, p->e->rect)){
-                                e->health -= 20;
+                                e->health -= g.damage;
                                 e->state = ACTIVE;
                                 // Impact_HitFlashTrigger(&e->flash )
                                 Impact_SpawnBurst((Vector2){p->e->rect.x, p->e->rect.y}, RED, 8);
                                 Impact_StartShake(0.15f, 3.0f);
                                 remove_dynarray(projectiles, pos);
                                 removedProjectile = true;
+
+                                if (e->health <= 0){
+                                    remove_dynarray(enemies, epos);
+                                    continue; 
+                                }
+
                                 break;
                             }
 
-                            if (e->health <= 0){
-                                remove_dynarray(enemies, epos);
-                                continue; 
-                            }
 
                             epos += 1;
                         }
