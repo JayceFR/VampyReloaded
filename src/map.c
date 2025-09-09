@@ -291,27 +291,32 @@ void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies, hash comp
     // Implementing a full BFS + component-merge is ~50 lines; shout if you want me to drop that in.
 }
 
-Door getPlayerRoomDoor(dynarray doors, Vector2 playerPos) {
-    for (int i = 0; i < doors->len; i++) {
-        Door door = doors->data[i];
+// Find a spawn position inside the top-left chunk (chunk 0,0).
+// Returns world coordinates (tile-center). Caller may offset by entity half-size.
+Vector2 mapFindSpawnTopLeft(hash map) {
+    int count = 0;
+    Vector2 chosen = { (CHUNK_SIZE/2) * TILE_SIZE + TILE_SIZE*0.5f, (CHUNK_SIZE/2) * TILE_SIZE + TILE_SIZE*0.5f }; // fallback: chunk center
 
-        // check room A bounds
-        if (playerPos.x >= door->ax*TILE_SIZE && playerPos.x < (door->ax + door->aw)*TILE_SIZE &&
-            playerPos.y >= door->ay*TILE_SIZE && playerPos.y < (door->ay + door->ah)*TILE_SIZE) {
-            return door; // in room A
-        }
-
-        // check room B bounds
-        if (playerPos.x >= door->bx*TILE_SIZE && playerPos.x < (door->bx + door->bw)*TILE_SIZE &&
-            playerPos.y >= door->by*TILE_SIZE && playerPos.y < (door->by + door->bh)*TILE_SIZE) {
-            return door; // in room B
+    char buffer[22];
+    for (int y = 0; y < CHUNK_SIZE; y++) {
+        for (int x = 0; x < CHUNK_SIZE; x++) {
+            snprintf(buffer, sizeof(buffer), "%d:%d", x, y);
+            rect r = hashFind(map, buffer);
+            if (!r) continue;
+            // prefer dirt tiles without offgrid objects
+            if (r->tile == DIRT && r->offGridType == -1) {
+                count++;
+                // reservoir sampling: pick uniformly among candidates
+                if (GetRandomValue(1, count) == 1) {
+                    chosen.x = x * TILE_SIZE + TILE_SIZE * 0.5f;
+                    chosen.y = y * TILE_SIZE + TILE_SIZE * 0.5f;
+                }
+            }
         }
     }
-    return NULL; // not in any room
+
+    return chosen;
 }
-
-
-
 
 // --- Simple ASCII preview ---
 void printMap(TILES map[HEIGHT][WIDTH]) {

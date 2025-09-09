@@ -624,6 +624,8 @@ int main() {
     mapData mData = mapCreate(offgridMap, biome_data, pathDirt);
     hash map = mData.map;
 
+    player->pos = mapFindSpawnTopLeft(map);
+
     Enemy enemy = enemyCreate(50, 60, 15, 15);
 
     char enemyKey[22];
@@ -783,7 +785,7 @@ int main() {
                 mData = mapCreate(offgridMap, biome_data, pathDirt);
                 map = mData.map;
                 computers = mData.computers;
-                player->pos = (Vector2){ 400, 225 };
+                player->pos = mapFindSpawnTopLeft(map);
                 player->rect.x = player->pos.x;
                 player->rect.y = player->pos.y;
                 playerAlive = true;

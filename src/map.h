@@ -115,6 +115,7 @@ extern void mapFree(hash map);
 extern rect mapGetRecAt(hash map, int x, int y);
 // extern void generateRandomWalkerMap(TILES map[HEIGHT][WIDTH]);
 extern void printMap(TILES map[HEIGHT][WIDTH]);
-extern Door getPlayerRoomDoor(dynarray doors, Vector2 playerPos);
+// extern Door getPlayerRoomDoor(dynarray doors, Vector2 playerPos);
+extern Vector2 mapFindSpawnTopLeft(hash map);
 
 #endif
