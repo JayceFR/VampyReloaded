@@ -9,6 +9,7 @@ typedef struct{
     float cooldown; 
     int maxAmmo; 
     float reloadTime; 
+    Texture2D texture;
 } Gun;
 
 

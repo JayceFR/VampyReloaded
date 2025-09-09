@@ -519,6 +519,7 @@ int main() {
     Texture2D *forestTexs = loadTexturesFromDirectory("tiles/offgrid/forest/", NO_OF_FOREST_TEXS);
     Texture2D *townTexs = loadTexturesFromDirectory("tiles/offgrid/town/", NO_OF_TOWN_TEXS);
     Texture2D *villageTexs = loadTexturesFromDirectory("tiles/offgrid/village/", NO_OF_VILLAGE_TEXS);
+    Texture2D *gunTexs = loadTexturesFromDirectory("entities/guns/", 4);
 
     BIOME_DATA biome_data = malloc(sizeof(struct BIOME_DATA)); 
     biome_data->texs = malloc(sizeof(Texture2D *) * NO_OF_BIOMES);
@@ -533,7 +534,7 @@ int main() {
     // printf("%d", biome_data->texs[TOWN][0].height);
 
     loadDirectory();
-    Texture2D gunTex = LoadTexture("entities/enemy/gun.png");
+    // Texture2D gunTex = LoadTexture("entities/enemy/gun.png");
     Texture2D tiles[] = {
         LoadTexture("tiles/dirt.png"),
         LoadTexture("tiles/stone.png")
@@ -666,11 +667,31 @@ int main() {
     float transitionSpeed = 200.0f; 
     Vector2 transitionCenter; 
 
-    Gun g;
-    g.cooldown = 40.0f / 60.0f; 
-    g.maxAmmo = 10; 
-    g.reloadTime = 2.0f;
+    // Guns 
+    
+    Gun *guns = malloc(sizeof(Gun) * 4);
+    // sniper
+    guns[0].cooldown = 1.5f;
+    guns[0].maxAmmo = 3;
+    guns[0].reloadTime = 3.0f;
+    guns[0].texture = gunTexs[0];
+    // submachine gun 
+    guns[1].cooldown = 0.3f;
+    guns[1].maxAmmo = 30;
+    guns[1].reloadTime = 2.5f;
+    guns[1].texture = gunTexs[1];
+    // Double uzi 
+    guns[2].cooldown = 0.2f;
+    guns[2].maxAmmo = 20;
+    guns[2].reloadTime = 2.0f;
+    guns[2].texture = gunTexs[2];
+    // pistol 
+    guns[3].cooldown = 40.0f / 60.0f;
+    guns[3].maxAmmo = 10;
+    guns[3].reloadTime = 2.0f;
+    guns[3].texture = gunTexs[3];
 
+    Gun g = guns[GetRandomValue(0, 3)]; // start with random gun
     int ammo = g.maxAmmo;
     float reloadTimer = 0.0f; 
     bool reloading = false;
@@ -788,6 +809,7 @@ int main() {
                 player->pos = mapFindSpawnTopLeft(map);
                 player->rect.x = player->pos.x;
                 player->rect.y = player->pos.y;
+                g = guns[GetRandomValue(0, 3)];
                 playerAlive = true;
                 transitioning = false;
             }
@@ -854,27 +876,23 @@ int main() {
                 Vector2 origin = { 0, 0 };
                 DrawTexturePro(frame, src, dst, origin, 0.0f, WHITE);
 
-                // Draw gun
-                Rectangle gunSrc = { 0, 0, (float)gunTex.width * facingRight, (float)gunTex.height };
-                Rectangle gunDst = {
-                    player->rect.x + player->rect.width / 2,  // X
-                    player->rect.y + player->rect.height / 2, // Y
-                    (float)gunTex.width,
-                    (float)gunTex.height
+                // Draw gun rotated around its image center so the center sits at the player's hand
+                Rectangle gunSrc = (Rectangle){ 0, 0, (float)g.texture.width * facingRight, (float)g.texture.height };
+                // place dest.x/y at the hand location (center), dest width/height equals texture size
+                Rectangle gunDst = (Rectangle){
+                    player->rect.x + player->rect.width * 0.5f,
+                    player->rect.y + player->rect.height,
+                    (float)g.texture.width,
+                    (float)g.texture.height
                 };
-                Vector2 gunOrigin = { 9, gunTex.height / 2.0f };
-                if (facingRight != 1){
-                    gunOrigin = (Vector2) {30, gunTex.height / 2.0f};
-                }
-                
-                if (facingRight != 1){
-                    aimAngle = aimAngle + 180.0f;
-                }
+                Vector2 gunOrigin = (Vector2){ (float)g.texture.width * 0.5f, (float)g.texture.height * 0.5f };
+                // adjust angle when flipped so the orientation matches
+                float gunAngle = aimAngle;
+                if (facingRight != 1) gunAngle += 180.0f;
                 if (Vector2Length(aim.value) >= 0.1f){
-                    DrawTexturePro(gunTex, gunSrc, gunDst, gunOrigin, aimAngle, WHITE);
-                }
-                else{
-                    DrawTexturePro(gunTex, gunSrc, gunDst, gunOrigin, 0.0f, WHITE);
+                    DrawTexturePro(g.texture, gunSrc, gunDst, gunOrigin, gunAngle, WHITE);
+                } else {
+                    DrawTexturePro(g.texture, gunSrc, gunDst, gunOrigin, 0.0f, WHITE);
                 }
 
 
