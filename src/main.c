@@ -716,6 +716,8 @@ int main() {
     Computer currComputer; 
     bool isHacking = false;
 
+    int computersHacked = 0;
+
     // NPCs
     dynarray npcs; 
 
@@ -741,6 +743,7 @@ int main() {
             currComputer->amountLeftToHack -= GetFrameTime() * 5;
             if (currComputer->amountLeftToHack <= 0) {
                 currComputer->hacked = true;
+                computersHacked += 1;
                 isHacking = false;
                 printf("Computer hacked!\n");
             }
@@ -1058,6 +1061,8 @@ int main() {
             dst = (Rectangle) { 0, 0, (float)SCREEN_WIDTH * 2, (float)SCREEN_HEIGHT * 2 };
             DrawTexturePro(target.texture, src, dst, (Vector2){0, 0}, 0.0f, WHITE);
             // EndShaderMode();i
+
+            DrawText(TextFormat("Hacked: %d/%d", computersHacked, mData.noOfComputers), 100, 60, 10, RED);
 
             if (reloading) {
                 DrawText("Reloading...", 100, 30, 10, RED);

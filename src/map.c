@@ -184,7 +184,7 @@ static void computerFree(DA_ELEMENT el){
     free(c->e);
 }
 
-void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies, hash computers) {
+void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies, hash computers, int *noOfComputers) {
     Room worldRooms[WORLD_H][WORLD_W][MAX_ROOMS];
     int roomCount[WORLD_H][WORLD_W];
 
@@ -229,6 +229,7 @@ void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies, hash comp
                 comp->e = entityCreate(wx * TILE_SIZE, wy * TILE_SIZE, 15, 15);
                 comp->hacked = false;
                 comp->amountLeftToHack = 100;
+                (*noOfComputers) += 1;
                 sprintf(buffer, "%d:%d", cx, cy);
                 if (hashFind(computers, buffer) == NULL){
                     hashSet(computers, buffer, create_dynarray(&computerFree, NULL));
@@ -489,7 +490,8 @@ mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
   data.enemies = hashCreate(NULL, &enemyHashFree, NULL);
   data.computers = hashCreate(NULL, &computerHashFree, NULL);
   data.npcs = hashCreate(NULL, NULL, NULL);
-  generateWorld(mappy, data.enemies, data.computers);
+  data.noOfComputers = 0; 
+  generateWorld(mappy, data.enemies, data.computers, &data.noOfComputers);
 
   for (int y = 0; y < GAME_HEIGHT; y++){
     for (int x = 0; x < GAME_WIDTH; x++){

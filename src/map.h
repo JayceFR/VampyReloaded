@@ -90,6 +90,7 @@ typedef struct{
   hash enemies; 
   hash computers;
   hash npcs; 
+  int noOfComputers; 
 } mapData;
 
 struct offgrid{
