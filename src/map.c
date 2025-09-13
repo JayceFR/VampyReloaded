@@ -187,24 +187,58 @@ static void computerFree(DA_ELEMENT el){
 void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies, hash computers) {
     Room worldRooms[WORLD_H][WORLD_W][MAX_ROOMS];
     int roomCount[WORLD_H][WORLD_W];
-    // dynarray doors = create_dynarray(NULL, NULL);
 
     // fill with stone
     for (int y=0;y<GAME_HEIGHT;y++)
         for (int x=0;x<GAME_WIDTH;x++)
             world[y][x]=STONE;
 
-    // Enemy Spawner 
-    // TODO: ADD in level difficulty as well, and lower the range for higher levels
     char buffer[22];
-    dynarray enemy; 
-    dynarray computer; 
+    dynarray enemy;
+    dynarray computer;
+
     // generate chunks and paste
     for (int cy=0; cy<WORLD_H; cy++){
         for (int cx=0; cx<WORLD_W; cx++){
             TILES chunk[CHUNK_SIZE][CHUNK_SIZE];
             int cnt = generatePuzzleMap(chunk, worldRooms[cy][cx]);
             roomCount[cy][cx] = cnt;
+
+            // --- Spawn one computer per chunk ---
+            int dirtCount = 0;
+            int dirtXs[CHUNK_SIZE * CHUNK_SIZE], dirtYs[CHUNK_SIZE * CHUNK_SIZE];
+            for (int y = 0; y < CHUNK_SIZE; y++) {
+                for (int x = 0; x < CHUNK_SIZE; x++) {
+                    if (chunk[y][x] == DIRT) {
+                        dirtXs[dirtCount] = x;
+                        dirtYs[dirtCount] = y;
+                        dirtCount++;
+                    }
+                }
+            }
+            if (dirtCount > 0) {
+                int pick = GetRandomValue(0, dirtCount - 1);
+                int rx = dirtXs[pick];
+                int ry = dirtYs[pick];
+                // World coordinates
+                int wx = cx * CHUNK_SIZE + rx;
+                int wy = cy * CHUNK_SIZE + ry;
+
+                Computer comp = malloc(sizeof(struct Computer));
+                assert(comp != NULL);
+                comp->e = entityCreate(wx * TILE_SIZE, wy * TILE_SIZE, 15, 15);
+                comp->hacked = false;
+                comp->amountLeftToHack = 100;
+                sprintf(buffer, "%d:%d", cx, cy);
+                if (hashFind(computers, buffer) == NULL){
+                    hashSet(computers, buffer, create_dynarray(&computerFree, NULL));
+                }
+                if ((computer = hashFind(computers, buffer)) != NULL){
+                    add_dynarray(computer, comp);
+                }
+            }
+
+            // --- Enemy spawn as before ---
             for (int y=0; y<CHUNK_SIZE; y++){
                 for (int x=0; x<CHUNK_SIZE; x++){
                     if (chunk[y][x] == DIRT && GetRandomValue(1,100) == 2){
@@ -223,30 +257,7 @@ void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies, hash comp
                             add_dynarray(enemy, e);
                         }
                     }
-
-                    if (chunk[y][x] == DIRT && GetRandomValue(1, 100) == 2){
-                        // Spawn a computer 
-                        Computer comp = malloc(sizeof(struct Computer));
-                        assert(comp != NULL);
-                        comp->e = entityCreate(
-                            (cx * CHUNK_SIZE + x) * TILE_SIZE,
-                            (cy * CHUNK_SIZE + y) * TILE_SIZE,
-                            15,
-                            15 
-                        ); 
-                        comp->hacked = false;
-                        comp->amountLeftToHack = 100; 
-                        sprintf(buffer, "%d:%d", cx, cy); 
-                        if (hashFind(computers, buffer) == NULL){
-                            hashSet(computers, buffer, create_dynarray(&computerFree, NULL));
-                        }
-                        if ((computer = hashFind(computers, buffer)) != NULL){
-                            add_dynarray(computer, comp);
-                        }
-                    }
-
                     world[cy*CHUNK_SIZE+y][cx*CHUNK_SIZE+x] = chunk[y][x];
-
                 }
             }
         }
