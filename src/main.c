@@ -704,8 +704,7 @@ int main() {
     guns[3].speed = 10.0f;
     guns[3].numberOfProjectiles = 1;
 
-    // Gun g = guns[GetRandomValue(0, 3)]; // start with random gun
-    Gun g = guns[2];
+    Gun g = guns[GetRandomValue(0, 3)]; // start with random gun
     int ammo = g.maxAmmo;
     float reloadTimer = 0.0f; 
     bool reloading = false;
@@ -857,6 +856,9 @@ int main() {
                 player->rect.x = player->pos.x;
                 player->rect.y = player->pos.y;
                 g = guns[GetRandomValue(0, 3)];
+                ammo = g.maxAmmo;
+                reloadTimer = 0.0f; 
+                reloading = false;
                 playerAlive = true;
                 transitioning = false;
             }
