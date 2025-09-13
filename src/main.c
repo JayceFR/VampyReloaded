@@ -862,6 +862,9 @@ int main() {
                 ammo = g.maxAmmo;
                 reloadTimer = 0.0f; 
                 reloading = false;
+                computersHacked = 0;
+                currComputer = NULL;
+                isHacking = false;
                 playerAlive = true;
                 transitioning = false;
             }
