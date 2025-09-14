@@ -496,6 +496,7 @@ int main() {
     Animation PlayerAnimations[] = {
         loadAnimation("entities/player/idle/", 4),
         loadAnimation("entities/player/run/", 4),
+        loadAnimation("entities/player/hack/", 4),
     };
     Animation EnemyAnimations[] = {
         loadAnimation("entities/enemy/idle/", 4),
@@ -941,6 +942,9 @@ int main() {
                 // Draw Player
                 // DrawTexture(PlayerAnimations[pState]->frames[currentFrame], player->rect.x, player->rect.y, WHITE);
                 Texture2D frame = PlayerAnimations[pState]->frames[currentFrame];
+                if (isHacking){
+                    frame = PlayerAnimations[2]->frames[currentFrame];
+                }
                 src = (Rectangle) { 0, 0, (float)frame.width * facingRight, (float)frame.height };
                 dst = (Rectangle) { player->rect.x, player->rect.y, (float)frame.width, (float)frame.height };
                 Vector2 origin = { 0, 0 };
@@ -959,13 +963,14 @@ int main() {
                 // adjust angle when flipped so the orientation matches
                 float gunAngle = aimAngle;
                 if (facingRight != 1) gunAngle += 180.0f;
-                if (Vector2Length(aim.value) >= 0.1f){
-                    DrawTexturePro(g.texture, gunSrc, gunDst, gunOrigin, gunAngle, WHITE);
-                } else {
-                    DrawTexturePro(g.texture, gunSrc, gunDst, gunOrigin, 0.0f, WHITE);
+
+                if (!isHacking){
+                    if (Vector2Length(aim.value) >= 0.1f){
+                        DrawTexturePro(g.texture, gunSrc, gunDst, gunOrigin, gunAngle, WHITE);
+                    } else {
+                        DrawTexturePro(g.texture, gunSrc, gunDst, gunOrigin, 0.0f, WHITE);
+                    }
                 }
-
-
 
 
                 int pos = 0;
