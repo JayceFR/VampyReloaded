@@ -627,7 +627,7 @@ int main() {
     Vector2 swarmTarget = player->pos;
     Vector2 previousOffset = {0.0f, 0.0f};
 
-    mapData mData = mapCreate(offgridMap, biome_data, pathDirt, 3, 3);
+    mapData mData = mapCreate(offgridMap, biome_data, pathDirt, 1);
     hash map = mData.map;
 
     player->pos = mapFindSpawnTopLeft(map);
@@ -857,7 +857,7 @@ int main() {
                 hashFree(mData.enemies);
                 hashFree(mData.computers);
                 offgridMap = hashCreate(NULL, &offgridsFree, NULL);
-                mData = mapCreate(offgridMap, biome_data, pathDirt, 3, 3);
+                mData = mapCreate(offgridMap, biome_data, pathDirt, 1);
                 map = mData.map;
                 computers = mData.computers;
                 player->pos = mapFindSpawnTopLeft(map);

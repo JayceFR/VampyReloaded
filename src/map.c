@@ -16,6 +16,33 @@
 #include "computer.h"
 #include "npc.h"
 
+static inline int clampi(int v, int lo, int hi){ return v < lo ? lo : (v > hi ? hi : v); }
+
+typedef struct LevelConfig {
+    int worldW, worldH;         // chunk dims
+    float enemyChancePercent;   // per DIRT tile (max percent, e.g. 1.0 means 1%)
+    int maxEnemiesPerChunk;     // cap per chunk
+    int globalEnemyCap;         // overall cap
+} LevelConfig;
+
+static LevelConfig LevelConfigFromLevel(int level){
+    if (level < 1) level = 1;
+    int w = clampi(2 + (level - 1)/2, 2, 6); // 2x2, 3x3, ... cap 6x6
+    int h = clampi(2 + (level - 1)/2, 2, 6);
+    float maxChance = 1.0f;               // keep current max frequency (1%)
+    float startChance = 0.2f;             // start lower on level 1 (0.2%)
+    int rampLevels = 6;                   // number of levels to ramp up to maxChance
+    int effLevel = level < rampLevels ? level : rampLevels;
+    float enemyChancePercent = startChance + (effLevel - 1) * (maxChance - startChance) / (float)(rampLevels - 1);
+    enemyChancePercent = fminf(enemyChancePercent, maxChance);
+
+    int maxPerChunk = clampi(1 + (level - 1)/2, 1, 4); // L1=1, L3=2, L5=3, L7=4
+    int globalCap = w * h * maxPerChunk;
+    LevelConfig c = { w, h, enemyChancePercent, maxPerChunk, globalCap };
+    return c;
+}
+
+
 void tilesFree(hashvalue val){
   rect r = (rect) val; 
   free(r);
@@ -185,9 +212,10 @@ static void computerFree(DA_ELEMENT el){
     free(c->e);
 }
 
-void generateWorld(TILES *world, hash enemies, hash computers, int *noOfComputers, int WORLD_W, int WORLD_H) {
+void generateWorld(TILES *world, hash enemies, hash computers, int *noOfComputers, int WORLD_W, int WORLD_H, LevelConfig config) {
      Room worldRooms[WORLD_H][WORLD_W][MAX_ROOMS];
      int roomCount[WORLD_H][WORLD_W];
+     int globalSpawned = 0;
 
      int GAME_WIDTH = WORLD_W * CHUNK_SIZE;
      int GAME_HEIGHT = WORLD_H * CHUNK_SIZE;
@@ -204,6 +232,7 @@ void generateWorld(TILES *world, hash enemies, hash computers, int *noOfComputer
     // generate chunks and paste
     for (int cy=0; cy<WORLD_H; cy++){
         for (int cx=0; cx<WORLD_W; cx++){
+            int chunkSpawned = 0;
             TILES chunk[CHUNK_SIZE][CHUNK_SIZE];
             int cnt = generatePuzzleMap(chunk, worldRooms[cy][cx]);
             roomCount[cy][cx] = cnt;
@@ -246,25 +275,65 @@ void generateWorld(TILES *world, hash enemies, hash computers, int *noOfComputer
             // --- Enemy spawn as before ---
             for (int y=0; y<CHUNK_SIZE; y++){
                 for (int x=0; x<CHUNK_SIZE; x++){
-                    if (chunk[y][x] == DIRT && GetRandomValue(1,100) == 2){
-                        // Spawn an enemy in this location 
+                    // if (chunk[y][x] == DIRT && GetRandomValue(1,100) == 2){
+                    //     // Spawn an enemy in this location 
+                    //     Enemy e = enemyCreate(
+                    //         (cx * CHUNK_SIZE + x) * TILE_SIZE, 
+                    //         (cy * CHUNK_SIZE + y) * TILE_SIZE,
+                    //         15, 
+                    //         15
+                    //     );
+                    //     sprintf(buffer, "%d:%d", cx, cy); 
+                    //     if (hashFind(enemies, buffer) == NULL){
+                    //         hashSet(enemies, buffer, create_dynarray(&enemyFree, NULL));
+                    //     }
+                    //     if ((enemy = hashFind(enemies, buffer)) != NULL){
+                    //         add_dynarray(enemy, e);
+                    //     }
+                    // }
+                    // int wx = cx*CHUNK_SIZE + x;
+                    // int wy = cy*CHUNK_SIZE + y;
+                    // world[wy*GAME_WIDTH + wx] = chunk[y][x];
+
+                    int wx = cx * CHUNK_SIZE + x;
+                    int wy = cy * CHUNK_SIZE + y;
+                    world[wy * GAME_WIDTH + wx] = chunk[y][x];
+
+                    // spawn only on DIRT, only while under per-chunk and global caps
+                    if (chunk[y][x] != DIRT) continue;
+                    if (chunkSpawned >= config.maxEnemiesPerChunk) continue;
+                    if (globalSpawned >= config.globalEnemyCap) continue;
+
+                    // convert percent to hundredths of a percent (1.00% -> 100)
+                    // we'll compare against a 1..10000 random range (so 100 => 1%)
+                    int chanceHundredths = (int) roundf(config.enemyChancePercent * 100.0f);
+                    // skip if chance is zero (defensive)
+                    if (chanceHundredths <= 0) continue;
+
+                    // do random check (GetRandomValue is inclusive)
+                    if (GetRandomValue(1, 10000) <= chanceHundredths) {
+                        // Spawn an enemy in this location
                         Enemy e = enemyCreate(
-                            (cx * CHUNK_SIZE + x) * TILE_SIZE, 
-                            (cy * CHUNK_SIZE + y) * TILE_SIZE,
-                            15, 
+                            wx * TILE_SIZE,
+                            wy * TILE_SIZE,
+                            15,
                             15
                         );
-                        sprintf(buffer, "%d:%d", cx, cy); 
+                        char buffer[22];
+                        sprintf(buffer, "%d:%d", cx, cy);
                         if (hashFind(enemies, buffer) == NULL){
                             hashSet(enemies, buffer, create_dynarray(&enemyFree, NULL));
                         }
-                        if ((enemy = hashFind(enemies, buffer)) != NULL){
-                            add_dynarray(enemy, e);
+                        dynarray enemyArr = hashFind(enemies, buffer);
+                        if (enemyArr != NULL){
+                            add_dynarray(enemyArr, e);
                         }
+
+                        chunkSpawned++;
+                        globalSpawned++;
+                        // if we reached either cap, we will naturally skip further spawns
                     }
-                    int wx = cx*CHUNK_SIZE + x;
-                    int wy = cy*CHUNK_SIZE + y;
-                    world[wy*GAME_WIDTH + wx] = chunk[y][x];
+
                 }
             }
         }
@@ -486,7 +555,10 @@ static void npcAdd(int x, int y, mapData data){
     }
 }
 
-mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt, int WORLD_W, int WORLD_H) {
+mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt, int level) {
+    LevelConfig config = LevelConfigFromLevel(level);
+    int WORLD_W = config.worldW;
+    int WORLD_H = config.worldH;
    mapData data; 
    data.map = hashCreate(&tilesPrint, &tilesFree, NULL);
 
@@ -499,7 +571,7 @@ mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt, 
    data.computers = hashCreate(NULL, &computerHashFree, NULL);
    data.npcs = hashCreate(NULL, NULL, NULL);
    data.noOfComputers = 0; 
-  generateWorld(&mappy[0][0], data.enemies, data.computers, &data.noOfComputers, WORLD_W, WORLD_H);
+  generateWorld(&mappy[0][0], data.enemies, data.computers, &data.noOfComputers, WORLD_W, WORLD_H, config);
 
    for (int y = 0; y < GAME_HEIGHT; y++){
      for (int x = 0; x < GAME_WIDTH; x++){
