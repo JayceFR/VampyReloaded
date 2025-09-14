@@ -723,6 +723,8 @@ int main() {
 
     int computersHacked = 0;
 
+    int level = 1; 
+
     // NPCs
     dynarray npcs; 
 
@@ -751,6 +753,14 @@ int main() {
                 computersHacked += 1;
                 isHacking = false;
                 printf("Computer hacked!\n");
+            }
+
+            if (computersHacked >= mData.noOfComputers){
+                // Move to next level 
+                level += 1;
+                transitioning = true; 
+                transitionRadius = 0.0f; 
+                transitionCenter = player->pos;
             }
         }
         else{
@@ -857,7 +867,7 @@ int main() {
                 hashFree(mData.enemies);
                 hashFree(mData.computers);
                 offgridMap = hashCreate(NULL, &offgridsFree, NULL);
-                mData = mapCreate(offgridMap, biome_data, pathDirt, 1);
+                mData = mapCreate(offgridMap, biome_data, pathDirt, level);
                 map = mData.map;
                 computers = mData.computers;
                 player->pos = mapFindSpawnTopLeft(map);
