@@ -485,6 +485,89 @@ void offgridsFree(hashvalue val){
     free_dynarray(o);
 }
 
+void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float reloadTimer, Joystick movementJoy, Joystick aimJoy) {
+    // --- HEALTH (top center) ---
+    int heartSpacing = 34;
+    int totalWidth = maxHealth * heartSpacing;
+    int startX = (SCREEN_WIDTH*2 - totalWidth) / 2;
+    int y = 30;
+
+    for (int i = 0; i < maxHealth; i++) {
+        int x = startX + i * heartSpacing;
+        if (i < health) {
+            DrawCircle(x, y, 14, RED);          // full
+            DrawCircleLines(x, y, 14, BLACK);
+        } else {
+            DrawCircle(x, y, 14, Fade(RED, 0.2f)); // empty
+            DrawCircleLines(x, y, 14, BLACK);
+        }
+    }
+
+    // --- GUN SECTOR (bottom center trapezium) ---
+    int hudWidth = 300;
+    int hudHeight = 120;   // a little taller for spacing
+    int centerX = SCREEN_WIDTH;
+    int bottomY = SCREEN_HEIGHT*2;
+
+    Vector2 p1 = {centerX - hudWidth/2, bottomY};                  // bottom left
+    Vector2 p2 = {centerX + hudWidth/2, bottomY};                  // bottom right
+    Vector2 p3 = {centerX + hudWidth/2 - 40, bottomY - hudHeight}; // top right inset
+    Vector2 p4 = {centerX - hudWidth/2 + 40, bottomY - hudHeight}; // top left inset
+
+    Vector2 trap[4] = {p1, p2, p3, p4};
+    DrawTriangleFan(trap, 4, Fade(BLACK, 0.6f)); // fill
+    // outline
+    DrawLineEx(p1, p2, 3, WHITE);
+    DrawLineEx(p2, p3, 3, WHITE);
+    DrawLineEx(p3, p4, 3, WHITE);
+    DrawLineEx(p4, p1, 3, WHITE);
+
+    // --- Gun Icon (centered, scaled properly) ---
+    int gunMaxHeight = 50; // max height of gun
+    float aspect = (float)g.texture.width / (float)g.texture.height;
+
+    int gunW = (int)(gunMaxHeight * aspect);
+    int gunH = gunMaxHeight;
+
+    int gunX = centerX - gunW / 2 - 30;
+    int gunY = bottomY - hudHeight + 10; // place near top of trapezium
+
+    DrawTexturePro(
+        g.texture,
+        (Rectangle){0, 0, g.texture.width, g.texture.height},
+        (Rectangle){gunX, gunY, gunW, gunH},
+        (Vector2){0, 0},
+        0,
+        WHITE
+    );
+
+    // --- Ammo Text ---
+    char ammoText[32];
+    sprintf(ammoText, "%d / %d", ammo, g.maxAmmo);
+    int ammoTextY = gunY + gunH + 5; // just below gun
+    DrawText(ammoText, centerX - MeasureText(ammoText, 22)/2, ammoTextY, 22, WHITE);
+
+    // --- Ammo Bar ---
+    float ammoPercent = (float)ammo / (float)g.maxAmmo;
+    Rectangle ammoBack = {centerX - 75, ammoTextY + 25, 150, 12};
+    Rectangle ammoFill = {centerX - 75, ammoTextY + 25, 150 * ammoPercent, 12};
+
+    DrawRectangleRec(ammoBack, Fade(DARKGRAY, 0.8f));
+    DrawRectangleRec(ammoFill, Fade(ORANGE, 0.9f));
+    DrawRectangleLinesEx(ammoBack, 2, BLACK);
+
+    // --- Reload Indicator ---
+    if (reloading) {
+        float reloadPercent = 1.0f - (reloadTimer / g.reloadTime);
+        int reloadWidth = 150 * reloadPercent;
+        DrawRectangle(centerX - 75, ammoTextY + 45, reloadWidth, 8, GREEN);
+        DrawRectangleLines(centerX - 75, ammoTextY + 45, 150, 8, BLACK);
+        DrawText("Reloading...", centerX - MeasureText("Reloading...", 20)/2, ammoTextY + 60, 20, YELLOW);
+    }
+
+}
+
+
 int main() {
     InitWindow(SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2, "Vampy Reloaded (x2 scaled)");
     SetTargetFPS(60);
@@ -1149,6 +1232,7 @@ int main() {
                 
             }
 
+            DrawHUD(5, 5, g, ammo, reloading, reloadTimer, joy, aim);
             DrawJoystick(joy);
             DrawJoystick(aim);
 
