@@ -10,7 +10,10 @@
 NPC npcCreate(int x, int y, int width, int height){
     NPC npc = malloc(sizeof(struct NPC));
     npc->e = entityCreate(x, y, width, height);
-    npc->type = NPC_TYPE_COW;
+    if (GetRandomValue(1,100) <= 50)
+        npc->type = NPC_TYPE_VILLAGER;
+    else
+        npc->type = NPC_TYPE_COW;
     npc->state = 0; // idle
     npc->currentFrame = GetRandomValue(0,3);
     npc->animTimer = 0.0f;
