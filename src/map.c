@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <limits.h>
 #include <math.h>
+#include <time.h>
 
 #include "raylib.h"
 
@@ -32,11 +33,11 @@ rect mapGetRecAt(hash map, int x, int y){
   return hashFind(map, buffer);
 }
 
-#define WORLD_W 3
-#define WORLD_H 3
+// #define WORLD_W 3
+// #define WORLD_H 3
 #define DOORS_SIZE (((WORLD_W - 1) * WORLD_H) + ((WORLD_H - 1) * WORLD_W))
-#define GAME_WIDTH (WORLD_W * CHUNK_SIZE)
-#define GAME_HEIGHT (WORLD_H * CHUNK_SIZE)
+// #define GAME_WIDTH (WORLD_W * CHUNK_SIZE)
+// #define GAME_HEIGHT (WORLD_H * CHUNK_SIZE)
 #define MAX_ROOMS 8
 
 typedef struct {
@@ -184,14 +185,17 @@ static void computerFree(DA_ELEMENT el){
     free(c->e);
 }
 
-void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies, hash computers, int *noOfComputers) {
-    Room worldRooms[WORLD_H][WORLD_W][MAX_ROOMS];
-    int roomCount[WORLD_H][WORLD_W];
+void generateWorld(TILES *world, hash enemies, hash computers, int *noOfComputers, int WORLD_W, int WORLD_H) {
+     Room worldRooms[WORLD_H][WORLD_W][MAX_ROOMS];
+     int roomCount[WORLD_H][WORLD_W];
 
-    // fill with stone
+     int GAME_WIDTH = WORLD_W * CHUNK_SIZE;
+     int GAME_HEIGHT = WORLD_H * CHUNK_SIZE;
+
+     // fill with stone
     for (int y=0;y<GAME_HEIGHT;y++)
         for (int x=0;x<GAME_WIDTH;x++)
-            world[y][x]=STONE;
+            world[y*GAME_WIDTH + x] = STONE;
 
     char buffer[22];
     dynarray enemy;
@@ -258,7 +262,9 @@ void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies, hash comp
                             add_dynarray(enemy, e);
                         }
                     }
-                    world[cy*CHUNK_SIZE+y][cx*CHUNK_SIZE+x] = chunk[y][x];
+                    int wx = cx*CHUNK_SIZE + x;
+                    int wy = cy*CHUNK_SIZE + y;
+                    world[wy*GAME_WIDTH + wx] = chunk[y][x];
                 }
             }
         }
@@ -270,12 +276,12 @@ void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies, hash comp
             if (roomCount[cy][cx] && roomCount[cy][cx+1]){
                 Room *leftA  = pick_eastmost(worldRooms[cy][cx],   roomCount[cy][cx]);
                 Room *rightB = pick_westmost(worldRooms[cy][cx+1], roomCount[cy][cx+1]);
-                if (leftA && rightB) connect_room_centers_world(&world[0][0], GAME_WIDTH, GAME_HEIGHT, leftA, cx, cy, rightB, cx+1, cy, 3);
+                if (leftA && rightB) connect_room_centers_world(world, GAME_WIDTH, GAME_HEIGHT, leftA, cx, cy, rightB, cx+1, cy, 3);
 
                 // second redundancy: random rooms
                 Room *ra = &worldRooms[cy][cx][rand()%roomCount[cy][cx]];
                 Room *rb = &worldRooms[cy][cx+1][rand()%roomCount[cy][cx+1]];
-                connect_room_centers_world(&world[0][0], GAME_WIDTH, GAME_HEIGHT, ra, cx, cy, rb, cx+1, cy, 3);
+                connect_room_centers_world(world, GAME_WIDTH, GAME_HEIGHT, ra, cx, cy, rb, cx+1, cy, 3);
             }
         }
     }
@@ -286,11 +292,11 @@ void generateWorld(TILES world[GAME_HEIGHT][GAME_WIDTH], hash enemies, hash comp
             if (roomCount[cy][cx] && roomCount[cy+1][cx]){
                 Room *topA  = pick_southmost(worldRooms[cy][cx],     roomCount[cy][cx]);
                 Room *botB  = pick_northmost(worldRooms[cy+1][cx],   roomCount[cy+1][cx]);
-                if (topA && botB) connect_room_centers_world(&world[0][0], GAME_WIDTH, GAME_HEIGHT, topA, cx, cy, botB, cx, cy+1, 3);
+                if (topA && botB) connect_room_centers_world(world, GAME_WIDTH, GAME_HEIGHT, topA, cx, cy, botB, cx, cy+1, 3);
 
                 Room *ra = &worldRooms[cy][cx][rand()%roomCount[cy][cx]];
                 Room *rb = &worldRooms[cy+1][cx][rand()%roomCount[cy+1][cx]];
-                connect_room_centers_world(&world[0][0], GAME_WIDTH, GAME_HEIGHT, ra, cx, cy, rb, cx, cy+1, 3);
+                connect_room_centers_world(world, GAME_WIDTH, GAME_HEIGHT, ra, cx, cy, rb, cx, cy+1, 3);
             }
         }
     }
@@ -348,19 +354,19 @@ void printMap(TILES map[HEIGHT][WIDTH]) {
 //  6: top_left,    7: top_right,    8: top]
 
 
-static inline TILES getTileSafe(TILES (*m)[GAME_WIDTH], int x, int y) {
-    if (x < 0 || y < 0 || x >= GAME_WIDTH || y >= GAME_HEIGHT) return STONE;
-    return m[y][x];
+static inline TILES getTileSafe(TILES *m, int x, int y, int W, int H) {
+    if (x < 0 || y < 0 || x >= W || y >= H) return STONE;
+    return m[y*W + x];
 }
 
-static int chooseStoneVariant(TILES (*m)[GAME_WIDTH], int x, int y) {
-    if (getTileSafe(m, x, y) != STONE) return STONE_MIDDLE;
+static int chooseStoneVariant(TILES *m, int x, int y, int W, int H) {
+    if (getTileSafe(m, x, y, W, H) != STONE) return STONE_MIDDLE;
 
     // check surroundings
-    bool t  = (getTileSafe(m, x,   y-1) == DIRT);
-    bool b  = (getTileSafe(m, x,   y+1) == DIRT);
-    bool l  = (getTileSafe(m, x-1, y  ) == DIRT);
-    bool r  = (getTileSafe(m, x+1, y  ) == DIRT);
+    bool t  = (getTileSafe(m, x,   y-1, W, H) == DIRT);
+    bool b  = (getTileSafe(m, x,   y+1, W, H) == DIRT);
+    bool l  = (getTileSafe(m, x-1, y,   W, H) == DIRT);
+    bool r  = (getTileSafe(m, x+1, y,   W, H) == DIRT);
 
     int mask = (t ? 1 : 0) | (b ? 2 : 0) | (l ? 4 : 0) | (r ? 8 : 0);
 
@@ -480,25 +486,27 @@ static void npcAdd(int x, int y, mapData data){
     }
 }
 
-mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
-  mapData data; 
-  data.map = hashCreate(&tilesPrint, &tilesFree, NULL);
+mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt, int WORLD_W, int WORLD_H) {
+   mapData data; 
+   data.map = hashCreate(&tilesPrint, &tilesFree, NULL);
 
-  TILES mappy[GAME_HEIGHT][GAME_WIDTH];
-  srand(time(NULL));
-  // generatePuzzleMap(mappy);
-  data.enemies = hashCreate(NULL, &enemyHashFree, NULL);
-  data.computers = hashCreate(NULL, &computerHashFree, NULL);
-  data.npcs = hashCreate(NULL, NULL, NULL);
-  data.noOfComputers = 0; 
-  generateWorld(mappy, data.enemies, data.computers, &data.noOfComputers);
+   int GAME_WIDTH = WORLD_W * CHUNK_SIZE;
+   int GAME_HEIGHT = WORLD_H * CHUNK_SIZE;
+   TILES mappy[GAME_HEIGHT][GAME_WIDTH];
+   srand(time(NULL));
+   // generatePuzzleMap(mappy);
+   data.enemies = hashCreate(NULL, &enemyHashFree, NULL);
+   data.computers = hashCreate(NULL, &computerHashFree, NULL);
+   data.npcs = hashCreate(NULL, NULL, NULL);
+   data.noOfComputers = 0; 
+  generateWorld(&mappy[0][0], data.enemies, data.computers, &data.noOfComputers, WORLD_W, WORLD_H);
 
-  for (int y = 0; y < GAME_HEIGHT; y++){
-    for (int x = 0; x < GAME_WIDTH; x++){
-      rect r = malloc(sizeof(struct rect));
-      r->rectange = (Rectangle){ x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE };
+   for (int y = 0; y < GAME_HEIGHT; y++){
+     for (int x = 0; x < GAME_WIDTH; x++){
+       rect r = malloc(sizeof(struct rect));
+       r->rectange = (Rectangle){ x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE };
       r->tile = mappy[y][x];
-      r->offGridType = -1;
+       r->offGridType = -1;
 
       r->node = malloc(sizeof(struct pathNode));
       r->node->x = x;
@@ -510,11 +518,11 @@ mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt){
       r->node->prev = NULL;
       
       if (mappy[y][x] == STONE){
-        r->tileType = chooseStoneVariant(mappy, x, y);
+        r->tileType = chooseStoneVariant(&mappy[0][0], x, y, GAME_WIDTH, GAME_HEIGHT);
       }
       else{
-        int var = GetRandomValue(0,3);
-        r->tileType = var;
+         int var = GetRandomValue(0,3);
+         r->tileType = var;
       }
 
       char buffer[22];
