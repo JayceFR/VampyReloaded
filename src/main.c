@@ -486,7 +486,13 @@ void offgridsFree(hashvalue val){
     free_dynarray(o);
 }
 
-void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float reloadTimer, int coins, bool *shopOpen) {
+typedef struct { 
+    Texture2D tex; 
+    int price; 
+    const char* name; 
+} ShopItem;
+
+void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float reloadTimer, int coins, bool *shopOpen, ShopItem *shopItems, int totalItems) {
     // --- HEALTH (top center) ---
     int heartSpacing = 34;
     int totalWidth = maxHealth * heartSpacing;
@@ -518,34 +524,47 @@ void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float r
     int textHeight = 20;
     DrawText(coinText, coinX - textWidth / 2, coinY - textHeight / 2, 20, BLACK);
 
+    // --- Shop button (left of coins) ---
+    int shopButtonW = 100;
+    int shopButtonH = 40;
+    int shopButtonX = coinX - coinRadius - 20 - shopButtonW - 10; // 10 px gap
+    int shopButtonY = coinY - shopButtonH / 2;
+
+    Rectangle shopButton = { shopButtonX, shopButtonY, shopButtonW, shopButtonH };
+    DrawRectangleRec(shopButton, DARKBLUE);
+    DrawRectangleLinesEx(shopButton, 2, WHITE);
+    DrawText("SHOP", shopButton.x + 20, shopButton.y + 10, 20, WHITE);
+
+    Vector2 mouse = GetMousePosition();
+    if (CheckCollisionPointRec(mouse, shopButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        *shopOpen = true;
+    }
+
     // --- GUN SECTOR (bottom center trapezium) ---
     int hudWidth = 300;
-    int hudHeight = 120;   // a little taller for spacing
+    int hudHeight = 120;  
     int centerX = SCREEN_WIDTH;
     int bottomY = SCREEN_HEIGHT*2;
 
-    Vector2 p1 = {centerX - hudWidth/2, bottomY};                  // bottom left
-    Vector2 p2 = {centerX + hudWidth/2, bottomY};                  // bottom right
-    Vector2 p3 = {centerX + hudWidth/2 - 40, bottomY - hudHeight}; // top right inset
-    Vector2 p4 = {centerX - hudWidth/2 + 40, bottomY - hudHeight}; // top left inset
+    Vector2 p1 = {centerX - hudWidth/2, bottomY};
+    Vector2 p2 = {centerX + hudWidth/2, bottomY};
+    Vector2 p3 = {centerX + hudWidth/2 - 40, bottomY - hudHeight};
+    Vector2 p4 = {centerX - hudWidth/2 + 40, bottomY - hudHeight};
 
     Vector2 trap[4] = {p1, p2, p3, p4};
-    DrawTriangleFan(trap, 4, Fade(BLACK, 0.6f)); // fill
-    // outline
+    DrawTriangleFan(trap, 4, Fade(BLACK, 0.6f));
     DrawLineEx(p1, p2, 3, WHITE);
     DrawLineEx(p2, p3, 3, WHITE);
     DrawLineEx(p3, p4, 3, WHITE);
     DrawLineEx(p4, p1, 3, WHITE);
 
-    // --- Gun Icon (centered, scaled properly) ---
-    int gunMaxHeight = 50; // max height of gun
+    // --- Gun Icon (centered) ---
+    int gunMaxHeight = 50; 
     float aspect = (float)g.texture.width / (float)g.texture.height;
-
     int gunW = (int)(gunMaxHeight * aspect);
     int gunH = gunMaxHeight;
-
     int gunX = centerX - gunW / 2 - 30;
-    int gunY = bottomY - hudHeight + 10; // place near top of trapezium
+    int gunY = bottomY - hudHeight + 10;
 
     DrawTexturePro(
         g.texture,
@@ -559,14 +578,13 @@ void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float r
     // --- Ammo Text ---
     char ammoText[32];
     sprintf(ammoText, "%d / %d", ammo, g.maxAmmo);
-    int ammoTextY = gunY + gunH + 5; // just below gun
+    int ammoTextY = gunY + gunH + 5;
     DrawText(ammoText, centerX - MeasureText(ammoText, 22)/2, ammoTextY, 22, WHITE);
 
     // --- Ammo Bar ---
     float ammoPercent = (float)ammo / (float)g.maxAmmo;
     Rectangle ammoBack = {centerX - 75, ammoTextY + 25, 150, 12};
     Rectangle ammoFill = {centerX - 75, ammoTextY + 25, 150 * ammoPercent, 12};
-
     DrawRectangleRec(ammoBack, Fade(DARKGRAY, 0.8f));
     DrawRectangleRec(ammoFill, Fade(ORANGE, 0.9f));
     DrawRectangleLinesEx(ammoBack, 2, BLACK);
@@ -580,44 +598,79 @@ void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float r
         DrawText("Reloading...", centerX - MeasureText("Reloading...", 20)/2, ammoTextY + 60, 20, YELLOW);
     }
 
-    // Shop button position/size
-    Rectangle shopButton = { SCREEN_WIDTH - 120, 20, 100, 40 };
-    DrawRectangleRec(shopButton, DARKBLUE);
-    DrawRectangleLinesEx(shopButton, 2, WHITE);
-    DrawText("SHOP", shopButton.x + 20, shopButton.y + 10, 20, WHITE);
-
-    // Check click
-    Vector2 mouse = GetMousePosition();
-    if (CheckCollisionPointRec(mouse, shopButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        *shopOpen = true;
-    }
-
+    // --- SHOP SCREEN ---
     if (*shopOpen) {
-    // Dim background
-        DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, Fade(BLACK, 0.5f));
+        DrawRectangle(0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2, Fade(BLACK, 0.5f));
 
-        // Shop window
-        Rectangle shopRect = { SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 100, 300, 200 };
-        DrawRectangleRec(shopRect, RAYWHITE);
-        DrawRectangleLinesEx(shopRect, 3, BLACK);
-        DrawText("SHOP", shopRect.x + 110, shopRect.y + 10, 20, BLACK);
+        int cols = 3;
+        int rows = 2;
+        int padding = 20;
+        int itemW = (SCREEN_WIDTH * 2 - padding * (cols + 1)) / cols;
+        int itemH = (SCREEN_HEIGHT * 2 - padding * (rows + 1)) / rows;
 
-        // Example items
-        DrawText("1) Shotgun - 50 Credits", shopRect.x + 20, shopRect.y + 60, 16, DARKGRAY);
-        DrawText("2) Health +1 - 20 Credits", shopRect.x + 20, shopRect.y + 90, 16, DARKGRAY);
+        for (int i = 0; i < totalItems; i++) {
+            int col = i % cols;
+            int row = i / cols;
+            int x = padding + col * (itemW + padding);
+            int y = padding + row * (itemH + padding);
 
-        // Close button
-        Rectangle closeBtn = { shopRect.x + 260, shopRect.y + 10, 30, 30 };
+            // --- Item background ---
+            Rectangle itemRect = { x, y, itemW, itemH };
+            DrawRectangleRec(itemRect, Fade(RAYWHITE, 0.9f));
+            DrawRectangleLinesEx(itemRect, 2, BLACK);
+
+            // --- Gun texture (scaled to fit) ---
+            int texPadding = 10;
+            float texAspect = (float)shopItems[i].tex.width / (float)shopItems[i].tex.height;
+            int maxTexW = itemW - 2 * texPadding;
+            int maxTexH = itemH / 2;
+            int texW, texH;
+            if (texAspect > 1.0f) {
+                texW = maxTexW;
+                texH = (int)(maxTexW / texAspect);
+            } else {
+                texH = maxTexH;
+                texW = (int)(maxTexH * texAspect);
+            }
+            int texX = x + (itemW - texW) / 2;
+            int texY = y + texPadding;
+
+            DrawTexturePro(
+                shopItems[i].tex,
+                (Rectangle){0, 0, shopItems[i].tex.width, shopItems[i].tex.height},
+                (Rectangle){texX, texY, texW, texH},
+                (Vector2){0,0}, 0, WHITE
+            );
+
+            // --- Gun name ---
+            DrawText(shopItems[i].name, x + 10, y + texH + 15, 18, BLACK);
+
+            // --- Price ---
+            char priceText[16];
+            sprintf(priceText, "%d Credits", shopItems[i].price);
+            DrawText(priceText, x + 10, y + texH + 35, 16, DARKGRAY);
+
+            // --- Buy button ---
+            Rectangle buyBtn = { x + itemW - 80, y + itemH - 40, 70, 30 };
+            DrawRectangleRec(buyBtn, GREEN);
+            DrawRectangleLinesEx(buyBtn, 2, BLACK);
+            DrawText("BUY", buyBtn.x + 10, buyBtn.y + 5, 20, WHITE);
+
+            if (CheckCollisionPointRec(mouse, buyBtn) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                // purchase logic
+            }
+        }
+
+        // --- Close shop button ---
+        Rectangle closeBtn = { SCREEN_WIDTH * 2 - 60, 20, 40, 40 };
         DrawRectangleRec(closeBtn, RED);
-        DrawText("X", closeBtn.x + 8, closeBtn.y + 5, 20, WHITE);
-
+        DrawText("X", closeBtn.x + 12, closeBtn.y + 8, 24, WHITE);
         if (CheckCollisionPointRec(mouse, closeBtn) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             *shopOpen = false;
         }
     }
-
-
 }
+
 
 
 
@@ -845,6 +898,14 @@ int main() {
     guns[3].damage = 25.0f;
     guns[3].speed = 10.0f;
     guns[3].numberOfProjectiles = 1;
+
+    // Shop items 
+    ShopItem shopItems[4];
+    shopItems[0] = (ShopItem){gunTexs[0], 100, "Sniper Rifle"};
+    shopItems[1] = (ShopItem){gunTexs[1], 75, "SMG"};
+    shopItems[2] = (ShopItem){gunTexs[2], 50, "Dual Uzi"};
+    shopItems[3] = (ShopItem){gunTexs[3], 25, "Pistol"};
+    int totalShopItems = 4;
 
     Gun g = guns[GetRandomValue(0, 3)]; // start with random gun
     int ammo = g.maxAmmo;
@@ -1312,7 +1373,7 @@ int main() {
                 
             }
 
-            DrawHUD(maxHealth, health, g, ammo, reloading, reloadTimer, currency, &shopOpen);
+            DrawHUD(maxHealth, health, g, ammo, reloading, reloadTimer, currency, &shopOpen, shopItems, totalShopItems);
             DrawJoystick(joy);
             DrawJoystick(aim);
 
