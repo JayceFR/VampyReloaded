@@ -492,7 +492,7 @@ typedef struct {
     const char* name; 
 } ShopItem;
 
-void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float reloadTimer, int coins, bool *shopOpen, ShopItem *shopItems, int totalItems) {
+void DrawHUD(int maxHealth, int health, Gun *g, int *ammo, bool *reloading, float *reloadTimer, int *coins, bool *shopOpen, ShopItem *shopItems, int totalItems, Gun *guns) {
     // --- HEALTH (top center) ---
     int heartSpacing = 34;
     int totalWidth = maxHealth * heartSpacing;
@@ -519,7 +519,7 @@ void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float r
     DrawCircleLines(coinX, coinY, coinRadius, BLACK);
 
     char coinText[16];
-    sprintf(coinText, "%d", coins);
+    sprintf(coinText, "%d", *coins);
     int textWidth = MeasureText(coinText, 20);
     int textHeight = 20;
     DrawText(coinText, coinX - textWidth / 2, coinY - textHeight / 2, 20, BLACK);
@@ -560,15 +560,15 @@ void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float r
 
     // --- Gun Icon (centered) ---
     int gunMaxHeight = 50; 
-    float aspect = (float)g.texture.width / (float)g.texture.height;
+    float aspect = (float)g->texture.width / (float)g->texture.height;
     int gunW = (int)(gunMaxHeight * aspect);
     int gunH = gunMaxHeight;
     int gunX = centerX - gunW / 2 - 30;
     int gunY = bottomY - hudHeight + 10;
 
     DrawTexturePro(
-        g.texture,
-        (Rectangle){0, 0, g.texture.width, g.texture.height},
+        g->texture,
+        (Rectangle){0, 0, g->texture.width, g->texture.height},
         (Rectangle){gunX, gunY, gunW, gunH},
         (Vector2){0, 0},
         0,
@@ -577,12 +577,12 @@ void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float r
 
     // --- Ammo Text ---
     char ammoText[32];
-    sprintf(ammoText, "%d / %d", ammo, g.maxAmmo);
+    sprintf(ammoText, "%d / %d", *ammo, g->maxAmmo);
     int ammoTextY = gunY + gunH + 5;
     DrawText(ammoText, centerX - MeasureText(ammoText, 22)/2, ammoTextY, 22, WHITE);
 
     // --- Ammo Bar ---
-    float ammoPercent = (float)ammo / (float)g.maxAmmo;
+    float ammoPercent = (float)*ammo / (float)g->maxAmmo;
     Rectangle ammoBack = {centerX - 75, ammoTextY + 25, 150, 12};
     Rectangle ammoFill = {centerX - 75, ammoTextY + 25, 150 * ammoPercent, 12};
     DrawRectangleRec(ammoBack, Fade(DARKGRAY, 0.8f));
@@ -590,8 +590,8 @@ void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float r
     DrawRectangleLinesEx(ammoBack, 2, BLACK);
 
     // --- Reload Indicator ---
-    if (reloading) {
-        float reloadPercent = 1.0f - (reloadTimer / g.reloadTime);
+    if (*reloading) {
+        float reloadPercent = 1.0f - (*reloadTimer / g->reloadTime);
         int reloadWidth = 150 * reloadPercent;
         DrawRectangle(centerX - 75, ammoTextY + 45, reloadWidth, 8, GREEN);
         DrawRectangleLines(centerX - 75, ammoTextY + 45, 150, 8, BLACK);
@@ -658,6 +658,16 @@ void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float r
 
             if (CheckCollisionPointRec(mouse, buyBtn) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
                 // purchase logic
+                if (*coins >= shopItems[i].price) {
+                    *coins -= shopItems[i].price;
+                    *g = guns[i]; // Equip the purchased gun
+                    *ammo = g->maxAmmo;
+                    *reloadTimer = 0.0f;
+                    *reloading = false;
+                    printf("Purchased: %s\n", shopItems[i].name);
+                } else {
+                    printf("Not enough credits to buy %s\n", shopItems[i].name);
+                }
             }
         }
 
@@ -1373,7 +1383,7 @@ int main() {
                 
             }
 
-            DrawHUD(maxHealth, health, g, ammo, reloading, reloadTimer, currency, &shopOpen, shopItems, totalShopItems);
+            DrawHUD(maxHealth, health, &g, &ammo, &reloading, &reloadTimer, &currency, &shopOpen, shopItems, totalShopItems, guns);
             DrawJoystick(joy);
             DrawJoystick(aim);
 
