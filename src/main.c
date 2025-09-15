@@ -809,6 +809,9 @@ int main() {
 
     int level = 1; 
 
+    int maxHealth = 5;
+    int health = maxHealth;
+
     // NPCs
     dynarray npcs; 
 
@@ -964,6 +967,10 @@ int main() {
                 computersHacked = 0;
                 currComputer = NULL;
                 isHacking = false;
+                health = maxHealth;
+                roomX = player->pos.x / ROOM_SIZE;
+                roomY = player->pos.y / ROOM_SIZE;
+                sprintf(enemyKey, "%d:%d", roomX, roomY);
                 playerAlive = true;
                 transitioning = false;
             }
@@ -1119,12 +1126,15 @@ int main() {
                         continue;
                     }
                     if (CheckCollisionRecs(player->rect, p->e->rect)){
-                        if (playerAlive){
+                        health -= 1;
+                        if (health <= 0 && playerAlive){
                             playerAlive = false;
                             transitioning = true; 
                             transitionRadius = GetScreenWidth();
                             transitionCenter = (Vector2) {GetScreenWidth() / 4.0f, GetScreenHeight() / 4.0f}; 
                         }
+                        remove_dynarray(eprojectiles, pos);
+                        continue;
                     }
                     projectileDraw(p);
                     pos += 1;
@@ -1232,7 +1242,7 @@ int main() {
                 
             }
 
-            DrawHUD(5, 5, g, ammo, reloading, reloadTimer, joy, aim);
+            DrawHUD(maxHealth, health, g, ammo, reloading, reloadTimer, joy, aim);
             DrawJoystick(joy);
             DrawJoystick(aim);
 
