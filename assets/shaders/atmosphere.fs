@@ -51,34 +51,41 @@ void foreground(inout vec4 col) {
     vec4 tex_color = texture2D(texture0, fragTexCoord);
     col = tex_color;
 
-    vec2 baseUV = fragTexCoord * 5.0 + cam_scroll * -0.001;
+    // Larger scale = smoother shapes
+    vec2 uv = fragTexCoord * 2.5 + cam_scroll * 0.001;
 
-    float depth1 = fbm(baseUV + itime * scroll * 4.0) * 
-                   fbm(baseUV * 1.2 + itime * scroll2 * 1.5);
+    // Faster FBM motion (increased multipliers)
+    float depth1 = fbm(uv + itime * vec2(0.15, -0.10));
+    float depth2 = fbm(uv * 1.2 + itime * vec2(-0.12, 0.18));
 
-    float depth2 = fbm(baseUV * 0.8 + itime * scroll3 * 2.0) * 
-                   fbm(baseUV * 1.6 + itime * scroll4 * 2.5);
-
+    // Blend them softly
     float depth = mix(depth1, depth2, 0.5);
 
-    float fogFactor = pow(exp(-1.2 + depth * 2.0), 0.5);
-    float pulse = 0.5 + 0.5 * sin(itime * 2.0);
+    // Fog factor
+    float fogFactor = smoothstep(0.35, 0.75, depth);
 
-    vec3 fog_color1 = (jekyll == 1) 
-        ? vec3(0.2 + 0.1*pulse, 0.15, 0.4)
-        : vec3(0.4, 0.15 + 0.1*pulse, 0.2);
+    // Subtle pulse to keep it alive
+    float pulse = 0.5 + 0.5 * sin(itime * 1.5); // slightly faster pulse
 
-    vec3 fog_color2 = (jekyll == 1) 
-        ? vec3(0.1, 0.12 + 0.05*pulse, 0.35)
-        : vec3(0.35, 0.1, 0.15 + 0.05*pulse);
+    // Softer bluish palette
+    vec3 fog_color1 = (jekyll == 0)
+        ? vec3(0.55 + 0.03*pulse, 0.65 + 0.04*pulse, 0.78 + 0.05*pulse)
+        : vec3(0.45 + 0.03*pulse, 0.55 + 0.04*pulse, 0.68 + 0.05*pulse);
 
-    vec3 fog_color = mix(fog_color1, fog_color2, depth);
+    vec3 fog_color2 = (jekyll == 0)
+        ? vec3(0.4, 0.48, 0.65)
+        : vec3(0.3, 0.38, 0.55);
 
-    vec2 uv = fragTexCoord * 6.0 + itime * 1.5 + cam_scroll * -0.0001;
+    vec3 fog_color = mix(fog_color2, fog_color1, depth);
 
-    col.rgb = mix(fog_color, col.rgb, fogFactor);
-    col = mix(col, vec4(0.0,0.0,0.0,1.0), darkness);
+    // More subtle fog so player is visible
+    col.rgb = mix(col.rgb, fog_color, fogFactor * 0.4);
+
+    // Darkness overlay as before
+    col = mix(col, vec4(0.0, 0.0, 0.0, 1.0), darkness);
 }
+
+
 
 void overlay_frag(inout vec4 col) {
     vec2 uv = fragTexCoord * 6.0 + itime * 0.5 + cam_scroll * -0.005;

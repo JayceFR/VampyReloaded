@@ -1174,11 +1174,12 @@ int main() {
         // --- Present ---
         SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), target.texture);
         BeginDrawing();
+            BeginShaderMode(shader);
             ClearBackground(BLACK);
             src = (Rectangle) { 0, 0, (float)target.texture.width, -(float)target.texture.height };
             dst = (Rectangle) { 0, 0, (float)SCREEN_WIDTH * 2, (float)SCREEN_HEIGHT * 2 };
             DrawTexturePro(target.texture, src, dst, (Vector2){0, 0}, 0.0f, WHITE);
-            // EndShaderMode();i
+            EndShaderMode();
 
             DrawText(TextFormat("Hacked: %d/%d", computersHacked, mData.noOfComputers), 100, 60, 10, RED);
 
