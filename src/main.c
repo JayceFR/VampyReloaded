@@ -18,6 +18,7 @@
 #include "gun.h"
 #include "computer.h"
 #include "npc.h"
+#include "coin.h"
 // #include <math.h>
 
 #define MAX_BOIDS 100
@@ -812,6 +813,9 @@ int main() {
     int maxHealth = 5;
     int health = maxHealth;
 
+    // Coins
+    Coin coins[MAX_COINS];
+
     // NPCs
     dynarray npcs; 
 
@@ -1062,6 +1066,10 @@ int main() {
                     }
                 }
 
+                // Draw coins
+                updateCoins(coins, player, 0.5f);
+                drawCoins(coins);
+
 
                 int pos = 0;
                 while (pos < projectiles->len){
@@ -1099,6 +1107,9 @@ int main() {
 
                                 if (e->health <= 0){
                                     remove_dynarray(enemies, epos);
+
+                                    // Spawn coins
+                                    spawnCoins(coins, e->e->pos, 20);
                                 }
 
                                 break;
