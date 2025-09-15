@@ -1127,6 +1127,8 @@ int main() {
                     }
                     if (CheckCollisionRecs(player->rect, p->e->rect)){
                         health -= 1;
+                        Impact_SpawnBurst((Vector2){player->rect.x, player->rect.y}, PURPLE, 10);
+                        Impact_StartShake(1.0f, 4.0f);
                         if (health <= 0 && playerAlive){
                             playerAlive = false;
                             transitioning = true; 
