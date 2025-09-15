@@ -25,7 +25,7 @@ void spawnCoins(Coin *coins, Vector2 deathPos, int numCoins) {
     }
 }
 
-void updateCoins(Coin *coins, entity killer, float dt) {
+void updateCoins(Coin *coins, entity killer, float dt, int *currency) {
     for (int i = 0; i < MAX_COINS; i++) {
         if (!coins[i].active) continue;
 
@@ -44,7 +44,7 @@ void updateCoins(Coin *coins, entity killer, float dt) {
         if (dist < 12.0f) {
             // Collected
             coins[i].active = false;
-            // killer->coins += 1;
+            *currency += 1;
             continue;
         }
 

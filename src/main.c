@@ -486,7 +486,7 @@ void offgridsFree(hashvalue val){
     free_dynarray(o);
 }
 
-void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float reloadTimer, Joystick movementJoy, Joystick aimJoy) {
+void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float reloadTimer, int coins) {
     // --- HEALTH (top center) ---
     int heartSpacing = 34;
     int totalWidth = maxHealth * heartSpacing;
@@ -503,6 +503,20 @@ void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float r
             DrawCircleLines(x, y, 14, BLACK);
         }
     }
+
+    // --- Coins (top right) ---
+    int coinRadius = 16;
+    int coinX = SCREEN_WIDTH*2 - coinRadius - 20;
+    int coinY = 30;
+
+    DrawCircle(coinX, coinY, coinRadius, GOLD);
+    DrawCircleLines(coinX, coinY, coinRadius, BLACK);
+
+    char coinText[16];
+    sprintf(coinText, "%d", coins);
+    int textWidth = MeasureText(coinText, 20);
+    int textHeight = 20;
+    DrawText(coinText, coinX - textWidth / 2, coinY - textHeight / 2, 20, BLACK);
 
     // --- GUN SECTOR (bottom center trapezium) ---
     int hudWidth = 300;
@@ -565,8 +579,8 @@ void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float r
         DrawRectangleLines(centerX - 75, ammoTextY + 45, 150, 8, BLACK);
         DrawText("Reloading...", centerX - MeasureText("Reloading...", 20)/2, ammoTextY + 60, 20, YELLOW);
     }
-
 }
+
 
 
 int main() {
@@ -815,6 +829,7 @@ int main() {
 
     // Coins
     Coin coins[MAX_COINS];
+    int currency = 0;
 
     // NPCs
     dynarray npcs; 
@@ -1067,7 +1082,7 @@ int main() {
                 }
 
                 // Draw coins
-                updateCoins(coins, player, 0.5f);
+                updateCoins(coins, player, 0.5f, &currency);
                 drawCoins(coins);
 
 
@@ -1256,7 +1271,7 @@ int main() {
                 
             }
 
-            DrawHUD(maxHealth, health, g, ammo, reloading, reloadTimer, joy, aim);
+            DrawHUD(maxHealth, health, g, ammo, reloading, reloadTimer, currency);
             DrawJoystick(joy);
             DrawJoystick(aim);
 

@@ -14,7 +14,7 @@ typedef struct Coin {
 #define MAX_COINS 50
 
 extern void spawnCoins(Coin *coins, Vector2 deathPos, int numCoins);
-extern void updateCoins(Coin *coins, entity killer, float dt);
+extern void updateCoins(Coin *coins, entity killer, float dt, int *currency);
 extern void drawCoins(Coin *coins);
 
 #endif
