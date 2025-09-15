@@ -16,5 +16,6 @@ typedef struct Coin {
 extern void spawnCoins(Coin *coins, Vector2 deathPos, int numCoins);
 extern void updateCoins(Coin *coins, entity killer, float dt, int *currency);
 extern void drawCoins(Coin *coins);
+extern Coin *createCoins();
 
 #endif

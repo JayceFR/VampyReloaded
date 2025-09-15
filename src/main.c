@@ -937,7 +937,7 @@ int main() {
     int health = maxHealth;
 
     // Coins
-    Coin coins[MAX_COINS];
+    Coin *coins = createCoins();
     int currency = 0;
 
     // Shop 
@@ -1125,12 +1125,38 @@ int main() {
             ClearBackground((Color) {0, 0, 0, 0});
             BeginMode2D(camera);
                 MapDrawCached(camera);
-                if ((offgrids = hashFind(offgridMap, enemyKey)) != NULL){
-                    for (int i = 0; i < offgrids->len; i++){
+                // if ((offgrids = hashFind(offgridMap, enemyKey)) != NULL){
+                //     for (int i = 0; i < offgrids->len; i++){
+                //         offgridTile o = (offgridTile) offgrids->data[i];
+                //         DrawTexture(o->texture, o->x , o->y , WHITE);
+                //     }
+                // }
+                if ((offgrids = hashFind(offgridMap, enemyKey)) != NULL) {
+                    // compute world-space screen rect once
+                    Rectangle screenWorld = {
+                        camera.target.x - (SCREEN_WIDTH / 2) / camera.zoom,
+                        camera.target.y - (SCREEN_HEIGHT / 2) / camera.zoom,
+                        SCREEN_WIDTH / camera.zoom,
+                        SCREEN_HEIGHT / camera.zoom
+                    };
+
+                    for (int i = 0; i < offgrids->len; i++) {
                         offgridTile o = (offgridTile) offgrids->data[i];
-                        DrawTexture(o->texture, o->x , o->y , WHITE);
+                        Rectangle tileRect = { (float)o->x, (float)o->y,
+                                            (float)o->texture.width, (float)o->texture.height };
+
+                        // skip if not visible
+                        if (tileRect.x + tileRect.width  < screenWorld.x ||
+                            tileRect.x > screenWorld.x + screenWorld.width ||
+                            tileRect.y + tileRect.height < screenWorld.y ||
+                            tileRect.y > screenWorld.y + screenWorld.height) {
+                            continue;
+                        }
+
+                        DrawTexture(o->texture, o->x, o->y, WHITE);
                     }
                 }
+
                 if ((enemies = hashFind(mData.enemies, enemyKey)) != NULL) {
                     for (int i = 0; i < enemies->len; i++) {
                         Enemy e = enemies->data[i];

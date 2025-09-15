@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "raylib.h"
 #include "raymath.h"
@@ -60,6 +61,22 @@ void updateCoins(Coin *coins, entity killer, float dt, int *currency) {
 
         coins[i].pos = Vector2Add(coins[i].pos, coins[i].vel);
     }
+}
+
+Coin *createCoins(){
+    // Coin *coins = malloc(sizeof(Coin) * MAX_COINS);
+    // for (int i = 0; i < MAX_COINS; i++){
+    //     coins[i].active = false;
+    //     coins[i].attractDelay = 0;
+    //     coins[i].pos = (Vector2) {0,0};
+    //     coins[i].vel = (Vector2) {0,0};
+    // }
+    Coin *coins = calloc(MAX_COINS, sizeof(Coin));
+    if (!coins){
+        TraceLog(LOG_ERROR, "Failed to allocate coins");
+        return NULL;
+    }
+    return coins;
 }
 
 void drawCoins(Coin *coins) {
