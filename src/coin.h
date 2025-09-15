@@ -3,11 +3,13 @@
 
 #include "raylib.h"
 
-typedef struct {
+typedef struct Coin {
     Vector2 pos;
     Vector2 vel;
     bool active;
+    float attractDelay; // time before attraction starts
 } Coin;
+
 
 #define MAX_COINS 50
 
