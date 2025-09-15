@@ -486,7 +486,7 @@ void offgridsFree(hashvalue val){
     free_dynarray(o);
 }
 
-void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float reloadTimer, int coins) {
+void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float reloadTimer, int coins, bool *shopOpen) {
     // --- HEALTH (top center) ---
     int heartSpacing = 34;
     int totalWidth = maxHealth * heartSpacing;
@@ -579,6 +579,44 @@ void DrawHUD(int maxHealth, int health, Gun g, int ammo, bool reloading, float r
         DrawRectangleLines(centerX - 75, ammoTextY + 45, 150, 8, BLACK);
         DrawText("Reloading...", centerX - MeasureText("Reloading...", 20)/2, ammoTextY + 60, 20, YELLOW);
     }
+
+    // Shop button position/size
+    Rectangle shopButton = { SCREEN_WIDTH - 120, 20, 100, 40 };
+    DrawRectangleRec(shopButton, DARKBLUE);
+    DrawRectangleLinesEx(shopButton, 2, WHITE);
+    DrawText("SHOP", shopButton.x + 20, shopButton.y + 10, 20, WHITE);
+
+    // Check click
+    Vector2 mouse = GetMousePosition();
+    if (CheckCollisionPointRec(mouse, shopButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        *shopOpen = true;
+    }
+
+    if (*shopOpen) {
+    // Dim background
+        DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, Fade(BLACK, 0.5f));
+
+        // Shop window
+        Rectangle shopRect = { SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 100, 300, 200 };
+        DrawRectangleRec(shopRect, RAYWHITE);
+        DrawRectangleLinesEx(shopRect, 3, BLACK);
+        DrawText("SHOP", shopRect.x + 110, shopRect.y + 10, 20, BLACK);
+
+        // Example items
+        DrawText("1) Shotgun - 50 Credits", shopRect.x + 20, shopRect.y + 60, 16, DARKGRAY);
+        DrawText("2) Health +1 - 20 Credits", shopRect.x + 20, shopRect.y + 90, 16, DARKGRAY);
+
+        // Close button
+        Rectangle closeBtn = { shopRect.x + 260, shopRect.y + 10, 30, 30 };
+        DrawRectangleRec(closeBtn, RED);
+        DrawText("X", closeBtn.x + 8, closeBtn.y + 5, 20, WHITE);
+
+        if (CheckCollisionPointRec(mouse, closeBtn) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            *shopOpen = false;
+        }
+    }
+
+
 }
 
 
@@ -830,6 +868,9 @@ int main() {
     // Coins
     Coin coins[MAX_COINS];
     int currency = 0;
+
+    // Shop 
+    bool shopOpen = false;
 
     // NPCs
     dynarray npcs; 
@@ -1271,7 +1312,7 @@ int main() {
                 
             }
 
-            DrawHUD(maxHealth, health, g, ammo, reloading, reloadTimer, currency);
+            DrawHUD(maxHealth, health, g, ammo, reloading, reloadTimer, currency, &shopOpen);
             DrawJoystick(joy);
             DrawJoystick(aim);
 
