@@ -986,6 +986,13 @@ int main() {
         }
         double t_input_end = GetTime();
 
+        if (IsKeyPressed(KEY_J)){
+            level += 1;
+            transitioning = true;
+            transitionRadius = 0.0f;
+            transitionCenter = player->pos;
+        }
+
         double t_logic_start = GetTime();
         // --- Game logic ---
         // (all your logic code here, e.g. update, Impact_UpdateShake, etc.)
@@ -1338,12 +1345,12 @@ int main() {
         // --- Present ---
         SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), target.texture);
         BeginDrawing();
-            BeginShaderMode(shader);
+            // BeginShaderMode(shader);
             ClearBackground(BLACK);
             src = (Rectangle) { 0, 0, (float)target.texture.width, -(float)target.texture.height };
             dst = (Rectangle) { 0, 0, (float)SCREEN_WIDTH * 2, (float)SCREEN_HEIGHT * 2 };
             DrawTexturePro(target.texture, src, dst, (Vector2){0, 0}, 0.0f, WHITE);
-            EndShaderMode();
+            // EndShaderMode();
 
             DrawText(TextFormat("Hacked: %d/%d", computersHacked, mData.noOfComputers), 100, 60, 10, RED);
 

@@ -45,6 +45,7 @@ static LevelConfig LevelConfigFromLevel(int level){
 
 void tilesFree(hashvalue val){
   rect r = (rect) val; 
+  if (r->node) free(r->node);
   free(r);
 }
 
@@ -488,6 +489,7 @@ bool canPlaceProperty(hash map, Texture2D prop, int x, int y) {
 
 void offgridTileFree(DA_ELEMENT el){
     offgridTile o = (offgridTile) el;
+    // UnloadTexture(o->texture);
     free(o);
 }
 
@@ -599,7 +601,7 @@ mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt, 
 
       char buffer[22];
       sprintf(buffer, "%d:%d", x, y);
-      hashSet(data.map, strdup(buffer), r);
+      hashSet(data.map, buffer, r);
     }
   }
 
