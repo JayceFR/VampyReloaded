@@ -26,5 +26,6 @@ void projectileDraw(projectile p){
 }
 
 void projectileFree(projectile p){
+    free(p->e);
     free(p);
 }
