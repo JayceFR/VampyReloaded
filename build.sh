@@ -35,13 +35,20 @@ case "$TARGET" in
 		CC="$ARCH-w64-mingw32-gcc"
 		EXT=".exe"
 		PLATFORM="PLATFORM_DESKTOP"
-		TARGET_FLAGS="-lopengl32 -lgdi32 -lwinmm -static -Wl,--subsystem,windows -fsanitize=address -g"
+		TARGET_FLAGS="-lopengl32 -lgdi32 -lwinmm -static -Wl,--subsystem,windows -fsanitize=address -g -O0"
 		;;
 
 	"Linux")
 		CC="gcc"
 		PLATFORM="PLATFORM_DESKTOP"
-		TARGET_FLAGS="-lGL -lm -lpthread -ldl -lrt -lX11"
+		# TARGET_FLAGS="-lGL -lm -lpthread -ldl -lrt -lX11 -fsanitize=address -g -O0"
+		if [[ -n "$DEBUG" ]]; then
+        	# Debug build: keep symbols, disable optimizations, enable ASan
+        	TARGET_FLAGS="-lGL -lm -lpthread -ldl -lrt -lX11 -fsanitize=address -g -O0 -no-pie"
+    	else
+        	# Release build: optimize, strip if you want smaller binary
+        	TARGET_FLAGS="-lGL -lm -lpthread -ldl -lrt -lX11 -O2 -s"
+		fi
 		;;
 
 	"Web")
