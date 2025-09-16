@@ -922,7 +922,7 @@ int main() {
     guns[2].maxAmmo = 20;
     guns[2].reloadTime = 2.0f;
     guns[2].texture = gunTexs[2];
-    guns[2].damage = 15.0f;
+    guns[2].damage = 8.0f;
     guns[2].speed = 13.0f;
     guns[2].numberOfProjectiles = 2;
     // pistol 
@@ -938,7 +938,7 @@ int main() {
     guns[4].maxAmmo = 8;
     guns[4].reloadTime = 2.5f;
     guns[4].texture = gunTexs[4];
-    guns[4].damage = 10.0f;
+    guns[4].damage = 40.0f;
     guns[4].speed = 9.0f;
     guns[4].numberOfProjectiles = 4;
     // Mini Gun
@@ -946,9 +946,9 @@ int main() {
     guns[5].maxAmmo = 100;
     guns[5].reloadTime = 5.0f;
     guns[5].texture = gunTexs[5];
-    guns[5].damage = 8.0f;
-    guns[5].speed = 14.0f;
-    guns[5].numberOfProjectiles = 1;
+    guns[5].damage = 16.0f;
+    guns[5].speed = 15.0f;
+    guns[5].numberOfProjectiles = 2;
 
 
     loadDirectory();
@@ -965,7 +965,7 @@ int main() {
 
     closeDirectory();
 
-    Gun g = guns[4]; // start with random gun
+    Gun g = guns[5]; // start with random gun
     int ammo = g.maxAmmo;
     float reloadTimer = 0.0f; 
     bool reloading = false;
@@ -1325,7 +1325,16 @@ int main() {
                             Enemy e = enemies->data[epos];
 
                             if (CheckCollisionRecs(e->e->rect, p->e->rect)){
-                                e->health -= g.damage;
+                                if (p->gunType == SHOTGUN){
+                                    // e->health -= (g.damage / Vector2Distance(p->startPos, e->e->pos));
+                                    float dist = Vector2Distance(p->startPos, e->e->pos);
+                                    float falloff = 50.0f; // tweak falloff strength
+                                    float dmg = g.damage * (falloff / (dist + falloff));
+                                    e->health -= dmg;
+                                }
+                                else{
+                                    e->health -= g.damage;
+                                }
                                 e->state = ACTIVE;
                                 // Impact_HitFlashTrigger(&e->flash )
                                 Impact_SpawnBurst((Vector2){p->e->rect.x, p->e->rect.y}, RED, 8);
