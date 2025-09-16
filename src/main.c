@@ -494,7 +494,7 @@ typedef struct {
 
 } ShopItem;
 
-void DrawHUD(int maxHealth, int *health, Gun *g, int *ammo, bool *reloading, float *reloadTimer, int *coins, bool *shopOpen, ShopItem *shopItems, int totalItems, Gun *guns) {
+void DrawHUD(int maxHealth, int *health, Gun *g, int *ammo, bool *reloading, float *reloadTimer, int *coins, bool *shopOpen, ShopItem *shopItems, int totalItems, Gun *guns, float *notificationTimer, char *notification_msg) {
     // --- HEALTH (top center) ---
     int heartSpacing = 34;
     int totalWidth = maxHealth * heartSpacing;
@@ -676,8 +676,13 @@ void DrawHUD(int maxHealth, int *health, Gun *g, int *ammo, bool *reloading, flo
                         }
                     }
                     printf("Purchased: %s\n", shopItems[i].name);
+                    sprintf(notification_msg, "Purchased!");
+                    *notificationTimer = 2.0f;
+                    *shopOpen = false;
                 } else {
                     printf("Not enough credits to buy %s\n", shopItems[i].name);
+                    sprintf(notification_msg, "Not enough credits!");
+                    *notificationTimer = 2.0f;
                 }
             }
         }
@@ -957,6 +962,8 @@ int main() {
 
     // Shop 
     bool shopOpen = false;
+    char notificationMsg[64] = "Purchased!";
+    float notificationTimer = 0.0f;
 
     // NPCs
     dynarray npcs; 
@@ -1431,7 +1438,16 @@ int main() {
                 
             }
 
-            DrawHUD(maxHealth, &health, &g, &ammo, &reloading, &reloadTimer, &currency, &shopOpen, shopItems, totalShopItems, guns);
+            DrawHUD(maxHealth, &health, &g, &ammo, &reloading, &reloadTimer, &currency, &shopOpen, shopItems, totalShopItems, guns, &notificationTimer, notificationMsg);
+            // --- NOTIFICATION ---
+            if (notificationTimer > 0.0f) {
+                int fontSize = 30;
+                int msgWidth = MeasureText(notificationMsg, fontSize);
+                DrawRectangle(SCREEN_WIDTH - msgWidth/2 - 20, 50, msgWidth + 40, 60, Fade(BLACK, 0.7f));
+                DrawText(notificationMsg, SCREEN_WIDTH - msgWidth/2, 70, fontSize, GREEN);
+                notificationTimer -= GetFrameTime();
+            }
+
             DrawJoystick(joy);
             DrawJoystick(aim);
 
