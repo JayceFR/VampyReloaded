@@ -601,20 +601,36 @@ void DrawHUD(int maxHealth, int *health, Gun *g, int *ammo, bool *reloading, flo
     }
 
     // --- SHOP SCREEN ---
+    // --- SHOP SCREEN ---
     if (*shopOpen) {
         DrawRectangle(0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2, Fade(BLACK, 0.5f));
 
-        int cols = 3;
-        int rows = 2;
+        int cols = 4;                      // now 4 per row
         int padding = 20;
         int itemW = (SCREEN_WIDTH * 2 - padding * (cols + 1)) / cols;
-        int itemH = (SCREEN_HEIGHT * 2 - padding * (rows + 1)) / rows;
+        int itemH = 200;                   // fixed height (fits more rows)
+
+        // --- SCROLL CONTROL ---
+        static int scrollOffset = 0;       // persists across frames
+        int scrollSpeed = 20;
+        int maxScroll = ((totalItems + cols - 1) / cols) * (itemH + padding) 
+                        - (SCREEN_HEIGHT * 2) + padding;
+
+        // mouse wheel
+        int wheel = GetMouseWheelMove();
+        scrollOffset += -wheel * scrollSpeed;
+        if (scrollOffset < 0) scrollOffset = 0;
+        if (scrollOffset > maxScroll) scrollOffset = maxScroll;
 
         for (int i = 0; i < totalItems; i++) {
             int col = i % cols;
             int row = i / cols;
+
             int x = padding + col * (itemW + padding);
-            int y = padding + row * (itemH + padding);
+            int y = padding + row * (itemH + padding) - scrollOffset;
+
+            // Skip drawing if item is offscreen
+            if (y + itemH < 0 || y > SCREEN_HEIGHT * 2) continue;
 
             // --- Item background ---
             Rectangle itemRect = { x, y, itemW, itemH };
@@ -648,7 +664,7 @@ void DrawHUD(int maxHealth, int *health, Gun *g, int *ammo, bool *reloading, flo
             DrawText(shopItems[i].name, x + 10, y + texH + 15, 18, BLACK);
 
             // --- Price ---
-            char priceText[16];
+            char priceText[32];
             sprintf(priceText, "%d Credits", shopItems[i].price);
             DrawText(priceText, x + 10, y + texH + 35, 16, DARKGRAY);
 
@@ -659,28 +675,20 @@ void DrawHUD(int maxHealth, int *health, Gun *g, int *ammo, bool *reloading, flo
             DrawText("BUY", buyBtn.x + 10, buyBtn.y + 5, 20, WHITE);
 
             if (CheckCollisionPointRec(mouse, buyBtn) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                // purchase logic
                 if (*coins >= shopItems[i].price) {
                     *coins -= shopItems[i].price;
                     if (shopItems[i].weapon) {
-                        // Drop current gun logic could go here
-                        *g = guns[i]; // Equip the purchased gun
+                        *g = guns[i];
                         *ammo = g->maxAmmo;
                         *reloadTimer = 0.0f;
                         *reloading = false;
+                    } else if (strcmp(shopItems[i].name, "Medkit") == 0) {
+                        *health = maxHealth;
                     }
-                    else{
-                        // Handle non-weapon items (e.g., health packs)
-                        if (strcmp(shopItems[i].name, "Medkit") == 0) {
-                            *health = maxHealth;
-                        }
-                    }
-                    printf("Purchased: %s\n", shopItems[i].name);
                     sprintf(notification_msg, "Purchased!");
                     *notificationTimer = 2.0f;
                     *shopOpen = false;
                 } else {
-                    printf("Not enough credits to buy %s\n", shopItems[i].name);
                     sprintf(notification_msg, "Not enough credits!");
                     *notificationTimer = 2.0f;
                 }
@@ -695,6 +703,7 @@ void DrawHUD(int maxHealth, int *health, Gun *g, int *ammo, bool *reloading, flo
             *shopOpen = false;
         }
     }
+
 }
 
 
@@ -740,7 +749,7 @@ int main() {
     Texture2D *forestTexs = loadTexturesFromDirectory("tiles/offgrid/forest/", NO_OF_FOREST_TEXS);
     Texture2D *townTexs = loadTexturesFromDirectory("tiles/offgrid/town/", NO_OF_TOWN_TEXS);
     Texture2D *villageTexs = loadTexturesFromDirectory("tiles/offgrid/village/", NO_OF_VILLAGE_TEXS);
-    Texture2D *gunTexs = loadTexturesFromDirectory("entities/guns/", 4);
+    Texture2D *gunTexs = loadTexturesFromDirectory("entities/guns/", 6);
 
     BIOME_DATA biome_data = malloc(sizeof(struct BIOME_DATA)); 
     biome_data->texs = malloc(sizeof(Texture2D *) * NO_OF_BIOMES);
@@ -890,7 +899,7 @@ int main() {
 
     // Guns 
     
-    Gun *guns = malloc(sizeof(Gun) * 4);
+    Gun *guns = malloc(sizeof(Gun) * 6);
     // sniper
     guns[0].cooldown = 1.5f;
     guns[0].maxAmmo = 3;
@@ -924,20 +933,39 @@ int main() {
     guns[3].damage = 25.0f;
     guns[3].speed = 10.0f;
     guns[3].numberOfProjectiles = 1;
+    // Shotgun
+    guns[4].cooldown = 1.0f;
+    guns[4].maxAmmo = 8;
+    guns[4].reloadTime = 2.5f;
+    guns[4].texture = gunTexs[4];
+    guns[4].damage = 10.0f;
+    guns[4].speed = 9.0f;
+    guns[4].numberOfProjectiles = 4;
+    // Mini Gun
+    guns[5].cooldown = 0.1f;
+    guns[5].maxAmmo = 100;
+    guns[5].reloadTime = 5.0f;
+    guns[5].texture = gunTexs[5];
+    guns[5].damage = 8.0f;
+    guns[5].speed = 14.0f;
+    guns[5].numberOfProjectiles = 1;
+
 
     loadDirectory();
     // Shop items 
-    int totalShopItems = 5;
+    int totalShopItems = 7;
     ShopItem shopItems[totalShopItems];
     shopItems[0] = (ShopItem){gunTexs[0], true, 100, "Sniper Rifle"};
     shopItems[1] = (ShopItem){gunTexs[1], true, 75, "SMG"};
     shopItems[2] = (ShopItem){gunTexs[2], true, 50, "Dual Uzi"};
     shopItems[3] = (ShopItem){gunTexs[3], true, 25, "Pistol"};
-    shopItems[4] = (ShopItem){LoadTexture("entities/items/fab.png"), false, 30, "Medkit"};
+    shopItems[4] = (ShopItem){gunTexs[4], true, 80, "Shotgun"};
+    shopItems[5] = (ShopItem){gunTexs[5], true, 150, "Minigun"};
+    shopItems[6] = (ShopItem){LoadTexture("entities/items/fab.png"), false, 30, "Medkit"};
 
     closeDirectory();
 
-    Gun g = guns[GetRandomValue(0, 3)]; // start with random gun
+    Gun g = guns[4]; // start with random gun
     int ammo = g.maxAmmo;
     float reloadTimer = 0.0f; 
     bool reloading = false;
