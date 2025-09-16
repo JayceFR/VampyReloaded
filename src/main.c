@@ -706,7 +706,15 @@ void DrawHUD(int maxHealth, int *health, Gun *g, int *ammo, bool *reloading, flo
 
 }
 
+typedef enum {
+        TT_NONE = 0,
+        TT_LEVEL,
+        TT_DEATH
+} TransitionType;
 
+static inline float clampf(float v, float lo, float hi) {
+    return v < lo ? lo : (v > hi ? hi : v);
+}
 
 
 int main() {
@@ -892,10 +900,26 @@ int main() {
     float startTime = GetTime();
 
     bool playerAlive = true; 
-    bool transitioning = false; 
-    float transitionRadius = 0.0f; 
-    float transitionSpeed = 200.0f; 
-    Vector2 transitionCenter; 
+    // bool transitioning = false; 
+    // float transitionRadius = 0.0f; 
+    // float transitionSpeed = 200.0f; 
+    // Vector2 transitionCenter; 
+
+    // Transitioning 
+
+    static TransitionType transitionType = TT_NONE;
+    static bool transitioning = false;        // existing name reused
+    static float transitionRadius = 0.0f;
+    static float transitionMaxRadius = 0.0f;
+    static float transitionSpeed = 800.0f;    // pixels per second (tweakable)
+    static bool transitionPhaseLoad = false;  // for level: expand -> load -> shrink
+    static Vector2 transitionCenter = {0,0};
+    static bool deathPhaseIn = true; // start by fading in
+
+    // death fade parameters
+    static float deathFade = 0.0f;            // 0..1 fade amount used for death transition
+    static float deathFadeSpeed = 2.0f;       // seconds to fully fade (tweakable)
+
 
     // Guns 
     
@@ -996,6 +1020,8 @@ int main() {
     // NPCs
     dynarray npcs; 
 
+
+
     while (!WindowShouldClose()) {
         double t_frame_start = GetTime();
 
@@ -1026,9 +1052,13 @@ int main() {
             if (computersHacked >= mData.noOfComputers){
                 // Move to next level 
                 level += 1;
-                transitioning = true; 
-                transitionRadius = 0.0f; 
-                transitionCenter = player->pos;
+                transitionType = TT_LEVEL;
+                transitioning = true;
+                transitionPhaseLoad = false;       // we will first expand
+                transitionRadius = 0.0f;           // start small and grow
+                transitionMaxRadius = (float)fmax(GetScreenWidth() / 2, GetScreenHeight() / 2) * 1.5f;
+                transitionSpeed = 1200.0f;         // tweak speed
+                transitionCenter = (Vector2) {GetScreenWidth() / 4, GetScreenHeight() / 4};    // expand from player
             }
         }
         else{
@@ -1153,34 +1183,104 @@ int main() {
         MapEnsureCache(map, camera, tiles, stoneTiles, dirtTiles);
 
         if (transitioning) {
-            transitionRadius -= transitionSpeed * delta;
-            if (transitionRadius <= 0.0f) {
-                mapFree(map);
-                hashFree(offgridMap);
-                hashFree(mData.enemies);
-                hashFree(mData.computers);
-                offgridMap = hashCreate(NULL, &offgridsFree, NULL);
-                mData = mapCreate(offgridMap, biome_data, pathDirt, level);
-                map = mData.map;
-                computers = mData.computers;
-                player->pos = mapFindSpawnTopLeft(map);
-                player->rect.x = player->pos.x;
-                player->rect.y = player->pos.y;
-                g = guns[GetRandomValue(0, 3)];
-                ammo = g.maxAmmo;
-                reloadTimer = 0.0f; 
-                reloading = false;
-                computersHacked = 0;
-                currComputer = NULL;
-                isHacking = false;
-                health = maxHealth;
-                roomX = player->pos.x / ROOM_SIZE;
-                roomY = player->pos.y / ROOM_SIZE;
-                sprintf(enemyKey, "%d:%d", roomX, roomY);
-                playerAlive = true;
-                transitioning = false;
+            float delta = GetFrameTime();
+
+            if (transitionType == TT_LEVEL) {
+                // LEVEL TRANSITION: phase 1 = expand circle until reaches max -> load -> shrink circle back to 0
+                if (!transitionPhaseLoad) {
+                    // expanding
+                    transitionRadius += transitionSpeed * delta;
+                    if (transitionRadius >= transitionMaxRadius) {
+                        // reached full screen: load next level
+                        transitionPhaseLoad = true;
+                        // --- load new world here (same code as before) ---
+                        mapFree(map);
+                        hashFree(offgridMap);
+                        hashFree(mData.enemies);
+                        hashFree(mData.computers);
+                        offgridMap = hashCreate(NULL, &offgridsFree, NULL);
+                        mData = mapCreate(offgridMap, biome_data, pathDirt, level);
+                        map = mData.map;
+                        computers = mData.computers;
+                        player->pos = mapFindSpawnTopLeft(map);
+                        player->rect.x = player->pos.x;
+                        player->rect.y = player->pos.y;
+                        g = guns[GetRandomValue(0, 3)];
+                        ammo = g.maxAmmo;
+                        reloadTimer = 0.0f;
+                        reloading = false;
+                        computersHacked = 0;
+                        currComputer = NULL;
+                        isHacking = false;
+                        health = maxHealth;
+                        roomX = player->pos.x / ROOM_SIZE;
+                        roomY = player->pos.y / ROOM_SIZE;
+                        sprintf(enemyKey, "%d:%d", roomX, roomY);
+                        playerAlive = true;
+                        // prepare to shrink the circle to reveal new map
+                        transitionRadius = transitionMaxRadius;
+                        // optionally slow down the shrink speed for dramatic effect:
+                        transitionSpeed = transitionSpeed * 0.6f;
+                    }
+                } else {
+                    // shrinking (reveal the new level)
+                    transitionRadius -= transitionSpeed * delta;
+                    if (transitionRadius <= 0.0f) {
+                        transitionRadius = 0.0f;
+                        transitioning = false;
+                        transitionType = TT_NONE;
+                        transitionPhaseLoad = false;
+                    }
+                }
             }
+            else if (transitionType == TT_DEATH) {
+                if (deathPhaseIn) {
+                    // fade in
+                    deathFade += delta / deathFadeSpeed;
+                    if (deathFade >= 1.0f) {
+                        deathFade = 1.0f;
+                        // reset map/player here
+                        mapFree(map);
+                        hashFree(offgridMap);
+                        hashFree(mData.enemies);
+                        hashFree(mData.computers);
+                        offgridMap = hashCreate(NULL, &offgridsFree, NULL);
+                        mData = mapCreate(offgridMap, biome_data, pathDirt, level);
+                        map = mData.map;
+                        computers = mData.computers;
+                        player->pos = mapFindSpawnTopLeft(map);
+                        player->rect.x = player->pos.x;
+                        player->rect.y = player->pos.y;
+                        g = guns[GetRandomValue(0, 3)];
+                        ammo = g.maxAmmo;
+                        reloadTimer = 0.0f;
+                        reloading = false;
+                        computersHacked = 0;
+                        currComputer = NULL;
+                        isHacking = false;
+                        health = maxHealth;
+                        roomX = player->pos.x / ROOM_SIZE;
+                        roomY = player->pos.y / ROOM_SIZE;
+                        sprintf(enemyKey, "%d:%d", roomX, roomY);
+                        playerAlive = true;
+
+                        // switch to fade-out phase
+                        deathPhaseIn = false;
+                    }
+                } else {
+                    // fade out
+                    deathFade -= delta / deathFadeSpeed;
+                    if (deathFade <= 0.0f) {
+                        deathFade = 0.0f;
+                        transitioning = false;
+                        transitionType = TT_NONE;
+                        deathPhaseIn = true; // reset for next death
+                    }
+                }
+            }
+
         }
+
         collidingComputer = false;
         currComputer = NULL;
         if ((computer = hashFind(computers, enemyKey)) != NULL){
@@ -1379,9 +1479,13 @@ int main() {
                         Impact_StartShake(1.0f, 4.0f);
                         if (health <= 0 && playerAlive){
                             playerAlive = false;
-                            transitioning = true; 
-                            transitionRadius = GetScreenWidth();
-                            transitionCenter = (Vector2) {GetScreenWidth() / 4.0f, GetScreenHeight() / 4.0f}; 
+                            // Start death transition (fade to red)
+                            transitionType = TT_DEATH;
+                            transitioning = true;
+                            deathFade = 0.0f;                  // start fade in
+                            deathFadeSpeed = 1.2f;             // seconds to full red (tweak)
+                            // center can remain as previously or set to screen corner if you like
+                            transitionCenter = (Vector2){ GetScreenWidth() / 4.0f, GetScreenHeight() / 4.0f }; 
                         }
                         remove_dynarray(eprojectiles, pos);
                         continue;
@@ -1488,16 +1592,29 @@ int main() {
 
             
             if (transitioning) {
-                BeginBlendMode(BLEND_ALPHA);
-                DrawRectangle(0, 0, SCREEN_WIDTH*2, SCREEN_HEIGHT*2, BLACK); // fill screen
-                DrawCircleV(
-                    (Vector2){ transitionCenter.x * 2, transitionCenter.y * 2 }, 
-                    transitionRadius * 2, 
-                    WHITE
-                );
-                EndBlendMode();
-                
+                if (transitionType == TT_LEVEL) {
+                    // draw a full black fill then a white circle hole at transitionCenter to create circular reveal
+                    BeginBlendMode(BLEND_ALPHA);
+                        DrawRectangle(0, 0, SCREEN_WIDTH*2, SCREEN_HEIGHT*2, BLACK); // cover screen
+                        // draw hole using white circle (or use transparent circle if you use mask logic)
+                        // we use white circle so the shader/draw logic that previously used this effect still works as intended.
+                        DrawCircleV((Vector2){transitionCenter.x * 2, transitionCenter.y * 2}, transitionRadius * 2, WHITE);
+                    EndBlendMode();
+                } else if (transitionType == TT_DEATH) {
+                    // death: full-screen red fade using deathFade (0..1)
+                    Color red = (Color){ 255, 30, 30, (unsigned char)(255.0f * deathFade) };
+                    DrawRectangle(0, 0, SCREEN_WIDTH*2, SCREEN_HEIGHT*2, red);
+
+                    // optional: vignette or text
+                    if (deathFade > 0.6f) {
+                        // show "You Died" text at full fade
+                        float alpha = (deathFade - 0.6f) / 0.4f;
+                        alpha = clampf(alpha, 0.0f, 1.0f);
+                        DrawTextEx(GetFontDefault(), "YOU DIED", (Vector2){ SCREEN_WIDTH*0.8f - 100, SCREEN_HEIGHT - 120 }, 40, 2, (Color){255,255,255,(unsigned char)(255*alpha)});
+                    }
+                }
             }
+
 
             DrawHUD(maxHealth, &health, &g, &ammo, &reloading, &reloadTimer, &currency, &shopOpen, shopItems, totalShopItems, guns, &notificationTimer, notificationMsg);
             // --- NOTIFICATION ---
