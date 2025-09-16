@@ -488,11 +488,13 @@ void offgridsFree(hashvalue val){
 
 typedef struct { 
     Texture2D tex; 
+    bool weapon; 
     int price; 
     const char* name; 
+
 } ShopItem;
 
-void DrawHUD(int maxHealth, int health, Gun *g, int *ammo, bool *reloading, float *reloadTimer, int *coins, bool *shopOpen, ShopItem *shopItems, int totalItems, Gun *guns) {
+void DrawHUD(int maxHealth, int *health, Gun *g, int *ammo, bool *reloading, float *reloadTimer, int *coins, bool *shopOpen, ShopItem *shopItems, int totalItems, Gun *guns) {
     // --- HEALTH (top center) ---
     int heartSpacing = 34;
     int totalWidth = maxHealth * heartSpacing;
@@ -501,7 +503,7 @@ void DrawHUD(int maxHealth, int health, Gun *g, int *ammo, bool *reloading, floa
 
     for (int i = 0; i < maxHealth; i++) {
         int x = startX + i * heartSpacing;
-        if (i < health) {
+        if (i < *health) {
             DrawCircle(x, y, 14, RED);          // full
             DrawCircleLines(x, y, 14, BLACK);
         } else {
@@ -660,10 +662,19 @@ void DrawHUD(int maxHealth, int health, Gun *g, int *ammo, bool *reloading, floa
                 // purchase logic
                 if (*coins >= shopItems[i].price) {
                     *coins -= shopItems[i].price;
-                    *g = guns[i]; // Equip the purchased gun
-                    *ammo = g->maxAmmo;
-                    *reloadTimer = 0.0f;
-                    *reloading = false;
+                    if (shopItems[i].weapon) {
+                        // Drop current gun logic could go here
+                        *g = guns[i]; // Equip the purchased gun
+                        *ammo = g->maxAmmo;
+                        *reloadTimer = 0.0f;
+                        *reloading = false;
+                    }
+                    else{
+                        // Handle non-weapon items (e.g., health packs)
+                        if (strcmp(shopItems[i].name, "Medkit") == 0) {
+                            *health = maxHealth;
+                        }
+                    }
                     printf("Purchased: %s\n", shopItems[i].name);
                 } else {
                     printf("Not enough credits to buy %s\n", shopItems[i].name);
@@ -909,13 +920,17 @@ int main() {
     guns[3].speed = 10.0f;
     guns[3].numberOfProjectiles = 1;
 
+    loadDirectory();
     // Shop items 
-    ShopItem shopItems[4];
-    shopItems[0] = (ShopItem){gunTexs[0], 100, "Sniper Rifle"};
-    shopItems[1] = (ShopItem){gunTexs[1], 75, "SMG"};
-    shopItems[2] = (ShopItem){gunTexs[2], 50, "Dual Uzi"};
-    shopItems[3] = (ShopItem){gunTexs[3], 25, "Pistol"};
-    int totalShopItems = 4;
+    int totalShopItems = 5;
+    ShopItem shopItems[totalShopItems];
+    shopItems[0] = (ShopItem){gunTexs[0], true, 100, "Sniper Rifle"};
+    shopItems[1] = (ShopItem){gunTexs[1], true, 75, "SMG"};
+    shopItems[2] = (ShopItem){gunTexs[2], true, 50, "Dual Uzi"};
+    shopItems[3] = (ShopItem){gunTexs[3], true, 25, "Pistol"};
+    shopItems[4] = (ShopItem){LoadTexture("entities/items/fab.png"), false, 30, "Medkit"};
+
+    closeDirectory();
 
     Gun g = guns[GetRandomValue(0, 3)]; // start with random gun
     int ammo = g.maxAmmo;
@@ -1416,7 +1431,7 @@ int main() {
                 
             }
 
-            DrawHUD(maxHealth, health, &g, &ammo, &reloading, &reloadTimer, &currency, &shopOpen, shopItems, totalShopItems, guns);
+            DrawHUD(maxHealth, &health, &g, &ammo, &reloading, &reloadTimer, &currency, &shopOpen, shopItems, totalShopItems, guns);
             DrawJoystick(joy);
             DrawJoystick(aim);
 
