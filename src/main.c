@@ -1081,16 +1081,34 @@ int main() {
                 Vector2 spawn2 = Vector2Add(muzzleCenter, Vector2Scale(perp, -barrelHalfSeparation));
 
                 // Shoot both bullets (same direction)
-                projectileShoot(projectiles, spawn1, dir, g.speed);
-                projectileShoot(projectiles, spawn2, dir, g.speed);
+                projectileShoot(projectiles, spawn1, dir, g.speed, PISTOL);
+                projectileShoot(projectiles, spawn2, dir, g.speed, PISTOL);
 
                 // --- Optional debug: draw tiny markers for the two spawns ---
                 // Draw these temporarily (put them in the draw/update area after shooting)
                 // DrawCircleV(spawn1, 2, RED);
                 // DrawCircleV(spawn2, 2, BLUE);
 
+            }
+            else if (g.numberOfProjectiles == 4) {
+                // Shotgun spread
+                Vector2 baseDir = Vector2Normalize(aim.value);
+                if (Vector2Length(baseDir) < 0.001f) {
+                    baseDir = (Vector2){ (facingRight == 1) ? 1.0f : -1.0f, 0.0f };
+                }
+                float forwardOffset = player->rect.height * 0.6f + 4.0f;
+                Vector2 muzzlePos = Vector2Add(player->pos, Vector2Scale(baseDir, forwardOffset));
+
+                // Define spread angles (in degrees)
+                float spreadAngles[4] = { -10.0f, -3.0f, 3.0f, 10.0f };
+
+                for (int i = 0; i < 4; i++) {
+                    float angleRad = atan2f(baseDir.y, baseDir.x) + spreadAngles[i] * DEG2RAD;
+                    Vector2 spreadDir = (Vector2){ cosf(angleRad), sinf(angleRad) };
+                    projectileShoot(projectiles, muzzlePos, spreadDir, g.speed, SHOTGUN);
+                }
             } else {
-                projectileShoot(projectiles, player->pos, aim.value, g.speed);
+                projectileShoot(projectiles, player->pos, aim.value, g.speed, PISTOL);
             }
 
 

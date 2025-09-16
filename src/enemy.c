@@ -471,7 +471,7 @@ Vector2 computeVelOfEnemy(Enemy enemy, entity player, hash map, dynarray project
         if (HasLOS(enemy->e->pos, player->pos, map) && enemy->shootTimer <= 0.0f){
             // Shoot 
             Vector2 toPlayer = Vector2Subtract(player->pos, enemy->e->pos);
-            projectileShoot(projectiles, enemy->e->pos, Vector2Normalize(toPlayer), 4);
+            projectileShoot(projectiles, enemy->e->pos, Vector2Normalize(toPlayer), 4, PISTOL);
             enemy->shootTimer = enemy->shootCooldown;
         }
 
