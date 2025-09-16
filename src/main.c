@@ -1413,6 +1413,12 @@ int main() {
                 // Handle click
                 if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && hovering) {
                     isHacking = !isHacking;  // toggle hack mode
+                    if (isHacking){
+                        player->pos.x = currComputer->e->pos.x + currComputer->e->rect.width / 2 - player->rect.width;
+                        player->pos.y = currComputer->e->pos.y + currComputer->e->rect.height - player->rect.height;
+                        player->rect.x = player->pos.x;
+                        player->rect.y = player->pos.y;
+                    }
                     printf("Hack button %s!\n", isHacking ? "started" : "stopped");
                 }
             }
