@@ -382,29 +382,36 @@ void generateWorld(TILES *world, hash enemies, hash computers, int *noOfComputer
 // Find a spawn position inside the top-left chunk (chunk 0,0).
 // Returns world coordinates (tile-center). Caller may offset by entity half-size.
 Vector2 mapFindSpawnTopLeft(hash map) {
-    int count = 0;
-    Vector2 chosen = { (CHUNK_SIZE/2) * TILE_SIZE + TILE_SIZE*0.5f, (CHUNK_SIZE/2) * TILE_SIZE + TILE_SIZE*0.5f }; // fallback: chunk center
+    int chunkX = 0;
+    int chunkY = 0;
+
+    // define chunk boundaries
+    int startX = chunkX * CHUNK_SIZE;
+    int startY = chunkY * CHUNK_SIZE;
+    int endX   = startX + CHUNK_SIZE;
+    int endY   = startY + CHUNK_SIZE;
 
     char buffer[22];
-    for (int y = 0; y < CHUNK_SIZE; y++) {
-        for (int x = 0; x < CHUNK_SIZE; x++) {
-            snprintf(buffer, sizeof(buffer), "%d:%d", x, y);
+
+    // scan only the top-left chunk
+    for (int y = startY; y < endY; y++) {
+        for (int x = startX; x < endX; x++) {
+            sprintf(buffer, "%d:%d", x, y);
             rect r = hashFind(map, buffer);
-            if (!r) continue;
-            // prefer dirt tiles without offgrid objects
-            if (r->tile == DIRT && r->offGridType == -1) {
-                count++;
-                // reservoir sampling: pick uniformly among candidates
-                if (GetRandomValue(1, count) == 1) {
-                    chosen.x = x * TILE_SIZE + TILE_SIZE * 0.5f;
-                    chosen.y = y * TILE_SIZE + TILE_SIZE * 0.5f;
-                }
+            if (r && r->tile == DIRT) {
+                // found first floor tile inside chunk (0,0)
+                return (Vector2){
+                    x * TILE_SIZE + TILE_SIZE / 2,
+                    y * TILE_SIZE + TILE_SIZE / 2
+                };
             }
         }
     }
 
-    return chosen;
+    // fallback if no floor tile found
+    return (Vector2){ TILE_SIZE, TILE_SIZE };
 }
+
 
 // --- Simple ASCII preview ---
 void printMap(TILES map[HEIGHT][WIDTH]) {
