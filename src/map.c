@@ -781,27 +781,54 @@ void rectFree(DA_ELEMENT el){
   free(r);
 }
 
-dynarray rectsAround(hash map, Vector2 player_pos){
-  int gx = ((int) player_pos.x) / TILE_SIZE;
-  int gy = ((int) player_pos.y) / TILE_SIZE;
-  char buffer[22];
-  dynarray arr = create_dynarray(&rectFree, NULL); 
-  for (int x = gx - 5; x <= gx + 5; x++){
-    for (int y = gy - 5; y <= gy + 5; y++){
-      sprintf(buffer, "%d:%d", x, y);
-      rect rec; 
-      if ((rec = hashFind(map, buffer)) != NULL){
-        if (rec->tile == STONE && rec->offGridType != 100){
-          rect r = malloc(sizeof(struct rect));
-          r->tile = rec->tile; 
-          r->rectange = (Rectangle) {x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE};
-          add_dynarray(arr, r);
+// dynarray rectsAround(hash map, Vector2 player_pos){
+//   int gx = ((int) player_pos.x) / TILE_SIZE;
+//   int gy = ((int) player_pos.y) / TILE_SIZE;
+//   char buffer[22];
+//   dynarray arr = create_dynarray(&rectFree, NULL); 
+//   for (int x = gx - 5; x <= gx + 5; x++){
+//     for (int y = gy - 5; y <= gy + 5; y++){
+//       sprintf(buffer, "%d:%d", x, y);
+//       rect rec; 
+//       if ((rec = hashFind(map, buffer)) != NULL){
+//         if (rec->tile == STONE && rec->offGridType != 100){
+//           rect r = malloc(sizeof(struct rect));
+//           r->tile = rec->tile; 
+//           r->rectange = (Rectangle) {x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE};
+//           add_dynarray(arr, r);
+//         }
+//       }
+//     }
+//   }
+//   return arr; 
+// }
+
+
+int rectsAround(hash map, Vector2 player_pos, struct rect *outRects) {
+    int count = 0;
+    int gx = ((int) player_pos.x) / TILE_SIZE;
+    int gy = ((int) player_pos.y) / TILE_SIZE;
+
+    for (int x = gx - 5; x <= gx + 5; x++) {
+        for (int y = gy - 5; y <= gy + 5; y++) {
+            char buffer[22];
+            sprintf(buffer, "%d:%d", x, y);
+            rect rec;
+            if ((rec = hashFind(map, buffer)) != NULL) {
+                if (rec->tile == STONE && rec->offGridType != 100) {
+                    if (count >= MAX_RECTS) break; // avoid overflow
+                    outRects[count].tile = rec->tile;
+                    outRects[count].rectange = (Rectangle){x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE};
+                    count++;
+                }
+            }
         }
-      }
     }
-  }
-  return arr; 
+
+    return count; // number of rects filled
 }
+
+
 // ------------ batching cache -------------
 typedef struct RoomCache {
     bool dirty;

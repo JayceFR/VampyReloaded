@@ -307,7 +307,9 @@ bool HasLOS(Vector2 from, Vector2 to, hash map) {
     Vector2 ray = from;
     float maxDist = Vector2Distance(from, to);
 
-    dynarray rects = rectsAround(map, from);
+    struct rect rects[MAX_RECTS];
+    int rectCount = rectsAround(map, from, rects);
+    // dynarray rects = rectsAround(map, from);
 
     float distTravelled = 0;
     bool blocked = false;
@@ -315,12 +317,12 @@ bool HasLOS(Vector2 from, Vector2 to, hash map) {
     while (distTravelled < maxDist) {
         if (CheckCollisionPointRec(ray, (Rectangle){to.x-2, to.y-2, 4, 4})) {
             // hit player region
-            free_dynarray(rects);
+            // free_dynarray(rects);
             return true;
         }
 
-        for (int i = 0; i < rects->len; i++) {
-            rect r = rects->data[i];
+        for (int i = 0; i < rectCount; i++) {
+            rect r = &rects[i];
             if (CheckCollisionPointRec(ray, r->rectange)) {
                 blocked = true;
                 break;
@@ -332,7 +334,7 @@ bool HasLOS(Vector2 from, Vector2 to, hash map) {
         distTravelled += Vector2Length(step);
     }
 
-    free_dynarray(rects);
+    // free_dynarray(rects);
     return false;
 }
 
@@ -570,7 +572,10 @@ Enemy enemyCreate(int startX, int startY, int width, int height){
 
 void enemyDrawTorch(Enemy e, hash map, int rays, Color col) {
     Vector2 origin = e->e->pos;
-    dynarray rects = rectsAround(map, origin);
+
+    struct rect rects[MAX_RECTS];
+    int rectCount = rectsAround(map, origin, rects);
+    // dynarray rects = rectsAround(map, origin);
 
     float angleStep = torchFOV / rays;
     float rayDistances[rays + 1];
@@ -583,8 +588,8 @@ void enemyDrawTorch(Enemy e, hash map, int rays, Color col) {
         bool blocked = false;
 
         while (traveled < torchRadius) {
-            for (int j = 0; j < rects->len; j++) {
-                rect r = rects->data[j];
+            for (int j = 0; j < rectCount; j++) {
+                rect r = &rects[j];
                 if (CheckCollisionPointRec(ray, r->rectange)) {
                     blocked = true;
                     break;
@@ -599,7 +604,7 @@ void enemyDrawTorch(Enemy e, hash map, int rays, Color col) {
         rayDistances[i] = traveled;
     }
 
-    free_dynarray(rects);
+    // free_dynarray(rects);
 
     // Draw a filled torch cone using DrawCircleSector approximation
     for (int i = 0; i < rays; i++) {

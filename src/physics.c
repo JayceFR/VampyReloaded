@@ -16,13 +16,30 @@ entity entityCreate(float startX, float startY, int width, int height){
   return e; 
 }
 
+// static bool collideRect(entity e, hash map, rect *hitTile){
+//     dynarray arr = rectsAround(map, e->pos);
+//     for (int i = 0; i < arr->len; i++){
+//         rect r = arr->data[i];
+//         if (r->tile == STONE){
+//             if (CheckCollisionRecs(r->rectange, e->rect)){
+//                 if (hitTile) *hitTile = r;
+//                 return true;
+//             }
+//         }
+//     }
+//     return false;
+// }
+
+// I dont think so the copy works here. 
 static bool collideRect(entity e, hash map, rect *hitTile){
-    dynarray arr = rectsAround(map, e->pos);
-    for (int i = 0; i < arr->len; i++){
-        rect r = arr->data[i];
+    struct rect nearby[MAX_RECTS];          // static array to hold rects
+    int count = rectsAround(map, e->pos, nearby); // fill array and get count
+
+    for (int i = 0; i < count; i++){
+        rect r = &nearby[i];       // pointer to current rect
         if (r->tile == STONE){
             if (CheckCollisionRecs(r->rectange, e->rect)){
-                if (hitTile) *hitTile = r;
+                if (hitTile) *hitTile = r; // copy the rect to hitTile
                 return true;
             }
         }
@@ -37,9 +54,11 @@ bool update(entity e, hash map, Vector2 newPos) {
     // --- X axis first ---
     e->pos.x += newPos.x;
     e->rect.x = e->pos.x;
-    dynarray arrX = rectsAround(map, e->pos);
-    for (int i = 0; i < arrX->len; i++) {
-      rect r = arrX->data[i];
+
+    struct rect arrX[MAX_RECTS];
+    int countX = rectsAround(map, e->pos, arrX);
+    for (int i = 0; i < countX; i++) {
+      rect r = &arrX[i];
       if (r->tile != STONE) continue;
 
       if (CheckCollisionRecs(r->rectange, e->rect)) {
@@ -59,9 +78,10 @@ bool update(entity e, hash map, Vector2 newPos) {
     // --- Y axis next ---
     e->pos.y += newPos.y;
     e->rect.y = e->pos.y;
-    dynarray arrY = rectsAround(map, e->pos);
-    for (int i = 0; i < arrY->len; i++) {
-      rect r = arrY->data[i];
+    struct rect arrY[MAX_RECTS];
+    int countY = rectsAround(map, e->pos, arrY);
+    for (int i = 0; i < countY; i++) {
+      rect r = &arrY[i];
       if (r->tile != STONE) continue;
 
       if (CheckCollisionRecs(r->rectange, e->rect)) {

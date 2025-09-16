@@ -1,0 +1,1244 @@
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept '__isoc99_printf'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept '__isoc99_sprintf'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept '__isoc99_snprintf'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept '__isoc99_fprintf'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept '__isoc99_vprintf'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept '__isoc99_vsprintf'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept '__isoc99_vsnprintf'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept '__isoc99_vfprintf'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept '__b64_ntop'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept '__b64_pton'
+==112895==Registered root region at 0x760ffdd016e0 of size 96
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdd016e0 of size 96
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'pthread_mutexattr_getrobust_np'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdrmem_create'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdrstdio_create'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_short'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_u_short'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_int'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_u_int'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_long'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_u_long'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_hyper'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_u_hyper'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_longlong_t'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_u_longlong_t'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_int8_t'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_uint8_t'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_int16_t'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_uint16_t'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_int32_t'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_uint32_t'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_int64_t'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_uint64_t'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_quad_t'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_u_quad_t'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_bool'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_enum'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_char'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_u_char'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_float'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_double'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_bytes'
+==112895==Registered root region at 0x760ffdf00f40 of size 64
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffdf00f40 of size 64
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_string'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdrrec_create'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept 'xdr_destroy'
+==112895==Registered root region at 0x760ffe501310 of size 80
+==112895==Registered root region at 0x760ffe1007a0 of size 32
+==112895==Unregistered root region at 0x760ffe501310 of size 80
+==112895==Unregistered root region at 0x760ffe1007a0 of size 32
+==112895==AddressSanitizer: failed to intercept '__cxa_throw'
+==112895==AddressSanitizer: libc interceptors initialized
+|| `[0x10007fff8000, 0x7fffffffffff]` || HighMem    ||
+|| `[0x02008fff7000, 0x10007fff7fff]` || HighShadow ||
+|| `[0x00008fff7000, 0x02008fff6fff]` || ShadowGap  ||
+|| `[0x00007fff8000, 0x00008fff6fff]` || LowShadow  ||
+|| `[0x000000000000, 0x00007fff7fff]` || LowMem     ||
+MemToShadow(shadow): 0x00008fff7000 0x000091ff6dff 0x004091ff6e00 0x02008fff6fff
+redzone=16
+max_redzone=2048
+quarantine_size_mb=256M
+thread_local_quarantine_size_kb=1024K
+malloc_context_size=30
+SHADOW_SCALE: 3
+SHADOW_GRANULARITY: 8
+SHADOW_OFFSET: 0x7fff8000
+==112895==Installed the sigaction for signal 11
+==112895==Installed the sigaction for signal 7
+==112895==Installed the sigaction for signal 8
+==112895==T0: FakeStack created: 0x760ffc9f7000 -- 0x760ffd500000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T0: stack [0x7ffcf75ae000,0x7ffcf7dae000) size 0x800000; local=0x7ffcf7dab214
+==112895==AddressSanitizer Init done
+==112895==T3: FakeStack created: 0x760fecaf4000 -- 0x760fed5fd000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T2: FakeStack created: 0x760febfeb000 -- 0x760fecaf4000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T3: stack [0x760fed5fe000,0x760feddfcf40) size 0x7fef40; local=0x760feddfcd64
+==112895==T1: FakeStack created: 0x760feace1000 -- 0x760feb7ea000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T1: stack [0x760fee600000,0x760feedfef40) size 0x7fef40; local=0x760feedfed64
+==112895==T2: stack [0x760feddff000,0x760fee5fdf40) size 0x7fef40; local=0x760fee5fdd64
+==112895==T4: FakeStack created: 0x760fea1d8000 -- 0x760feace1000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T4: stack [0x760feb7eb000,0x760febfe9f40) size 0x7fef40; local=0x760febfe9d64
+==112895==T8: FakeStack created: 0x760fe5bc0000 -- 0x760fe66c9000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T7: FakeStack created: 0x760fe66c9000 -- 0x760fe71d2000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T8: stack [0x760fe81d5000,0x760fe89d3f40) size 0x7fef40; local=0x760fe89d3d64
+==112895==T7: stack [0x760fe89d6000,0x760fe91d4f40) size 0x7fef40; local=0x760fe91d4d64
+==112895==T9: FakeStack created: 0x760fe38b4000 -- 0x760fe43bd000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T9: stack [0x760fe79d4000,0x760fe81d2f40) size 0x7fef40; local=0x760fe81d2d64
+==112895==T5: FakeStack created: 0x760fe2dab000 -- 0x760fe38b4000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T5: stack [0x760fe99d8000,0x760fea1d6f40) size 0x7fef40; local=0x760fea1d6d64
+==112895==T6: FakeStack created: 0x760fe1aa1000 -- 0x760fe25aa000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T6: stack [0x760fe91d7000,0x760fe99d5f40) size 0x7fef40; local=0x760fe99d5d64
+==112895==T11: FakeStack created: 0x760fe0797000 -- 0x760fe12a0000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T11: stack [0x760fe53c0000,0x760fe5bbef40) size 0x7fef40; local=0x760fe5bbed64
+==112895==T12: FakeStack created: 0x760fdec8c000 -- 0x760fdf795000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T10: FakeStack created: 0x760fdce79000 -- 0x760fdd982000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T12: stack [0x760fe4bbf000,0x760fe53bdf40) size 0x7fef40; local=0x760fe53bdd64
+==112895==T13: FakeStack created: 0x760fdd982000 -- 0x760fde48b000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T13: stack [0x760fe43be000,0x760fe4bbcf40) size 0x7fef40; local=0x760fe4bbcd64
+==112895==T10: stack [0x760fe71d3000,0x760fe79d1f40) size 0x7fef40; local=0x760fe79d1d64
+==112895==T15: FakeStack created: 0x760fdbb6f000 -- 0x760fdc678000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T14: FakeStack created: 0x760fdb066000 -- 0x760fdbb6f000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T14: stack [0x760fe25ab000,0x760fe2da9f40) size 0x7fef40; local=0x760fe2da9d64
+==112895==T18: FakeStack created: 0x760fd8d5a000 -- 0x760fd9863000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T15: stack [0x760fe12a1000,0x760fe1a9ff40) size 0x7fef40; local=0x760fe1a9fd64
+==112895==T18: stack [0x760fde48c000,0x760fdec8af40) size 0x7fef40; local=0x760fdec8ad64
+==112895==T19: FakeStack created: 0x760fd724f000 -- 0x760fd7d58000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T19: stack [0x760fdc679000,0x760fdce77f40) size 0x7fef40; local=0x760fdce77d64
+==112895==T16: FakeStack created: 0x760fd6746000 -- 0x760fd724f000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T16: stack [0x760fdff97000,0x760fe0795f40) size 0x7fef40; local=0x760fe0795d64
+==112895==T17: FakeStack created: 0x760fd5c3d000 -- 0x760fd6746000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T17: stack [0x760fdf796000,0x760fdff94f40) size 0x7fef40; local=0x760fdff94d64
+==112895==T22: FakeStack created: 0x760fd5134000 -- 0x760fd5c3d000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T22: stack [0x760fd9864000,0x760fda062f40) size 0x7fef40; local=0x760fda062d64
+==112895==T24: FakeStack created: 0x760fd462b000 -- 0x760fd5134000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T24: stack [0x760fd7d59000,0x760fd8557f40) size 0x7fef40; local=0x760fd8557d64
+==112895==T23: FakeStack created: 0x760fd3b22000 -- 0x760fd462b000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T23: stack [0x760fd855a000,0x760fd8d58f40) size 0x7fef40; local=0x760fd8d58d64
+==112895==T21: FakeStack created: 0x760fd3019000 -- 0x760fd3b22000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T20: FakeStack created: 0x760fd2510000 -- 0x760fd3019000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T21: stack [0x760fda065000,0x760fda863f40) size 0x7fef40; local=0x760fda863d64
+==112895==T20: stack [0x760fda866000,0x760fdb064f40) size 0x7fef40; local=0x760fdb064d64
+==112895==T25: FakeStack created: 0x760fd10c5000 -- 0x760fd1bce000 stack_size_log: 20; mmapped 11300K, noreserve=0 
+==112895==T25: stack [0x760fd1bcf000,0x760fd23cdf40) size 0x7fef40; local=0x760fd23cdd64
+==112895==unpoisoning: 0x760ffd400060 4000
+==112895==unpoisoning: 0x760ffd404160 4000
+==112895==unpoisoning: 0x760ffd408260 4000
+==112895==poisoning: 0x760ffd400060 4000
+==112895==poisoning: 0x760ffd404160 4000
+==112895==poisoning: 0x760ffd408260 4000
+==112895==unpoisoning: 0x760ffd400060 4000
+==112895==unpoisoning: 0x760ffd404160 4000
+==112895==unpoisoning: 0x760ffd408260 4000
+==112895==poisoning: 0x760ffd400060 4000
+==112895==poisoning: 0x760ffd404160 4000
+==112895==poisoning: 0x760ffd408260 4000
+==112895==unpoisoning: 0x760ffd400060 4000
+==112895==unpoisoning: 0x760ffd404160 4000
+==112895==unpoisoning: 0x760ffd408260 4000
+==112895==poisoning: 0x760ffd400060 4000
+==112895==poisoning: 0x760ffd404160 4000
+==112895==poisoning: 0x760ffd408260 4000
+==112895==unpoisoning: 0x760ffd400060 4000
+==112895==unpoisoning: 0x760ffd404160 4000
+==112895==unpoisoning: 0x760ffd408260 4000
+==112895==poisoning: 0x760ffd400060 4000
+==112895==poisoning: 0x760ffd404160 4000
+==112895==poisoning: 0x760ffd408260 4000
+==112895==T22 TSDDtor
+==112895==T18 TSDDtor
+==112895==T21 TSDDtor
+==112895==T14 TSDDtor
+==112895==T20 TSDDtor
+==112895==T22 exited
+==112895==T24 TSDDtor
+==112895==T14 exited
+==112895==T21 exited
+==112895==T16 TSDDtor
+==112895==T24 exited
+==112895==T13 TSDDtor
+==112895==T19 TSDDtor
+==112895==T18 exited
+==112895==T13 exited
+==112895==T15 TSDDtor
+==112895==T16 exited
+==112895==T23 TSDDtor
+==112895==T19 exited
+==112895==T20 exited
+==112895==T23 exited
+==112895==T17 TSDDtor
+==112895==T17 exited
+==112895==T15 exited
+==112895==T2 TSDDtor
+==112895==T2 exited
+==112895==T1 TSDDtor
+==112895==T6 TSDDtor
+==112895==T7 TSDDtor
+==112895==T8 TSDDtor
+==112895==T5 TSDDtor
+==112895==T1 exited
+==112895==T8 exited
+==112895==T9 TSDDtor
+==112895==T5 exited
+==112895==T9 exited
+==112895==T12 TSDDtor
+==112895==T6 exited
+==112895==T7 exited
+==112895==T3 TSDDtor
+==112895==T10 TSDDtor
+==112895==T3 exited
+==112895==T12 exited
+==112895==T10 exited
+==112895==T11 TSDDtor
+==112895==T4 TSDDtor
+==112895==T11 exited
+==112895==T4 exited
+==112895==T25 TSDDtor
+==112895==T25 exited
+==112895==LeakSanitizer: checking for leaks==112895==Rerun with 5 suppressed stacks.
+=================================================================
+==112895==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 1200 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77
+    #1 0x405a0b in createCoins src/coin.c:74
+    #2 0x41a370 in main src/main.c:940
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 601 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x760ffc6cdc73  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x37c73) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #2 0x760ffc6cb173  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x35173) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #3 0x760ffc6c5e98  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x2fe98) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #4 0x760ffc6ca718  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x34718) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #5 0x760ffc6cb78c  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x3578c) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #6 0x760ffc6c7e14  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x31e14) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #7 0x4a0bc1 in extensionSupportedGLX (/home/jayce/Vampy-reloaded/game+0x4a0bc1) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+    #8 0x1c20000031f  (<unknown module>)
+
+Direct leak of 224 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77
+    #1 0x760ffc6c9c0e  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x33c0e) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #2 0x760ffc6caf1f  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x34f1f) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #3 0x760ffc6cb134  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x35134) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #4 0x760ffc6c5e98  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x2fe98) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #5 0x760ffc6ca718  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x34718) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #6 0x760ffc6cb78c  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x3578c) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #7 0x760ffc6c7e14  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x31e14) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #8 0x4a0bc1 in extensionSupportedGLX (/home/jayce/Vampy-reloaded/game+0x4a0bc1) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+    #9 0x1c20000031f  (<unknown module>)
+
+Direct leak of 224 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77
+    #1 0x760ffc6c9c0e  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x33c0e) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #2 0x760ffc6caf1f  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x34f1f) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #3 0x760ffc6cb1e6  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x351e6) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #4 0x760ffc6c5e98  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x2fe98) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #5 0x760ffc6ca718  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x34718) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #6 0x760ffc6cb78c  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x3578c) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #7 0x760ffc6c7e14  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x31e14) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #8 0x4a0bc1 in extensionSupportedGLX (/home/jayce/Vampy-reloaded/game+0x4a0bc1) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+    #9 0x1c20000031f  (<unknown module>)
+
+Direct leak of 176 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x418e01 in main src/main.c:877
+    #2 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #3 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #4 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 128 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40b970 in enemyCreate src/enemy.c:540
+    #2 0x418b25 in main src/main.c:835
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 128 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77
+    #1 0x44c5c8 in LoadShaderFromMemory (/home/jayce/Vampy-reloaded/game+0x44c5c8) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 80 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42be9f in loadTexturesFromDirectory src/utils.c:39
+    #2 0x4170a7 in main src/main.c:727
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 32 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40d856 in hashCreate src/hash.c:71
+    #2 0x424e6a in mapCreate src/map.c:574
+    #3 0x418ab4 in main src/main.c:830
+    #4 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #6 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 32 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40d856 in hashCreate src/hash.c:71
+    #2 0x41836a in main src/main.c:798
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 32 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40d856 in hashCreate src/hash.c:71
+    #2 0x424e27 in mapCreate src/map.c:573
+    #3 0x418ab4 in main src/main.c:830
+    #4 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #6 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 32 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40d856 in hashCreate src/hash.c:71
+    #2 0x424ddf in mapCreate src/map.c:572
+    #3 0x418ab4 in main src/main.c:830
+    #4 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #6 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 32 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x405bec in create_dynarray src/dynarray.c:7
+    #2 0x41832f in main src/main.c:795
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 32 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x405bec in create_dynarray src/dynarray.c:7
+    #2 0x41834a in main src/main.c:796
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 24 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42a31b in entityCreate src/physics.c:12
+    #2 0x417ffe in main src/main.c:780
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 16 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb06 in loadAnimation src/utils.c:22
+    #2 0x416f69 in main src/main.c:712
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 16 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x4170b8 in main src/main.c:729
+    #2 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #3 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #4 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 16 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb06 in loadAnimation src/utils.c:22
+    #2 0x416e49 in main src/main.c:702
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 16 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb06 in loadAnimation src/utils.c:22
+    #2 0x416db9 in main src/main.c:698
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 16 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb06 in loadAnimation src/utils.c:22
+    #2 0x416e03 in main src/main.c:701
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 16 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x41803f in main src/main.c:785
+    #2 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #3 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #4 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 16 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb06 in loadAnimation src/utils.c:22
+    #2 0x416e93 in main src/main.c:706
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 16 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb06 in loadAnimation src/utils.c:22
+    #2 0x416ed9 in main src/main.c:707
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 16 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb06 in loadAnimation src/utils.c:22
+    #2 0x416d29 in main src/main.c:696
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 16 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb06 in loadAnimation src/utils.c:22
+    #2 0x416d6f in main src/main.c:697
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Direct leak of 16 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb06 in loadAnimation src/utils.c:22
+    #2 0x416f23 in main src/main.c:711
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 260264 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40d864 in hashCreate src/hash.c:73
+    #2 0x424ddf in mapCreate src/map.c:572
+    #3 0x418ab4 in main src/main.c:830
+    #4 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #6 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 260264 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40d864 in hashCreate src/hash.c:73
+    #2 0x424e6a in mapCreate src/map.c:574
+    #3 0x418ab4 in main src/main.c:830
+    #4 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #6 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 260264 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40d864 in hashCreate src/hash.c:73
+    #2 0x424e27 in mapCreate src/map.c:573
+    #3 0x418ab4 in main src/main.c:830
+    #4 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #6 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 260264 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40d864 in hashCreate src/hash.c:73
+    #2 0x41836a in main src/main.c:798
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 260264 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40d864 in hashCreate src/hash.c:73
+    #2 0x417fd6 in main src/main.c:779
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 127456 byte(s) in 569 object(s) allocated from:
+    #0 0x760fff0fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77
+    #1 0x760ffc6c9c0e  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x33c0e) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #2 0x760ffc6caf1f  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x34f1f) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #3 0x760ffc6cb1e6  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x351e6) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #4 0x760ffc6c5e98  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x2fe98) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #5 0x760ffc6ca718  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x34718) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #6 0x760ffc6cb78c  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x3578c) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #7 0x760ffc6c7e14  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x31e14) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #8 0x4a0bc1 in extensionSupportedGLX (/home/jayce/Vampy-reloaded/game+0x4a0bc1) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+    #9 0x1c20000031f  (<unknown module>)
+
+Indirect leak of 60256 byte(s) in 269 object(s) allocated from:
+    #0 0x760fff0fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77
+    #1 0x760ffc6c9c0e  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x33c0e) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #2 0x760ffc6caf1f  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x34f1f) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #3 0x760ffc6cb134  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x35134) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #4 0x760ffc6c5e98  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x2fe98) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #5 0x760ffc6ca718  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x34718) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #6 0x760ffc6cb78c  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x3578c) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #7 0x760ffc6c7e14  (/lib/x86_64-linux-gnu/libGLX_mesa.so.0+0x31e14) (BuildId: eb4fad4513221f70ad95bc1e08eee29bfee99e3f)
+    #8 0x4a0bc1 in extensionSupportedGLX (/home/jayce/Vampy-reloaded/game+0x4a0bc1) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+    #9 0x1c20000031f  (<unknown module>)
+
+Indirect leak of 15360 byte(s) in 2 object(s) allocated from:
+    #0 0x760fff0fc778 in realloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:85
+    #1 0x405fe1 in grow src/dynarray.c:31
+    #2 0x406065 in add_dynarray src/dynarray.c:37
+    #3 0x4245f2 in placeProperty src/map.c:527
+    #4 0x42682d in mapCreate src/map.c:735
+    #5 0x418ab4 in main src/main.c:830
+    #6 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 15288 byte(s) in 546 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x424414 in placeProperty src/map.c:515
+    #2 0x426a88 in mapCreate src/map.c:744
+    #3 0x418ab4 in main src/main.c:830
+    #4 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #6 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 12124 byte(s) in 433 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x424414 in placeProperty src/map.c:515
+    #2 0x426e96 in mapCreate src/map.c:762
+    #3 0x418ab4 in main src/main.c:830
+    #4 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #6 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 10780 byte(s) in 385 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x424414 in placeProperty src/map.c:515
+    #2 0x426b6c in mapCreate src/map.c:752
+    #3 0x418ab4 in main src/main.c:830
+    #4 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #6 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 10724 byte(s) in 383 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x424414 in placeProperty src/map.c:515
+    #2 0x42682d in mapCreate src/map.c:735
+    #3 0x418ab4 in main src/main.c:830
+    #4 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #6 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 10416 byte(s) in 372 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x424414 in placeProperty src/map.c:515
+    #2 0x426507 in mapCreate src/map.c:724
+    #3 0x418ab4 in main src/main.c:830
+    #4 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #6 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 6720 byte(s) in 84 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x405d1f in create_dynarray src/dynarray.c:13
+    #2 0x418886 in main src/main.c:820
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 5120 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fc778 in realloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:85
+    #1 0x405fe1 in grow src/dynarray.c:31
+    #2 0x406065 in add_dynarray src/dynarray.c:37
+    #3 0x4245f2 in placeProperty src/map.c:527
+    #4 0x426e96 in mapCreate src/map.c:762
+    #5 0x418ab4 in main src/main.c:830
+    #6 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 5120 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fc778 in realloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:85
+    #1 0x405fe1 in grow src/dynarray.c:31
+    #2 0x406065 in add_dynarray src/dynarray.c:37
+    #3 0x4245f2 in placeProperty src/map.c:527
+    #4 0x426a88 in mapCreate src/map.c:744
+    #5 0x418ab4 in main src/main.c:830
+    #6 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 4544 byte(s) in 71 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42925b in npcCreate src/npc.c:11
+    #2 0x4247d7 in npcAdd src/map.c:543
+    #3 0x426c45 in mapCreate src/map.c:755
+    #4 0x418ab4 in main src/main.c:830
+    #5 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 4400 byte(s) in 100 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x41838a in main src/main.c:803
+    #2 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #3 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #4 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 4288 byte(s) in 67 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42925b in npcCreate src/npc.c:11
+    #2 0x4247d7 in npcAdd src/map.c:543
+    #3 0x4265e0 in mapCreate src/map.c:727
+    #4 0x418ab4 in main src/main.c:830
+    #5 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 2688 byte(s) in 84 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40e434 in talloc src/hash.c:250
+    #2 0x40eb73 in tree_op src/hash.c:352
+    #3 0x40df50 in hashSet src/hash.c:158
+    #4 0x4188c4 in main src/main.c:822
+    #5 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 2688 byte(s) in 84 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x405bec in create_dynarray src/dynarray.c:7
+    #2 0x418886 in main src/main.c:820
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 1704 byte(s) in 71 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42a31b in entityCreate src/physics.c:12
+    #2 0x42928b in npcCreate src/npc.c:12
+    #3 0x4247d7 in npcAdd src/map.c:543
+    #4 0x426c45 in mapCreate src/map.c:755
+    #5 0x418ab4 in main src/main.c:830
+    #6 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 1608 byte(s) in 67 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42a31b in entityCreate src/physics.c:12
+    #2 0x42928b in npcCreate src/npc.c:12
+    #3 0x4247d7 in npcAdd src/map.c:543
+    #4 0x4265e0 in mapCreate src/map.c:727
+    #5 0x418ab4 in main src/main.c:830
+    #6 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 960 byte(s) in 2 object(s) allocated from:
+    #0 0x760fff0fc778 in realloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:85
+    #1 0x405fe1 in grow src/dynarray.c:31
+    #2 0x406065 in add_dynarray src/dynarray.c:37
+    #3 0x42491a in npcAdd src/map.c:556
+    #4 0x426c45 in mapCreate src/map.c:755
+    #5 0x418ab4 in main src/main.c:830
+    #6 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 640 byte(s) in 2 object(s) allocated from:
+    #0 0x760fff0fc778 in realloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:85
+    #1 0x405fe1 in grow src/dynarray.c:31
+    #2 0x406065 in add_dynarray src/dynarray.c:37
+    #3 0x42491a in npcAdd src/map.c:556
+    #4 0x4265e0 in mapCreate src/map.c:727
+    #5 0x418ab4 in main src/main.c:830
+    #6 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 389 byte(s) in 84 object(s) allocated from:
+    #0 0x760fff0f74e8 in strdup ../../../../src/libsanitizer/asan/asan_interceptors.cpp:578
+    #1 0x40e507 in talloc src/hash.c:258
+    #2 0x40eb73 in tree_op src/hash.c:352
+    #3 0x40df50 in hashSet src/hash.c:158
+    #4 0x4188c4 in main src/main.c:822
+    #5 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 384 byte(s) in 3 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40b970 in enemyCreate src/enemy.c:540
+    #2 0x422904 in generateWorld src/map.c:317
+    #3 0x425004 in mapCreate src/map.c:576
+    #4 0x418ab4 in main src/main.c:830
+    #5 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 320 byte(s) in 4 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x405d1f in create_dynarray src/dynarray.c:13
+    #2 0x4225f8 in generateWorld src/map.c:269
+    #3 0x425004 in mapCreate src/map.c:576
+    #4 0x418ab4 in main src/main.c:830
+    #5 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 280 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42be9f in loadTexturesFromDirectory src/utils.c:39
+    #2 0x41708c in main src/main.c:726
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 240 byte(s) in 3 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x405d1f in create_dynarray src/dynarray.c:13
+    #2 0x422975 in generateWorld src/map.c:326
+    #3 0x425004 in mapCreate src/map.c:576
+    #4 0x418ab4 in main src/main.c:830
+    #5 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 180 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42be9f in loadTexturesFromDirectory src/utils.c:39
+    #2 0x41706e in main src/main.c:725
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 128 byte(s) in 4 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40e434 in talloc src/hash.c:250
+    #2 0x40eb73 in tree_op src/hash.c:352
+    #3 0x40df50 in hashSet src/hash.c:158
+    #4 0x422614 in generateWorld src/map.c:269
+    #5 0x425004 in mapCreate src/map.c:576
+    #6 0x418ab4 in main src/main.c:830
+    #7 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #8 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #9 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 128 byte(s) in 4 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x405bec in create_dynarray src/dynarray.c:7
+    #2 0x4225f8 in generateWorld src/map.c:269
+    #3 0x425004 in mapCreate src/map.c:576
+    #4 0x418ab4 in main src/main.c:830
+    #5 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 96 byte(s) in 3 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40e434 in talloc src/hash.c:250
+    #2 0x40eb73 in tree_op src/hash.c:352
+    #3 0x40df50 in hashSet src/hash.c:158
+    #4 0x4245af in placeProperty src/map.c:522
+    #5 0x426a88 in mapCreate src/map.c:744
+    #6 0x418ab4 in main src/main.c:830
+    #7 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #8 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #9 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 96 byte(s) in 3 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x405bec in create_dynarray src/dynarray.c:7
+    #2 0x424588 in placeProperty src/map.c:521
+    #3 0x426a88 in mapCreate src/map.c:744
+    #4 0x418ab4 in main src/main.c:830
+    #5 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 96 byte(s) in 3 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40e434 in talloc src/hash.c:250
+    #2 0x40eb73 in tree_op src/hash.c:352
+    #3 0x40df50 in hashSet src/hash.c:158
+    #4 0x4248b2 in npcAdd src/map.c:553
+    #5 0x4265e0 in mapCreate src/map.c:727
+    #6 0x418ab4 in main src/main.c:830
+    #7 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #8 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #9 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 96 byte(s) in 3 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x405bec in create_dynarray src/dynarray.c:7
+    #2 0x42486e in npcAdd src/map.c:553
+    #3 0x4265e0 in mapCreate src/map.c:727
+    #4 0x418ab4 in main src/main.c:830
+    #5 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 96 byte(s) in 3 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40e434 in talloc src/hash.c:250
+    #2 0x40eb73 in tree_op src/hash.c:352
+    #3 0x40df50 in hashSet src/hash.c:158
+    #4 0x42298e in generateWorld src/map.c:326
+    #5 0x425004 in mapCreate src/map.c:576
+    #6 0x418ab4 in main src/main.c:830
+    #7 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #8 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #9 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 96 byte(s) in 3 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x405bec in create_dynarray src/dynarray.c:7
+    #2 0x422975 in generateWorld src/map.c:326
+    #3 0x425004 in mapCreate src/map.c:576
+    #4 0x418ab4 in main src/main.c:830
+    #5 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 96 byte(s) in 4 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42a31b in entityCreate src/physics.c:12
+    #2 0x422495 in generateWorld src/map.c:263
+    #3 0x425004 in mapCreate src/map.c:576
+    #4 0x418ab4 in main src/main.c:830
+    #5 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 80 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb63 in loadAnimation src/utils.c:24
+    #2 0x416e93 in main src/main.c:706
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 80 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb63 in loadAnimation src/utils.c:24
+    #2 0x416e49 in main src/main.c:702
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 80 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb63 in loadAnimation src/utils.c:24
+    #2 0x416e03 in main src/main.c:701
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 80 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb63 in loadAnimation src/utils.c:24
+    #2 0x416db9 in main src/main.c:698
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 80 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb63 in loadAnimation src/utils.c:24
+    #2 0x416d6f in main src/main.c:697
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 80 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb63 in loadAnimation src/utils.c:24
+    #2 0x416d29 in main src/main.c:696
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 80 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x405d1f in create_dynarray src/dynarray.c:13
+    #2 0x41834a in main src/main.c:796
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 80 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x405d1f in create_dynarray src/dynarray.c:13
+    #2 0x41832f in main src/main.c:795
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 80 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb63 in loadAnimation src/utils.c:24
+    #2 0x416f69 in main src/main.c:712
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 80 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb63 in loadAnimation src/utils.c:24
+    #2 0x416f23 in main src/main.c:711
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 80 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42bb63 in loadAnimation src/utils.c:24
+    #2 0x416ed9 in main src/main.c:707
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 72 byte(s) in 3 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42a31b in entityCreate src/physics.c:12
+    #2 0x40b9d4 in enemyCreate src/enemy.c:542
+    #3 0x422904 in generateWorld src/map.c:317
+    #4 0x425004 in mapCreate src/map.c:576
+    #5 0x418ab4 in main src/main.c:830
+    #6 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 64 byte(s) in 4 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42241b in generateWorld src/map.c:261
+    #2 0x425004 in mapCreate src/map.c:576
+    #3 0x418ab4 in main src/main.c:830
+    #4 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #6 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 40 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42be9f in loadTexturesFromDirectory src/utils.c:39
+    #2 0x417050 in main src/main.c:724
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 32 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40e434 in talloc src/hash.c:250
+    #2 0x40eb73 in tree_op src/hash.c:352
+    #3 0x40df50 in hashSet src/hash.c:158
+    #4 0x4248b2 in npcAdd src/map.c:553
+    #5 0x426c45 in mapCreate src/map.c:755
+    #6 0x418ab4 in main src/main.c:830
+    #7 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #8 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #9 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 32 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x405bec in create_dynarray src/dynarray.c:7
+    #2 0x42486e in npcAdd src/map.c:553
+    #3 0x426c45 in mapCreate src/map.c:755
+    #4 0x418ab4 in main src/main.c:830
+    #5 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 32 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40e434 in talloc src/hash.c:250
+    #2 0x40eb73 in tree_op src/hash.c:352
+    #3 0x40df50 in hashSet src/hash.c:158
+    #4 0x4245af in placeProperty src/map.c:522
+    #5 0x426507 in mapCreate src/map.c:724
+    #6 0x418ab4 in main src/main.c:830
+    #7 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #8 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #9 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 32 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x405bec in create_dynarray src/dynarray.c:7
+    #2 0x424588 in placeProperty src/map.c:521
+    #3 0x426507 in mapCreate src/map.c:724
+    #4 0x418ab4 in main src/main.c:830
+    #5 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 32 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x40d856 in hashCreate src/hash.c:71
+    #2 0x417fd6 in main src/main.c:779
+    #3 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 24 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x42a31b in entityCreate src/physics.c:12
+    #2 0x40b9d4 in enemyCreate src/enemy.c:542
+    #3 0x418b25 in main src/main.c:835
+    #4 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #6 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 24 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x4170d3 in main src/main.c:730
+    #2 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #3 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #4 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 16 byte(s) in 4 object(s) allocated from:
+    #0 0x760fff0f74e8 in strdup ../../../../src/libsanitizer/asan/asan_interceptors.cpp:578
+    #1 0x40e507 in talloc src/hash.c:258
+    #2 0x40eb73 in tree_op src/hash.c:352
+    #3 0x40df50 in hashSet src/hash.c:158
+    #4 0x422614 in generateWorld src/map.c:269
+    #5 0x425004 in mapCreate src/map.c:576
+    #6 0x418ab4 in main src/main.c:830
+    #7 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #8 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #9 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 12 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x4171bb in main src/main.c:734
+    #2 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #3 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #4 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 12 byte(s) in 3 object(s) allocated from:
+    #0 0x760fff0f74e8 in strdup ../../../../src/libsanitizer/asan/asan_interceptors.cpp:578
+    #1 0x40e507 in talloc src/hash.c:258
+    #2 0x40eb73 in tree_op src/hash.c:352
+    #3 0x40df50 in hashSet src/hash.c:158
+    #4 0x4245af in placeProperty src/map.c:522
+    #5 0x426a88 in mapCreate src/map.c:744
+    #6 0x418ab4 in main src/main.c:830
+    #7 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #8 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #9 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 12 byte(s) in 3 object(s) allocated from:
+    #0 0x760fff0f74e8 in strdup ../../../../src/libsanitizer/asan/asan_interceptors.cpp:578
+    #1 0x40e507 in talloc src/hash.c:258
+    #2 0x40eb73 in tree_op src/hash.c:352
+    #3 0x40df50 in hashSet src/hash.c:158
+    #4 0x4248b2 in npcAdd src/map.c:553
+    #5 0x4265e0 in mapCreate src/map.c:727
+    #6 0x418ab4 in main src/main.c:830
+    #7 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #8 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #9 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 12 byte(s) in 3 object(s) allocated from:
+    #0 0x760fff0f74e8 in strdup ../../../../src/libsanitizer/asan/asan_interceptors.cpp:578
+    #1 0x40e507 in talloc src/hash.c:258
+    #2 0x40eb73 in tree_op src/hash.c:352
+    #3 0x40df50 in hashSet src/hash.c:158
+    #4 0x42298e in generateWorld src/map.c:326
+    #5 0x425004 in mapCreate src/map.c:576
+    #6 0x418ab4 in main src/main.c:830
+    #7 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #8 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #9 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 4 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0f74e8 in strdup ../../../../src/libsanitizer/asan/asan_interceptors.cpp:578
+    #1 0x40e507 in talloc src/hash.c:258
+    #2 0x40eb73 in tree_op src/hash.c:352
+    #3 0x40df50 in hashSet src/hash.c:158
+    #4 0x4248b2 in npcAdd src/map.c:553
+    #5 0x426c45 in mapCreate src/map.c:755
+    #6 0x418ab4 in main src/main.c:830
+    #7 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #8 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #9 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+Indirect leak of 4 byte(s) in 1 object(s) allocated from:
+    #0 0x760fff0f74e8 in strdup ../../../../src/libsanitizer/asan/asan_interceptors.cpp:578
+    #1 0x40e507 in talloc src/hash.c:258
+    #2 0x40eb73 in tree_op src/hash.c:352
+    #3 0x40df50 in hashSet src/hash.c:158
+    #4 0x4245af in placeProperty src/map.c:522
+    #5 0x426507 in mapCreate src/map.c:724
+    #6 0x418ab4 in main src/main.c:830
+    #7 0x760ffea2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #8 0x760ffea2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #9 0x4044f4 in _start (/home/jayce/Vampy-reloaded/game+0x4044f4) (BuildId: d3119155dda382b2ac46cf4006e081d3de903b0c)
+
+SUMMARY: AddressSanitizer: 1611414 byte(s) leaked in 3792 allocation(s).

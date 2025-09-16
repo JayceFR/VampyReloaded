@@ -13,6 +13,8 @@
 #define WIDTH  64
 #define HEIGHT 64
 
+#define MAX_RECTS 100
+
 typedef enum{
   DIRT,
   STONE,
@@ -111,7 +113,8 @@ mapData mapCreate(hash offgridTiles, BIOME_DATA biome_data, Texture2D pathDirt, 
 // extern void mapDraw(Camera2D camera);
 extern void MapDrawCached(Camera2D camera);
 void MapEnsureCache(hash map, Camera2D camera, Texture2D *tileMap, Texture2D *stoneMap, Texture2D *dirtMap);
-extern dynarray rectsAround(hash map, Vector2 player_pos);
+// extern dynarray rectsAround(hash map, Vector2 player_pos);
+extern int rectsAround(hash map, Vector2 player_pos, struct rect *outRects);
 extern void mapFree(hash map);
 extern rect mapGetRecAt(hash map, int x, int y);
 // extern void generateRandomWalkerMap(TILES map[HEIGHT][WIDTH]);
