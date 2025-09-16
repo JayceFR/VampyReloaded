@@ -25,22 +25,56 @@ typedef struct LevelConfig {
     int globalEnemyCap;         // overall cap
 } LevelConfig;
 
-static LevelConfig LevelConfigFromLevel(int level){
+// Tiered world sizes
+static const int tier1[][2] = { {1,1} };                   // only (1x1)
+static const int tier2[][2] = { {1,1}, {1,2}, {2,1} };     // add (1x2, 2x1)
+static const int tier3[][2] = { {1,1}, {1,2}, {2,1}, 
+                                {2,2}, {1,3}, {3,1} };    // add (2x2, 1x3, 3x1)
+static const int tier4[][2] = { {1,1}, {1,2}, {2,1}, 
+                                {2,2}, {1,3}, {3,1},
+                                {2,3}, {3,2}, {3,3} };    // full set
+
+
+static LevelConfig LevelConfigFromLevel(int level) {
     if (level < 1) level = 1;
-    int w = clampi(2 + (level - 1)/2, 2, 6); // 2x2, 3x3, ... cap 6x6
-    int h = clampi(2 + (level - 1)/2, 2, 6);
-    float maxChance = 1.0f;               // keep current max frequency (1%)
-    float startChance = 0.2f;             // start lower on level 1 (0.2%)
-    int rampLevels = 6;                   // number of levels to ramp up to maxChance
+
+    const int (*pool)[2];
+    int poolSize;
+
+    if (level == 1) {
+        pool = tier1;
+        poolSize = sizeof(tier1)/sizeof(tier1[0]);
+    } else if (level <= 5) {
+        pool = tier2;
+        poolSize = sizeof(tier2)/sizeof(tier2[0]);
+    } else if (level <= 9) {
+        pool = tier3;
+        poolSize = sizeof(tier3)/sizeof(tier3[0]);
+    } else {
+        pool = tier4;
+        poolSize = sizeof(tier4)/sizeof(tier4[0]);
+    }
+
+    // Randomly pick a size from unlocked pool
+    int idx = GetRandomValue(0, poolSize - 1);
+    int w = pool[idx][0];
+    int h = pool[idx][1];
+
+    // --- Enemy spawn logic same as before ---
+    float maxChance = 1.0f;
+    float startChance = 0.2f;
+    int rampLevels = 6;
     int effLevel = level < rampLevels ? level : rampLevels;
     float enemyChancePercent = startChance + (effLevel - 1) * (maxChance - startChance) / (float)(rampLevels - 1);
     enemyChancePercent = fminf(enemyChancePercent, maxChance);
 
-    int maxPerChunk = clampi(1 + (level - 1)/2, 1, 4); // L1=1, L3=2, L5=3, L7=4
+    int maxPerChunk = clampi(1 + (level - 1)/2, 1, 4);
     int globalCap = w * h * maxPerChunk;
+
     LevelConfig c = { w, h, enemyChancePercent, maxPerChunk, globalCap };
     return c;
 }
+
 
 
 void tilesFree(hashvalue val){
