@@ -1062,7 +1062,9 @@ int main() {
             }
         }
         else{
-            UpdateJoysticks(&joy, &aim);
+            if (playerAlive){
+                UpdateJoysticks(&joy, &aim);
+            }
         }
         double t_input_end = GetTime();
 
@@ -1174,7 +1176,9 @@ int main() {
         Vector2 camScroll = camera.target;
         SetShaderValue(shader, camScrollLoc, &camScroll, SHADER_UNIFORM_VEC2);
 
-        update(player, map, offset);
+        if (playerAlive){
+            update(player, map, offset);
+        }
         UpdateCameraRoom(&camera, player);
         Impact_UpdateShake(&camera, delta);
         Impact_UpdateParticles(delta);
@@ -1615,19 +1619,20 @@ int main() {
                 }
             }
 
+            if (playerAlive){
+                DrawHUD(maxHealth, &health, &g, &ammo, &reloading, &reloadTimer, &currency, &shopOpen, shopItems, totalShopItems, guns, &notificationTimer, notificationMsg);
+                // --- NOTIFICATION ---
+                if (notificationTimer > 0.0f) {
+                    int fontSize = 30;
+                    int msgWidth = MeasureText(notificationMsg, fontSize);
+                    DrawRectangle(SCREEN_WIDTH - msgWidth/2 - 20, 50, msgWidth + 40, 60, Fade(BLACK, 0.7f));
+                    DrawText(notificationMsg, SCREEN_WIDTH - msgWidth/2, 70, fontSize, GREEN);
+                    notificationTimer -= GetFrameTime();
+                }
 
-            DrawHUD(maxHealth, &health, &g, &ammo, &reloading, &reloadTimer, &currency, &shopOpen, shopItems, totalShopItems, guns, &notificationTimer, notificationMsg);
-            // --- NOTIFICATION ---
-            if (notificationTimer > 0.0f) {
-                int fontSize = 30;
-                int msgWidth = MeasureText(notificationMsg, fontSize);
-                DrawRectangle(SCREEN_WIDTH - msgWidth/2 - 20, 50, msgWidth + 40, 60, Fade(BLACK, 0.7f));
-                DrawText(notificationMsg, SCREEN_WIDTH - msgWidth/2, 70, fontSize, GREEN);
-                notificationTimer -= GetFrameTime();
+                DrawJoystick(joy);
+                DrawJoystick(aim);
             }
-
-            DrawJoystick(joy);
-            DrawJoystick(aim);
 
 
 
