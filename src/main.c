@@ -750,24 +750,74 @@ int main() {
     typedef enum { GS_SPLASH, GS_MENU, GS_GAME } GameState;
     GameState gState = GS_SPLASH;
     float splashTimer = 0.0f;
-    const float SPLASH_DURATION = 2.0f;
+    const float SPLASH_DURATION = 4.0f;
+
+    // Load assets needed for splash/menu
+    loadDirectory();
+    Texture2D logo = LoadTexture("misc/pfp.png");
+    closeDirectory();
 
     // --- Splash Screen Loop ---
     while (!WindowShouldClose() && gState == GS_SPLASH) {
         float dt = GetFrameTime();
         splashTimer += dt;
 
+        // Fade in first 0.6s, hold, fade out last 0.8s
+        float fadeInTime = 0.6f;
+        float fadeOutTime = 0.8f;
+        float alpha = 1.0f;
+        if (splashTimer < fadeInTime) {
+            alpha = splashTimer / fadeInTime;
+        } else if (splashTimer > SPLASH_DURATION - fadeOutTime) {
+            alpha = (SPLASH_DURATION - splashTimer) / fadeOutTime;
+        }
+        if (alpha < 0) alpha = 0;
+
+        // Subtle scale pulse
+        float pulse = 0.5f + 0.5f * sinf(splashTimer * 3.0f);
+        float scale = 0.9f + pulse * 0.05f;
+
+        // Background: vertical gradient + vignette
         BeginDrawing();
             ClearBackground(BLACK);
+            // Center logo
+            float baseW = (float)logo.width;
+            float baseH = (float)logo.height;
+            float drawW = baseW * scale;
+            float drawH = baseH * scale;
+            float lx = (SCREEN_WIDTH * 2 - drawW) * 0.5f;
+            float ly = (SCREEN_HEIGHT * 2 - drawH) * 0.5f - 40.0f;
+
+            Rectangle srcL = {0,0,(float)logo.width,(float)logo.height};
+            Rectangle dstL = {lx, ly, drawW, drawH};
+            DrawTexturePro(
+                logo,
+                srcL,
+                dstL,
+                (Vector2){0,0},
+                0.0f,
+                (Color){255,255,255,(unsigned char)(255 * alpha)}
+            );
+
             const char *msg = "JayJan Games Presents";
-            int fontSize = 48;
+            int fontSize = 40;
             int tw = MeasureText(msg, fontSize);
-            int cx = (SCREEN_WIDTH * 2 - tw) / 2;
-            int cy = (SCREEN_HEIGHT * 2 - fontSize) / 2;
-            float a = splashTimer < 0.5f ? (splashTimer / 0.5f)
-                     : (splashTimer > SPLASH_DURATION - 0.5f ? (SPLASH_DURATION - splashTimer) / 0.5f : 1.0f);
-            if (a < 0) a = 0;
-            DrawText(msg, cx, cy, fontSize, (Color){255,255,255,(unsigned char)(255*a)});
+            int tx = (SCREEN_WIDTH * 2 - tw) / 2;
+            int ty = (int)(ly + drawH + 30);
+            DrawText(msg, tx, ty, fontSize, (Color){230,230,230,(unsigned char)(255 * alpha)});
+
+            // Small bottom hint fade-in late
+            if (splashTimer > 0.8f) {
+                float hintA = (splashTimer - 0.8f) / 0.6f;
+                if (hintA > 1) hintA = 1;
+                const char *hint = "Loading...";
+                int hw = MeasureText(hint, 18);
+                DrawText(hint,
+                         (SCREEN_WIDTH * 2 - hw) / 2,
+                         SCREEN_HEIGHT * 2 - 50,
+                         18,
+                         (Color){180,180,180,(unsigned char)(200 * alpha * hintA)});
+            }
         EndDrawing();
 
         if (splashTimer >= SPLASH_DURATION) gState = GS_MENU;
@@ -801,8 +851,6 @@ int main() {
             int pw = MeasureText(pTxt, pSize);
             DrawText(pTxt, playBtn.x + (playBtn.width - pw)/2, playBtn.y + 18, pSize, WHITE);
 
-            DrawText("WASD / Left Stick to move\nMouse / Right Stick to aim & shoot",
-                     SCREEN_WIDTH*2/2 - 250, 380, 20, LIGHTGRAY);
 
             if (hover && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
                 gState = GS_GAME;
