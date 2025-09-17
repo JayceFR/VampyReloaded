@@ -989,7 +989,7 @@ int main() {
 
     closeDirectory();
 
-    Gun g = guns[5]; // start with random gun
+    Gun g = guns[3]; // start with random gun
     int ammo = g.maxAmmo;
     float reloadTimer = 0.0f; 
     bool reloading = false;
@@ -1141,6 +1141,8 @@ int main() {
                 }
             } else {
                 projectileShoot(projectiles, player->pos, aim.value, g.speed, PISTOL);
+                Impact_SpawnDirectedBurst(player->pos, aim.value, (Color){255, 200, 100, 255}, 6, 40.0f);
+                Impact_SpawnShell(player->pos, aim.value);
             }
 
 
@@ -1182,6 +1184,7 @@ int main() {
         UpdateCameraRoom(&camera, player);
         Impact_UpdateShake(&camera, delta);
         Impact_UpdateParticles(delta);
+        Impact_UpdateShells(delta);
 
         sprintf(enemyKey, "%d:%d", roomX, roomY);
         MapEnsureCache(map, camera, tiles, stoneTiles, dirtTiles);
@@ -1505,6 +1508,7 @@ int main() {
                 // }
 
                 Impact_DrawParticles();
+                Impact_DrawShells();
 
                 // Crosshair
                 if (Vector2Length(aim.value) > 0.1f) {
