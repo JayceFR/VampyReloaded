@@ -47,7 +47,7 @@ static LevelConfig LevelConfigFromLevel(int level) {
     } else if (level <= 5) {
         pool = tier2;
         poolSize = sizeof(tier2)/sizeof(tier2[0]);
-    } else if (level <= 9) {
+    } else if (level <= 13) {
         pool = tier3;
         poolSize = sizeof(tier3)/sizeof(tier3[0]);
     } else {
