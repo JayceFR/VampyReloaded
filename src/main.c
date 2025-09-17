@@ -494,7 +494,24 @@ typedef struct {
 
 } ShopItem;
 
-void DrawHUD(int maxHealth, int *health, Gun *g, int *ammo, bool *reloading, float *reloadTimer, int *coins, bool *shopOpen, ShopItem *shopItems, int totalItems, Gun *guns, float *notificationTimer, char *notification_msg) {
+void DrawHUD(int maxHealth, int *health, Gun *g, int *ammo, bool *reloading, float *reloadTimer, int *coins, bool *shopOpen, ShopItem *shopItems, int totalItems, Gun *guns, float *notificationTimer, char *notification_msg, Texture2D computerTex, int hackedComputers, int totalComputers, Texture2D heartTex) {
+
+    // --- Computers ---- 
+    int compX = 20;
+    int compY = 20;
+    int compSize = 40;
+
+    DrawTexturePro(
+        computerTex,
+        (Rectangle){0, 0, computerTex.width, computerTex.height},
+        (Rectangle){compX, compY, compSize, compSize},
+        (Vector2){0, 0}, 0, WHITE
+    );
+
+    char compText[32];
+    sprintf(compText, "%d / %d", hackedComputers, totalComputers);
+    DrawText(compText, compX + compSize + 10, compY + compSize / 4, 24, WHITE);
+
     // --- HEALTH (top center) ---
     int heartSpacing = 34;
     int totalWidth = maxHealth * heartSpacing;
@@ -503,14 +520,22 @@ void DrawHUD(int maxHealth, int *health, Gun *g, int *ammo, bool *reloading, flo
 
     for (int i = 0; i < maxHealth; i++) {
         int x = startX + i * heartSpacing;
+        Color tint;
+
         if (i < *health) {
-            DrawCircle(x, y, 14, RED);          // full
-            DrawCircleLines(x, y, 14, BLACK);
+            tint = WHITE; 
         } else {
-            DrawCircle(x, y, 14, Fade(RED, 0.2f)); // empty
-            DrawCircleLines(x, y, 14, BLACK);
+            tint = Fade(WHITE, 0.2f);
         }
+
+        DrawTexturePro(
+            heartTex,
+            (Rectangle){0, 0, heartTex.width, heartTex.height},
+            (Rectangle){x - 16, y - 16, 32, 32},
+            (Vector2){0, 0}, 0, tint
+        );
     }
+
 
     // --- Coins (top right) ---
     int coinRadius = 16;
@@ -804,6 +829,7 @@ int main() {
     Texture2D pathDirt = LoadTexture("tiles/dirt/1.png");
     Texture2D enemyGunTex = LoadTexture("entities/enemy/pistol.png");
     Texture2D computerTex = LoadTexture("entities/computer/computer.png");
+    Texture2D heartTex = LoadTexture("entities/items/heart.png");
     closeDirectory();
 
     Joystick joy = CreateJoystick((Vector2){100, 350}, 60);
@@ -1530,7 +1556,7 @@ int main() {
             EndMode2D();
 
 
-            DrawText(TextFormat("fps: %d", GetFPS()), 10, 10, 10, RED);
+            // DrawText(TextFormat("fps: %d", GetFPS()), 10, 10, 10, RED);
         EndTextureMode();
         double t_draw_end = GetTime();
 
@@ -1545,13 +1571,13 @@ int main() {
             DrawTexturePro(target.texture, src, dst, (Vector2){0, 0}, 0.0f, WHITE);
             // EndShaderMode();
 
-            DrawText(TextFormat("Hacked: %d/%d", computersHacked, mData.noOfComputers), 100, 60, 10, RED);
+            // DrawText(TextFormat("Hacked: %d/%d", computersHacked, mData.noOfComputers), 100, 60, 10, RED);
 
-            if (reloading) {
-                DrawText("Reloading...", 100, 30, 10, RED);
-            } else {
-                DrawText(TextFormat("Ammo: %d/%d", ammo, g.maxAmmo), 100, 30, 10, RED);
-            }
+            // if (reloading) {
+            //     DrawText("Reloading...", 100, 30, 10, RED);
+            // } else {
+            //     DrawText(TextFormat("Ammo: %d/%d", ammo, g.maxAmmo), 100, 30, 10, RED);
+            // }
 
             // Draw Hack Button
             if (collidingComputer && currComputer && !currComputer->hacked) {
@@ -1628,7 +1654,7 @@ int main() {
             }
 
             if (playerAlive){
-                DrawHUD(maxHealth, &health, &g, &ammo, &reloading, &reloadTimer, &currency, &shopOpen, shopItems, totalShopItems, guns, &notificationTimer, notificationMsg);
+                DrawHUD(maxHealth, &health, &g, &ammo, &reloading, &reloadTimer, &currency, &shopOpen, shopItems, totalShopItems, guns, &notificationTimer, notificationMsg, computerTex, computersHacked, mData.noOfComputers, heartTex);
                 // --- NOTIFICATION ---
                 if (notificationTimer > 0.0f) {
                     int fontSize = 30;
