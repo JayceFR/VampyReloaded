@@ -746,6 +746,72 @@ int main() {
     InitWindow(SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2, "Vampy Reloaded (x2 scaled)");
     SetTargetFPS(60);
 
+    // -------- Splash / Menu / Game States --------
+    typedef enum { GS_SPLASH, GS_MENU, GS_GAME } GameState;
+    GameState gState = GS_SPLASH;
+    float splashTimer = 0.0f;
+    const float SPLASH_DURATION = 2.0f;
+
+    // --- Splash Screen Loop ---
+    while (!WindowShouldClose() && gState == GS_SPLASH) {
+        float dt = GetFrameTime();
+        splashTimer += dt;
+
+        BeginDrawing();
+            ClearBackground(BLACK);
+            const char *msg = "JayJan Games Presents";
+            int fontSize = 48;
+            int tw = MeasureText(msg, fontSize);
+            int cx = (SCREEN_WIDTH * 2 - tw) / 2;
+            int cy = (SCREEN_HEIGHT * 2 - fontSize) / 2;
+            float a = splashTimer < 0.5f ? (splashTimer / 0.5f)
+                     : (splashTimer > SPLASH_DURATION - 0.5f ? (SPLASH_DURATION - splashTimer) / 0.5f : 1.0f);
+            if (a < 0) a = 0;
+            DrawText(msg, cx, cy, fontSize, (Color){255,255,255,(unsigned char)(255*a)});
+        EndDrawing();
+
+        if (splashTimer >= SPLASH_DURATION) gState = GS_MENU;
+    }
+    if (WindowShouldClose()) { CloseWindow(); return 0; }
+
+    // --- Main Menu Loop (Play Button) ---
+    while (!WindowShouldClose() && gState == GS_MENU) {
+        BeginDrawing();
+            ClearBackground((Color){15,15,25,255});
+
+            const char *title = "VAMPY RELOADED";
+            int tSize = 54;
+            int tw = MeasureText(title, tSize);
+            DrawText(title, (SCREEN_WIDTH*2 - tw)/2, 140, tSize, RAYWHITE);
+
+            Rectangle playBtn = {
+                (float)SCREEN_WIDTH - 140,
+                260,
+                280,
+                90
+            };
+            Vector2 m = GetMousePosition();
+            bool hover = CheckCollisionPointRec(m, playBtn);
+
+            DrawRectangleRec(playBtn, hover ? DARKGREEN : GREEN);
+            DrawRectangleLinesEx(playBtn, 4, WHITE);
+
+            const char *pTxt = "PLAY";
+            int pSize = 48;
+            int pw = MeasureText(pTxt, pSize);
+            DrawText(pTxt, playBtn.x + (playBtn.width - pw)/2, playBtn.y + 18, pSize, WHITE);
+
+            DrawText("WASD / Left Stick to move\nMouse / Right Stick to aim & shoot",
+                     SCREEN_WIDTH*2/2 - 250, 380, 20, LIGHTGRAY);
+
+            if (hover && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                gState = GS_GAME;
+            }
+        EndDrawing();
+    }
+    if (WindowShouldClose()) { CloseWindow(); return 0; }
+
+    // --- (Existing game asset loading & setup now runs AFTER menu) ---
     // 🎯 Offscreen render target at original resolution
     RenderTexture2D target = LoadRenderTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
 
