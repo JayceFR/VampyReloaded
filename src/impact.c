@@ -133,6 +133,8 @@ void Impact_SpawnShell(Vector2 pos, Vector2 ejectDir) {
         if (!shells[i].active) {
             shells[i].active = true;
             shells[i].pos = pos;
+            shells[i].pos.x += 10;
+            shells[i].pos.y += 20;
 
             // randomize velocity in eject direction
             float speed = (float)GetRandomValue(80, 160) / 10.0f;
@@ -145,7 +147,7 @@ void Impact_SpawnShell(Vector2 pos, Vector2 ejectDir) {
             shells[i].rotSpeed = (float)GetRandomValue(-200, 200);
 
             shells[i].lifetime = 1.5f; // longer-lived
-            shells[i].bouncePos = pos.y + 20; 
+            shells[i].bouncePos = shells[i].pos.y + 20;
             break;
         }
     }

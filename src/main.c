@@ -1114,6 +1114,8 @@ int main() {
 
                 // Shoot both bullets (same direction)
                 projectileShoot(projectiles, spawn1, dir, g.speed, PISTOL);
+                Impact_SpawnDirectedBurst(player->pos, dir, (Color){255, 200, 100, 255}, 6, 40.0f);
+                Impact_SpawnShell(player->pos, dir);
                 projectileShoot(projectiles, spawn2, dir, g.speed, PISTOL);
 
                 // --- Optional debug: draw tiny markers for the two spawns ---
@@ -1138,6 +1140,8 @@ int main() {
                     float angleRad = atan2f(baseDir.y, baseDir.x) + spreadAngles[i] * DEG2RAD;
                     Vector2 spreadDir = (Vector2){ cosf(angleRad), sinf(angleRad) };
                     projectileShoot(projectiles, muzzlePos, spreadDir, g.speed, SHOTGUN);
+                    Impact_SpawnDirectedBurst(player->pos, spreadDir, (Color){255, 200, 100, 255}, 6, 40.0f);
+                    Impact_SpawnShell(player->pos, spreadDir);
                 }
             } else {
                 projectileShoot(projectiles, player->pos, aim.value, g.speed, PISTOL);
