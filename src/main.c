@@ -744,6 +744,7 @@ static inline float clampf(float v, float lo, float hi) {
 
 int main() {
     InitWindow(SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2, "Vampy Reloaded (x2 scaled)");
+    InitAudioDevice();
     SetTargetFPS(60);
 
     // -------- Splash / Menu / Game States --------
@@ -756,6 +757,9 @@ int main() {
     loadDirectory();
     Texture2D logo = LoadTexture("misc/pfp.png");
     closeDirectory();
+
+    float timer = 0;
+    int currentFrame = 0;
 
     // --- Splash Screen Loop ---
     while (!WindowShouldClose() && gState == GS_SPLASH) {
@@ -824,40 +828,94 @@ int main() {
     }
     if (WindowShouldClose()) { CloseWindow(); return 0; }
 
+    Animation home_animation = loadAnimation("entities/home/", 2);
+
     // --- Main Menu Loop (Play Button) ---
-    while (!WindowShouldClose() && gState == GS_MENU) {
+    while (!WindowShouldClose() && gState == GS_MENU)
+    {
         BeginDrawing();
-            ClearBackground((Color){15,15,25,255});
+            ClearBackground((Color){ 15, 15, 25, 255 });
 
-            const char *title = "VAMPY RELOADED";
-            int tSize = 54;
-            int tw = MeasureText(title, tSize);
-            DrawText(title, (SCREEN_WIDTH*2 - tw)/2, 140, tSize, RAYWHITE);
+            float delta = GetFrameTime();
 
+            // --- Home animation ---
+            timer += delta;
+            if (timer > 0.15f)
+            {
+                timer = 0.0f;
+                currentFrame = (currentFrame + 1) % 2;
+            }
+
+            DrawTextureEx(
+                home_animation->frames[currentFrame],
+                (Vector2){ 0, 0 },
+                0.0f,
+                2.0f,
+                WHITE
+            );
+
+            // --- PLAY button ---
             Rectangle playBtn = {
                 (float)SCREEN_WIDTH - 140,
-                260,
+                220,
                 280,
                 90
             };
-            Vector2 m = GetMousePosition();
-            bool hover = CheckCollisionPointRec(m, playBtn);
 
-            DrawRectangleRec(playBtn, hover ? DARKGREEN : GREEN);
-            DrawRectangleLinesEx(playBtn, 4, WHITE);
+            Vector2 mouse = GetMousePosition();
+            bool hover = CheckCollisionPointRec(mouse, playBtn);
 
+            // Slight hover lift
+            Rectangle drawBtn = playBtn;
+            if (hover) drawBtn.y -= 2;
+
+            // Colors
+            Color btnColor    = (Color){ 40, 120, 70, hover ? 190 : 150 };
+            Color borderColor = (Color){ 220, 255, 220, 200 };
+            Color shadowColor = (Color){ 0, 0, 0, 120 };
+
+            // Shadow
+            DrawRectangle(
+                drawBtn.x + 4,
+                drawBtn.y + 6,
+                drawBtn.width,
+                drawBtn.height,
+                shadowColor
+            );
+
+            // Button body
+            DrawRectangleRec(drawBtn, btnColor);
+
+            // Border
+            DrawRectangleLinesEx(drawBtn, 3, borderColor);
+
+            // Button text
             const char *pTxt = "PLAY";
             int pSize = 48;
             int pw = MeasureText(pTxt, pSize);
-            DrawText(pTxt, playBtn.x + (playBtn.width - pw)/2, playBtn.y + 18, pSize, WHITE);
 
+            DrawText(
+                pTxt,
+                drawBtn.x + (drawBtn.width - pw) / 2,
+                drawBtn.y + 20,
+                pSize,
+                RAYWHITE
+            );
 
-            if (hover && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            // Click
+            if (hover && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+            {
                 gState = GS_GAME;
             }
+
         EndDrawing();
     }
-    if (WindowShouldClose()) { CloseWindow(); return 0; }
+
+    if (WindowShouldClose())
+    {
+        CloseWindow();
+        return 0;
+    }
 
     // --- (Existing game asset loading & setup now runs AFTER menu) ---
     // 🎯 Offscreen render target at original resolution
@@ -1012,9 +1070,8 @@ int main() {
     srand(time(NULL));
 
     float shootCooldown = 0.0f; 
-    int currentFrame = 0;
     float frameTime = 0.1f;
-    float timer = 0;
+
 
     Rectangle src;
     Rectangle dst; 
@@ -1028,6 +1085,11 @@ int main() {
     int darknessLoc = GetShaderLocation(shader, "darkness");
     int jekyllLoc = GetShaderLocation(shader, "jekyll");
     int camScrollLoc = GetShaderLocation(shader, "cam_scroll");
+
+    // Music 
+    Music bgm = LoadMusicStream("music/bgm.wav");
+    bgm.looping = true;
+    PlayMusicStream(bgm);
 
     // Bind Noise Texture
     loadDirectory();
@@ -1163,6 +1225,7 @@ int main() {
 
 
     while (!WindowShouldClose()) {
+        UpdateMusicStream(bgm);
         double t_frame_start = GetTime();
 
         int roomX = player->pos.x / ROOM_SIZE;
@@ -1801,8 +1864,13 @@ int main() {
         // );
     }
 
+    // Unload music
+    StopMusicStream(bgm);
+    UnloadMusicStream(bgm);
+
     UnloadRenderTexture(target);
     mapFree(map);
+    CloseAudioDevice();
     CloseWindow();
     return 0;
 }
