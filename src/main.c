@@ -828,11 +828,18 @@ int main() {
     }
     if (WindowShouldClose()) { CloseWindow(); return 0; }
 
+
+    loadDirectory();
     Animation home_animation = loadAnimation("entities/home/", 2);
+    Music home_bgm = LoadMusicStream("music/homebgm.wav");
+    closeDirectory();
+    home_bgm.looping = true;
+    PlayMusicStream(home_bgm);
 
     // --- Main Menu Loop (Play Button) ---
     while (!WindowShouldClose() && gState == GS_MENU)
     {
+        UpdateMusicStream(home_bgm);
         BeginDrawing();
             ClearBackground((Color){ 15, 15, 25, 255 });
 
@@ -916,6 +923,9 @@ int main() {
         CloseWindow();
         return 0;
     }
+
+    StopMusicStream(home_bgm);
+    UnloadMusicStream(home_bgm);
 
     // --- (Existing game asset loading & setup now runs AFTER menu) ---
     // 🎯 Offscreen render target at original resolution
