@@ -830,11 +830,15 @@ int main() {
 
 
     loadDirectory();
+    Animation home_no_loop_animation = loadAnimation("entities/home_no_loop/", 4);
     Animation home_animation = loadAnimation("entities/home/", 2);
     Music home_bgm = LoadMusicStream("music/homebgm.wav");
     closeDirectory();
     home_bgm.looping = true;
     PlayMusicStream(home_bgm);
+
+    int noLoopFrame = 0; 
+    float noLoopTimer = 0.0f; 
 
     // --- Main Menu Loop (Play Button) ---
     while (!WindowShouldClose() && gState == GS_MENU)
@@ -853,13 +857,33 @@ int main() {
                 currentFrame = (currentFrame + 1) % 2;
             }
 
-            DrawTextureEx(
-                home_animation->frames[currentFrame],
-                (Vector2){ 0, 0 },
-                0.0f,
-                2.0f,
-                WHITE
-            );
+            noLoopTimer += delta;
+            if (noLoopTimer > 0.17f){
+                noLoopTimer = 0.0f;
+                noLoopFrame += 1; 
+                if (noLoopFrame > 4){
+                    noLoopFrame = 4; 
+                } 
+            }
+
+            if (noLoopFrame == 4){
+                DrawTextureEx(
+                    home_animation->frames[currentFrame],
+                    (Vector2){ 0, 0 },
+                    0.0f,
+                    2.0f,
+                    WHITE
+                );
+            }
+            else{
+                DrawTextureEx(
+                    home_no_loop_animation->frames[noLoopFrame],
+                    (Vector2){ 0, 0 },
+                    0.0f,
+                    2.0f,
+                    WHITE
+                );
+            }
 
             // --- PLAY button ---
             Rectangle playBtn = {
