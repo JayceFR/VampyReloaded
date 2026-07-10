@@ -26,6 +26,7 @@ set -e
 #
 if command -v apt > /dev/null; then
 	echo "Installing dependencies"
+	sudo apt update
 	sudo apt install build-essential git libasound2-dev mesa-common-dev \
 	libx11-dev libxrandr-dev libxi-dev xorg-dev libgl1-mesa-dev libglu1-mesa-dev
 elif command -v dnf > /dev/null; then

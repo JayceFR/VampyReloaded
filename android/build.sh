@@ -34,7 +34,7 @@ for ABI in $ABIS; do
 
 		"arm64-v8a")
 			CCTYPE="aarch64-linux-android"
-			ABI_FLAGS="-std=c99 -target aarch64 -mfix-cortex-a53-835769"
+			ABI_FLAGS="-std=c99 -mfix-cortex-a53-835769"
 			;;
 
 		"x86")
@@ -64,6 +64,7 @@ for ABI in $ABIS; do
 		-Wl,-soname,libmain.so -Wl,--exclude-libs,libatomic.a -Wl,--build-id \
 		-Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now \
 		-Wl,--warn-shared-textrel -Wl,--fatal-warnings -u ANativeActivity_onCreate \
+		-Wl,--wrap=fopen \
 		-L. -L$BUILD/obj -Llib/$TARGET/$ABI \
 		-lraylib -lnative_app_glue -llog -landroid -lEGL -lGLESv2 -lOpenSLES -latomic -lc -lm -ldl
 done

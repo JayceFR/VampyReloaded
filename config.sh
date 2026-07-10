@@ -14,6 +14,11 @@ SRC="src/*.c"
 # Platform, one of Windows_NT, Linux, Web, Android. Defaults to your OS.
 # This can be set from the command line: TARGET=Android ./build.sh
 [[ -z "$TARGET" ]] && TARGET=$(uname)
+case "$TARGET" in
+	ANDROID|android)
+		TARGET="Android"
+		;;
+esac
 
 # Compiler flags.
 # This can be set from the command line: FLAGS="-Ofast" ./build.sh
@@ -58,8 +63,9 @@ MIN_API_VERSION=23
 # The app's screen orientation, portrait or landscape.
 SCREEN_ORIENTATION=landscape
 
-# Architectures to build for. armeabi-v7a works for most devices.
-ABIS="armeabi-v7a x86"
+# Architectures to build for. Include 32-bit and 64-bit ABIs so the APK
+# installs on modern Android devices and emulators.
+ABIS="armeabi-v7a arm64-v8a x86 x86_64"
 
 # Paths for Android SDK/NDK. Don't change unless you already have an SDK
 # installation and you know what you're doing.
