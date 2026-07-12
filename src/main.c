@@ -19,16 +19,17 @@
 #include "computer.h"
 #include "npc.h"
 #include "coin.h"
+#include <time.h>
 // #include <math.h>
 
-#define MAX_BOIDS 100
+#define MAX_BOIDS 40
 #define SCREEN_WIDTH 400 
 #define SCREEN_HEIGHT 225 
 
 #define GRID_SIZE 20
 
-#define MAX_FORCE 0.4
-#define MAX_SPEED 6
+#define MAX_FORCE 0.2
+#define MAX_SPEED 3
 
 typedef enum {
     JOY_IDLE,
@@ -47,6 +48,11 @@ typedef enum {
 //     JoystickState state; // Idle / aiming / shooting
 // } Joystick;
 
+typedef enum {
+    BIRD_IDLE,
+    BIRD_FLYING,
+    BIRD_DEPARTING
+} BirdState;
 
 struct boid{
     Vector2 pos; 
@@ -57,8 +63,26 @@ struct boid{
     bool broken; 
     float moveTimer;
     bool isMoving; 
+    
+    // Bird properties
+    BirdState state;
+    float stateTimer;
+    float flapTimer;
+    float peckTimer;
+    float facingRight; // 1.0f or -1.0f
+    Vector2 startPos;
+    Vector2 flyAwayDir;
+    Vector2 circleTarget;
 };
 typedef struct boid *boid;
+
+static inline bool IsBirdInCurrentGrid(boid b, int roomX, int roomY) {
+    float minX = roomX * ROOM_SIZE - 200.0f;
+    float maxX = (roomX + 1) * ROOM_SIZE + 200.0f;
+    float minY = roomY * ROOM_SIZE - 200.0f;
+    float maxY = (roomY + 1) * ROOM_SIZE + 200.0f;
+    return (b->pos.x >= minX && b->pos.x <= maxX && b->pos.y >= minY && b->pos.y <= maxY);
+}
 
 typedef struct {
     Vector2 basePos;
@@ -246,6 +270,32 @@ void DrawJoystick(Joystick joy) {
     DrawCircleV(joy.thumbPos, joy.thumbRadius, Fade(LIGHTGRAY, 0.8f));
 }
 
+static void DrawNightOverlay(float nightAmount, float time)
+{
+    if (nightAmount <= 0.0f) return;
+
+    int screenW = SCREEN_WIDTH * 2;
+    int screenH = SCREEN_HEIGHT * 2;
+
+    DrawRectangleGradientV(
+        0, 0, screenW, screenH,
+        Fade((Color){ 9, 13, 32, 255 }, nightAmount * 0.70f),
+        Fade((Color){ 3, 5, 14, 255 }, nightAmount * 0.92f)
+    );
+
+    for (int i = 0; i < 48; i++) {
+        float x = fmodf((float)(i * 37) + time * 18.0f, (float)screenW);
+        float y = fmodf((float)(i * 71) + time * 6.0f, (float)screenH);
+        float twinkle = 0.55f + 0.45f * sinf(time * 2.2f + (float)i * 1.3f);
+        unsigned char alpha = (unsigned char)(nightAmount * 170.0f * twinkle);
+        DrawCircleV((Vector2){ x, y }, 1.0f + (float)(i % 3) * 0.25f, (Color){ 230, 235, 255, alpha });
+    }
+
+    Vector2 moon = { screenW - 72.0f, 68.0f };
+    DrawCircleV(moon, 22.0f, Fade((Color){ 226, 229, 236, 255 }, nightAmount * 0.85f));
+    DrawCircleV((Vector2){ moon.x + 8.0f, moon.y - 4.0f }, 22.0f, Fade((Color){ 9, 13, 32, 255 }, nightAmount * 0.90f));
+}
+
 float randRange(float min, float max) {
     return min + ((float) GetRandomValue(0, 10000) / 10000.0f) * (max - min);
 }
@@ -371,6 +421,13 @@ void calculateSteeringForEach(hashkey k, hashvalue v, void *arg) {
     for (int i = 0; i < arr->len; i++) {
         boid boi = arr->data[i];
 
+        // Idle birds do not steer or move
+        if (boi->state == BIRD_IDLE) {
+            boi->velocity = (Vector2){0, 0};
+            boi->acceleration = (Vector2){0, 0};
+            continue;
+        }
+
         Vector2 avgVel = {0, 0}, avgPos = {0, 0}, avgSep = {0, 0};
         int total = 0;
 
@@ -383,6 +440,10 @@ void calculateSteeringForEach(hashkey k, hashvalue v, void *arg) {
                 for (int z = 0; z < array->len; z++) {
                     if (x == boi->cellX && y == boi->cellY && z == i) continue; 
                     boid b = array->data[z];
+
+                    // Only flock with active (flying/departing) birds
+                    if (b->state == BIRD_IDLE) continue;
+
                     total++;
                     avgVel = Vector2Add(avgVel, b->velocity);
                     avgPos = Vector2Add(avgPos, b->pos);
@@ -432,9 +493,18 @@ void calculateSteeringForEach(hashkey k, hashvalue v, void *arg) {
             );
         }
 
-        Vector2 goal = (Vector2) {SCREEN_WIDTH / 2, SCREEN_HEIGHT/ 2};
-        Vector2 toGoal = Vector2Subtract(goal, boi->pos);
-        toGoal = Vector2Scale(Vector2Normalize(toGoal), 0.3f);
+        Vector2 toGoal;
+        if (boi->state == BIRD_DEPARTING) {
+            // Pull in the fly away direction
+            toGoal = Vector2Scale(boi->flyAwayDir, 0.40f);
+        } else {
+            // BIRD_FLYING: pull towards their chosen circleTarget close to spawn point
+            Vector2 goal = boi->circleTarget;
+            toGoal = Vector2Subtract(goal, boi->pos);
+            if (Vector2Length(toGoal) > 0.001f) {
+                toGoal = Vector2Scale(Vector2Normalize(toGoal), 0.25f);
+            }
+        }
 
         boi->acceleration = Vector2Add(steering, toGoal);
         
@@ -452,11 +522,68 @@ void drawForEachBoid(hashkey k, hashvalue v, void * arg){
     dynarray arr = (dynarray) v; 
     for (int i = 0; i < arr->len; i++){
         boid b = arr->data[i];
-        DrawCircleV(
-            (Vector2) {b->pos.x, b->pos.y},
-            5,
-            BLUE
-        );
+        
+        if (b->state == BIRD_IDLE) {
+            // Draw a cute standing bird
+            Vector2 bodyPos = b->pos;
+            Vector2 headPos = { bodyPos.x + b->facingRight * 3.0f, bodyPos.y - 4.0f };
+            // Pecking animation (peckTimer is active in the first 0.5s of its cycle)
+            float cycle = fmodf(b->flapTimer, 3.0f); // 3 second cycle for idle peck
+            if (cycle < 0.4f) {
+                // Pecking down
+                headPos.y += 2.0f;
+                headPos.x += b->facingRight * 1.0f;
+            }
+            
+            // Draw feet
+            DrawLineEx(bodyPos, (Vector2){bodyPos.x - 1.0f, bodyPos.y + 4.0f}, 1.0f, BLACK);
+            DrawLineEx(bodyPos, (Vector2){bodyPos.x + 1.0f, bodyPos.y + 4.0f}, 1.0f, BLACK);
+            
+            // Draw body
+            DrawCircleV(bodyPos, 3.0f, DARKGRAY);
+            
+            // Draw head
+            DrawCircleV(headPos, 1.8f, DARKGRAY);
+            
+            // Draw beak
+            Vector2 beakPos = { headPos.x + b->facingRight * 2.0f, headPos.y };
+            DrawLineEx(headPos, beakPos, 1.0f, GOLD);
+        } else {
+            // Draw flying bird
+            Vector2 dir = {1, 0};
+            if (Vector2Length(b->velocity) > 0.001f) {
+                dir = Vector2Normalize(b->velocity);
+            }
+            Vector2 perp = { -dir.y, dir.x };
+            
+            Vector2 head = Vector2Add(b->pos, Vector2Scale(dir, 4.0f));
+            Vector2 tail = Vector2Subtract(b->pos, Vector2Scale(dir, 4.0f));
+            
+            // Flapping frequency: faster in BIRD_DEPARTING or when just startled
+            float flapSpeed = (b->state == BIRD_DEPARTING) ? 22.0f : 16.0f;
+            float flapFactor = sinf(b->flapTimer * flapSpeed);
+            
+            // Wing positions: they sweep back and flap up/down
+            // To make flapping more distinct, let's vary the wing extension (perp) and sweep (dir)
+            // When wings are extended (flapFactor = 1), perpSpan is large and sweep is small.
+            // When wings are folded (flapFactor = -1), perpSpan is small and sweep is large.
+            float perpSpan = 4.5f + flapFactor * 2.5f;   // ranges from 2.0f to 7.0f
+            float dirSweep = -2.5f + flapFactor * 1.5f;  // ranges from -4.0f to -1.0f
+            
+            Vector2 wingLeft = Vector2Add(b->pos, Vector2Add(Vector2Scale(perp, perpSpan), Vector2Scale(dir, dirSweep)));
+            Vector2 wingRight = Vector2Add(b->pos, Vector2Subtract(Vector2Scale(dir, dirSweep), Vector2Scale(perp, perpSpan)));
+            
+            // Draw wing lines with custom thickness
+            DrawLineEx(b->pos, wingLeft, 1.5f, DARKGRAY);
+            DrawLineEx(b->pos, wingRight, 1.5f, DARKGRAY);
+            
+            // Draw body line
+            DrawLineEx(tail, head, 2.0f, GRAY);
+            
+            // Draw beak
+            Vector2 beak = Vector2Add(head, Vector2Scale(dir, 1.5f));
+            DrawLineEx(head, beak, 1.0f, GOLD);
+        }
     }
 }
 
@@ -473,6 +600,350 @@ Vector2 randomVelocity(float minSpeed, float maxSpeed) {
     float angle = ((float)randFloat(0, 360)) * (PI / 180.0f);
     float speed = randRange(minSpeed, maxSpeed);
     return (Vector2){ cosf(angle) * speed, sinf(angle) * speed };
+}
+
+void collectDirtTiles(hashkey k, hashvalue v, void *arg) {
+    rect r = (rect)v;
+    dynarray list = (dynarray)arg;
+    if (r && r->tile == DIRT) {
+        Vector2 *pos = malloc(sizeof(Vector2));
+        if (pos) {
+            *pos = (Vector2){ r->rectange.x + TILE_SIZE / 2.0f, r->rectange.y + TILE_SIZE / 2.0f };
+            add_dynarray(list, pos);
+        }
+    }
+}
+
+dynarray GetWalkableTiles(hash map) {
+    dynarray list = create_dynarray(&free, NULL);
+    hashForeach(map, &collectDirtTiles, list);
+    return list;
+}
+
+void InitBirds(hash map, hash flockGrid, dynarray allBirds, dynarray *walkableTilesOut) {
+    if (*walkableTilesOut) {
+        free_dynarray(*walkableTilesOut);
+    }
+    *walkableTilesOut = GetWalkableTiles(map);
+    dynarray walkableTiles = *walkableTilesOut;
+
+    int numClusters = 10;
+    int birdsPerCluster = MAX_BOIDS / numClusters;
+    for (int c = 0; c < numClusters; c++) {
+        Vector2 centerPos = {0, 0};
+        if (walkableTiles && walkableTiles->len > 0) {
+            int idx = GetRandomValue(0, walkableTiles->len - 1);
+            centerPos = *(Vector2*)walkableTiles->data[idx];
+        } else {
+            centerPos = (Vector2){GetRandomValue(0, SCREEN_WIDTH), GetRandomValue(0, SCREEN_HEIGHT)};
+        }
+
+        for (int j = 0; j < birdsPerCluster; j++) {
+            boid b = malloc(sizeof(struct boid));
+            assert(b != NULL);
+
+            b->pos = (Vector2){
+                centerPos.x + randFloat(-30.0f, 30.0f),
+                centerPos.y + randFloat(-30.0f, 30.0f)
+            };
+            b->cellX = (int)b->pos.x / GRID_SIZE;
+            b->cellY = (int)b->pos.y / GRID_SIZE;
+            b->velocity = (Vector2){0, 0};
+            b->acceleration = (Vector2){0, 0};
+            b->isMoving = false;
+            b->moveTimer = 0.0f;
+            b->broken = false;
+
+            b->state = BIRD_IDLE;
+            b->stateTimer = 0.0f;
+            b->flapTimer = randFloat(0.0f, 10.0f);
+            b->peckTimer = randFloat(1.0f, 5.0f);
+            b->facingRight = (GetRandomValue(0, 1) == 0) ? 1.0f : -1.0f;
+            b->startPos = b->pos;
+
+            add_dynarray(allBirds, b);
+
+            char buffer[25];
+            dynarray arr;
+            sprintf(buffer, "%d:%d", b->cellX, b->cellY);
+            if ((arr = hashFind(flockGrid, buffer)) != NULL) {
+                add_dynarray(arr, b);
+            } else {
+                arr = create_dynarray(NULL, NULL);
+                add_dynarray(arr, b);
+                hashSet(flockGrid, buffer, arr);
+            }
+        }
+    }
+}
+
+void UpdateBirdsState(dynarray allBirds, entity player, dynarray walkableTiles, float dt) {
+    if (!allBirds) return;
+
+    int roomX = player->pos.x / ROOM_SIZE;
+    int roomY = player->pos.y / ROOM_SIZE;
+
+    // 1) Startle idle birds close to player (radius reduced from 90 to 50)
+    for (int i = 0; i < allBirds->len; i++) {
+        boid b = (boid)allBirds->data[i];
+        if (!IsBirdInCurrentGrid(b, roomX, roomY)) continue;
+        if (b->state == BIRD_IDLE) {
+            float dist = Vector2Distance(b->pos, player->pos);
+            if (dist < 50.0f) {
+                b->state = BIRD_FLYING;
+                b->stateTimer = randFloat(2.5f, 4.0f);
+                b->velocity = (Vector2){ randFloat(-1.5f, 1.5f), randFloat(-3.0f, -1.0f) };
+                b->circleTarget = (Vector2){ b->startPos.x + randFloat(-80.0f, 80.0f), b->startPos.y + randFloat(-80.0f, 80.0f) };
+            }
+        }
+    }
+
+    // 2) Startle neighbor chain reaction (radius reduced from 60 to 40)
+    for (int i = 0; i < allBirds->len; i++) {
+        boid b = (boid)allBirds->data[i];
+        if (!IsBirdInCurrentGrid(b, roomX, roomY)) continue;
+        if (b->state == BIRD_IDLE) {
+            for (int j = 0; j < allBirds->len; j++) {
+                if (i == j) continue;
+                boid other = (boid)allBirds->data[j];
+                if (other->state == BIRD_FLYING) {
+                    float dist = Vector2Distance(b->pos, other->pos);
+                    if (dist < 40.0f) {
+                        b->state = BIRD_FLYING;
+                        b->stateTimer = randFloat(2.5f, 4.0f);
+                        b->velocity = (Vector2){ randFloat(-1.5f, 1.5f), randFloat(-3.0f, -1.0f) };
+                        b->circleTarget = (Vector2){ b->startPos.x + randFloat(-80.0f, 80.0f), b->startPos.y + randFloat(-80.0f, 80.0f) };
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    // 3) Update timers, flapping, and fly away / reset transitions
+    for (int i = 0; i < allBirds->len; i++) {
+        boid b = (boid)allBirds->data[i];
+        if (!IsBirdInCurrentGrid(b, roomX, roomY)) continue;
+        b->flapTimer += dt;
+
+        if (b->state == BIRD_IDLE) {
+            b->peckTimer -= dt;
+            if (b->peckTimer <= 0.0f) {
+                b->peckTimer = randFloat(2.0f, 6.0f);
+                b->facingRight = (GetRandomValue(0, 1) == 0) ? 1.0f : -1.0f;
+            }
+        } else if (b->state == BIRD_FLYING) {
+            b->stateTimer -= dt;
+            
+            // Choose a new circleTarget close to spawn point when getting close to the current one
+            if (Vector2Distance(b->pos, b->circleTarget) < 20.0f) {
+                b->circleTarget = (Vector2){ b->startPos.x + randFloat(-80.0f, 80.0f), b->startPos.y + randFloat(-80.0f, 80.0f) };
+            }
+            
+            if (b->stateTimer <= 0.0f) {
+                b->state = BIRD_DEPARTING;
+                b->stateTimer = randFloat(8.0f, 12.0f);
+                float angle = randFloat(-PI / 4.0f, PI / 4.0f) - PI / 2.0f;
+                b->flyAwayDir = (Vector2){ cosf(angle), sinf(angle) };
+            }
+        } else if (b->state == BIRD_DEPARTING) {
+            b->stateTimer -= dt;
+            float distToPlayer = Vector2Distance(b->pos, player->pos);
+            if (b->stateTimer <= 0.0f || distToPlayer > 500.0f) {
+                if (walkableTiles && walkableTiles->len > 0) {
+                    Vector2 picked = {0, 0};
+                    for (int attempt = 0; attempt < 10; attempt++) {
+                        int idx = GetRandomValue(0, walkableTiles->len - 1);
+                        Vector2 *targetPos = walkableTiles->data[idx];
+                        picked = *targetPos;
+                        if (Vector2Distance(picked, player->pos) > 400.0f) {
+                            break;
+                        }
+                    }
+                    b->pos = picked;
+                    b->state = BIRD_IDLE;
+                    b->velocity = (Vector2){0, 0};
+                    b->acceleration = (Vector2){0, 0};
+                    b->stateTimer = 0.0f;
+                    b->peckTimer = randFloat(1.0f, 5.0f);
+                    b->facingRight = (GetRandomValue(0, 1) == 0) ? 1.0f : -1.0f;
+                    b->startPos = picked;
+                }
+            }
+        }
+    }
+}
+
+struct ClosestCompData {
+    Vector2 playerPos;
+    Computer bestComp;
+    float minDist;
+};
+
+static void FindClosestUnhackedComputerCb(hashkey k, hashvalue v, void *arg) {
+    dynarray arr = (dynarray)v;
+    struct ClosestCompData *data = (struct ClosestCompData *)arg;
+    if (!arr) return;
+    for (int i = 0; i < arr->len; i++) {
+        Computer comp = (Computer)arr->data[i];
+        if (comp && !comp->hacked) {
+            float dist = Vector2Distance(data->playerPos, comp->e->pos);
+            if (dist < data->minDist) {
+                data->minDist = dist;
+                data->bestComp = comp;
+            }
+        }
+    }
+}
+
+static Vector2 FindClosestExitTile(hash map, int currentCx, int currentCy, Vector2 targetPos) {
+    int minTileX = currentCx * CHUNK_SIZE;
+    int maxTileX = (currentCx + 1) * CHUNK_SIZE - 1;
+    int minTileY = currentCy * CHUNK_SIZE;
+    int maxTileY = (currentCy + 1) * CHUNK_SIZE - 1;
+    
+    Vector2 bestExit = targetPos;
+    float minDist = 99999999.0f;
+    char key[32];
+    
+    // Check top boundary
+    for (int tx = minTileX; tx <= maxTileX; tx++) {
+        sprintf(key, "%d:%d", tx, minTileY);
+        rect r = hashFind(map, key);
+        if (r && r->tile == DIRT) {
+            Vector2 tileWorldPos = { tx * TILE_SIZE + TILE_SIZE / 2.0f, minTileY * TILE_SIZE + TILE_SIZE / 2.0f };
+            float dist = Vector2Distance(tileWorldPos, targetPos);
+            if (dist < minDist) {
+                minDist = dist;
+                bestExit = tileWorldPos;
+            }
+        }
+    }
+    // Check bottom boundary
+    for (int tx = minTileX; tx <= maxTileX; tx++) {
+        sprintf(key, "%d:%d", tx, maxTileY);
+        rect r = hashFind(map, key);
+        if (r && r->tile == DIRT) {
+            Vector2 tileWorldPos = { tx * TILE_SIZE + TILE_SIZE / 2.0f, maxTileY * TILE_SIZE + TILE_SIZE / 2.0f };
+            float dist = Vector2Distance(tileWorldPos, targetPos);
+            if (dist < minDist) {
+                minDist = dist;
+                bestExit = tileWorldPos;
+            }
+        }
+    }
+    // Check left boundary
+    for (int ty = minTileY; ty <= maxTileY; ty++) {
+        sprintf(key, "%d:%d", minTileX, ty);
+        rect r = hashFind(map, key);
+        if (r && r->tile == DIRT) {
+            Vector2 tileWorldPos = { minTileX * TILE_SIZE + TILE_SIZE / 2.0f, ty * TILE_SIZE + TILE_SIZE / 2.0f };
+            float dist = Vector2Distance(tileWorldPos, targetPos);
+            if (dist < minDist) {
+                minDist = dist;
+                bestExit = tileWorldPos;
+            }
+        }
+    }
+    // Check right boundary
+    for (int ty = minTileY; ty <= maxTileY; ty++) {
+        sprintf(key, "%d:%d", maxTileX, ty);
+        rect r = hashFind(map, key);
+        if (r && r->tile == DIRT) {
+            Vector2 tileWorldPos = { maxTileX * TILE_SIZE + TILE_SIZE / 2.0f, ty * TILE_SIZE + TILE_SIZE / 2.0f };
+            float dist = Vector2Distance(tileWorldPos, targetPos);
+            if (dist < minDist) {
+                minDist = dist;
+                bestExit = tileWorldPos;
+            }
+        }
+    }
+    
+    return bestExit;
+}
+
+static void DrawOrbitingArrow(hash computers, hash map, entity player, Texture2D computerTex) {
+    if (!player) return;
+    Vector2 playerCenter = (Vector2){ player->rect.x + player->rect.width / 2.0f, player->rect.y + player->rect.height / 2.0f };
+    
+    int currentCx = (int)(playerCenter.x / ROOM_SIZE);
+    int currentCy = (int)(playerCenter.y / ROOM_SIZE);
+    
+    char key[32];
+    sprintf(key, "%d:%d", currentCx, currentCy);
+    dynarray compList = hashFind(computers, key);
+    Computer currentRoomComp = NULL;
+    if (compList && compList->len > 0) {
+        currentRoomComp = (Computer)compList->data[0];
+    }
+    
+    Vector2 targetPos;
+    bool hasTarget = false;
+    
+    if (currentRoomComp && !currentRoomComp->hacked) {
+        // Point to the computer in the current room
+        targetPos = currentRoomComp->e->pos;
+        hasTarget = true;
+    } else {
+        // Find closest unhacked computer in the entire map
+        struct ClosestCompData cData = {
+            .playerPos = playerCenter,
+            .bestComp = NULL,
+            .minDist = 99999999.0f
+        };
+        hashForeach(computers, &FindClosestUnhackedComputerCb, &cData);
+        
+        if (cData.bestComp) {
+            // Find closest exit tile leading to the unhacked computer
+            targetPos = FindClosestExitTile(map, currentCx, currentCy, cData.bestComp->e->pos);
+            hasTarget = true;
+        }
+    }
+    
+    if (hasTarget) {
+        // Vector2 dir = Vector2Subtract(targetPos, playerCenter);
+        // float dist = Vector2Length(dir);
+        // if (dist > 5.0f) {
+        //     dir = Vector2Normalize(dir);
+            
+        //     // Subtle orbit radius around player center
+        //     float orbitRadius = 48.0f;
+        //     Vector2 orbitPos = Vector2Add(playerCenter, Vector2Scale(dir, orbitRadius));
+            
+        //     Vector2 perp = { -dir.y, dir.x };
+            
+        //     // Draw a subtle arrowhead pointing towards the target
+        //     Vector2 tip = Vector2Add(orbitPos, Vector2Scale(dir, 4.0f));
+        //     Vector2 backLeft = Vector2Subtract(Vector2Add(orbitPos, Vector2Scale(perp, 3.0f)), Vector2Scale(dir, 3.0f));
+        //     Vector2 backRight = Vector2Subtract(Vector2Subtract(orbitPos, Vector2Scale(perp, 3.0f)), Vector2Scale(dir, 3.0f));
+            
+        //     // Subtle semi-transparent gold/yellow
+        //     DrawTriangle(tip, backLeft, backRight, (Color){ 255, 0, 0, 255 });
+        // }
+
+        
+        Vector2 dir = Vector2Subtract(targetPos, playerCenter);
+        float dist = Vector2Length(dir);
+
+        if (dist > 5.0f) {
+            dir = Vector2Normalize(dir);
+
+            float orbitRadius = 28.0f;
+            Vector2 orbitPos = Vector2Add(playerCenter, Vector2Scale(dir, orbitRadius));
+
+            float iconSize = 9.0f;
+
+            DrawTexturePro(
+                computerTex,
+                (Rectangle){0, 0, computerTex.width, computerTex.height},
+                (Rectangle){orbitPos.x, orbitPos.y, iconSize, iconSize},
+                (Vector2){iconSize * 0.5f, iconSize * 0.5f},
+                0.0f,
+                WHITE
+            );
+        }
+
+    }
 }
 
 typedef enum{
@@ -1042,6 +1513,8 @@ int main() {
     Joystick aim = CreateJoystick((Vector2){700, 350}, 60);
 
     hash flockGrid = hashCreate(NULL, &free_dynarray, NULL); 
+    dynarray allBirds = create_dynarray(&free, NULL);
+    dynarray walkableTiles = NULL;
     entity player = entityCreate(400, 225, 15, 15);
     PlayerState pState = P_IDLE;
     int facingRight = 1; 
@@ -1063,31 +1536,6 @@ int main() {
     hash offgridMap = hashCreate(NULL, &offgridsFree, NULL);
     dynarray offgrids;
 
-    // 🐦 Init boids (same as before)
-    for (int i = 0; i < MAX_BOIDS; i++) {
-        boid b = malloc(sizeof(struct boid));
-        assert(b != NULL);
-
-        b->pos = (Vector2){GetRandomValue(0, SCREEN_WIDTH), GetRandomValue(0, SCREEN_HEIGHT)};
-        b->cellX = (int)b->pos.x / GRID_SIZE; 
-        b->cellY = (int)b->pos.y / GRID_SIZE;
-        b->velocity = randomVelocity(-2, 2);
-        b->acceleration = (Vector2){0, 0};
-        b->isMoving = true;
-        b->moveTimer = randFloat(0.5, 1);
-
-        char buffer[25];
-        dynarray arr; 
-        sprintf(buffer, "%d:%d", b->cellX, b->cellY);
-        if ((arr = hashFind(flockGrid, buffer)) != NULL) {
-            add_dynarray(arr, b);
-        } else {
-            arr = create_dynarray(NULL, NULL);
-            add_dynarray(arr, b);
-            hashSet(flockGrid, buffer, arr);
-        }
-    }
-
     Vector2 averageVels[MAX_BOIDS];
     Vector2 swarmTarget = player->pos;
     Vector2 previousOffset = {0.0f, 0.0f};
@@ -1096,6 +1544,7 @@ int main() {
     hash map = mData.map;
 
     player->pos = mapFindSpawnTopLeft(map);
+    InitBirds(map, flockGrid, allBirds, &walkableTiles);
 
     Enemy enemy = enemyCreate(50, 60, 15, 15);
 
@@ -1412,9 +1861,9 @@ int main() {
         float t = GetTime() - startTime;
         SetShaderValue(shader, timeLoc, &t, SHADER_UNIFORM_FLOAT);
         SetShaderValue(shader, itimeLoc, &t, SHADER_UNIFORM_FLOAT);
-        float darkness = 0.0f;
+        float darkness = 0.38f;
         SetShaderValue(shader, darknessLoc, &darkness, SHADER_UNIFORM_FLOAT);
-        int jekyllVal = 1;
+        int jekyllVal = 0;
         SetShaderValue(shader, jekyllLoc, &jekyllVal, SHADER_UNIFORM_INT);
         Vector2 camScroll = camera.target;
         SetShaderValue(shader, camScrollLoc, &camScroll, SHADER_UNIFORM_VEC2);
@@ -1422,6 +1871,11 @@ int main() {
         if (playerAlive){
             update(player, map, offset);
         }
+        UpdateBirdsState(allBirds, player, walkableTiles, delta);
+        data->playerPos = player->pos;
+        calculateSteering(flockGrid, data);
+        updateBoids(flockGrid, averageVels);
+
         UpdateCameraRoom(&camera, player);
         Impact_UpdateShake(&camera, delta);
         Impact_UpdateParticles(delta);
@@ -1446,11 +1900,18 @@ int main() {
                         hashFree(offgridMap);
                         hashFree(mData.enemies);
                         hashFree(mData.computers);
+                        if (allBirds) free_dynarray(allBirds);
+                        if (flockGrid) hashFree(flockGrid);
+                        allBirds = create_dynarray(&free, NULL);
+                        flockGrid = hashCreate(NULL, &free_dynarray, NULL);
+                        data->flockGrid = flockGrid;
+
                         offgridMap = hashCreate(NULL, &offgridsFree, NULL);
                         mData = mapCreate(offgridMap, biome_data, pathDirt, level);
                         map = mData.map;
                         computers = mData.computers;
                         player->pos = mapFindSpawnTopLeft(map);
+                        InitBirds(map, flockGrid, allBirds, &walkableTiles);
                         player->rect.x = player->pos.x;
                         player->rect.y = player->pos.y;
                         g = guns[GetRandomValue(0, 3)];
@@ -1492,11 +1953,18 @@ int main() {
                         hashFree(offgridMap);
                         hashFree(mData.enemies);
                         hashFree(mData.computers);
+                        if (allBirds) free_dynarray(allBirds);
+                        if (flockGrid) hashFree(flockGrid);
+                        allBirds = create_dynarray(&free, NULL);
+                        flockGrid = hashCreate(NULL, &free_dynarray, NULL);
+                        data->flockGrid = flockGrid;
+
                         offgridMap = hashCreate(NULL, &offgridsFree, NULL);
                         mData = mapCreate(offgridMap, biome_data, pathDirt, level);
                         map = mData.map;
                         computers = mData.computers;
                         player->pos = mapFindSpawnTopLeft(map);
+                        InitBirds(map, flockGrid, allBirds, &walkableTiles);
                         player->rect.x = player->pos.x;
                         player->rect.y = player->pos.y;
                         g = guns[GetRandomValue(0, 3)];
@@ -1642,9 +2110,14 @@ int main() {
                     }
                 }
 
+                // Draw subtle orbiting arrow helper pointing to computer/exit
+                DrawOrbitingArrow(computers, map, player, computerTex);
+
                 // Draw coins
                 updateCoins(coins, player, 0.5f, &currency);
                 drawCoins(coins);
+
+                DrawBoids(flockGrid);
 
 
                 int pos = 0;
@@ -1775,12 +2248,12 @@ int main() {
         // --- Present ---
         SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), target.texture);
         BeginDrawing();
-            // BeginShaderMode(shader);
             ClearBackground(BLACK);
             src = (Rectangle) { 0, 0, (float)target.texture.width, -(float)target.texture.height };
             dst = (Rectangle) { 0, 0, (float)SCREEN_WIDTH * 2, (float)SCREEN_HEIGHT * 2 };
+            BeginShaderMode(shader);
             DrawTexturePro(target.texture, src, dst, (Vector2){0, 0}, 0.0f, WHITE);
-            // EndShaderMode();
+            EndShaderMode();
 
             // DrawText(TextFormat("Hacked: %d/%d", computersHacked, mData.noOfComputers), 100, 60, 10, RED);
 
@@ -1904,6 +2377,11 @@ int main() {
 
     UnloadRenderTexture(target);
     mapFree(map);
+    if (allBirds) free_dynarray(allBirds);
+    if (walkableTiles) free_dynarray(walkableTiles);
+    if (flockGrid) hashFree(flockGrid);
+    free(data);
+
     CloseAudioDevice();
     CloseWindow();
     return 0;

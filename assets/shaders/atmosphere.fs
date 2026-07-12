@@ -47,6 +47,19 @@ float fbm(vec2 st) {
     return value;
 }
 
+float cloudMask(vec2 uv, float drift)
+{
+    vec2 p = uv;
+    p.x += drift;
+
+    float base = fbm(p * vec2(2.2, 1.25) + vec2(0.0, itime * 0.03));
+    float detail = fbm(p * vec2(4.6, 2.8) + vec2(itime * 0.02, -itime * 0.015));
+
+    float mask = smoothstep(0.56, 0.83, mix(base, detail, 0.35));
+    mask *= smoothstep(0.04, 0.30, uv.y);
+    return mask;
+}
+
 void foreground(inout vec4 col) {
     vec4 tex_color = texture2D(texture0, fragTexCoord);
     col = tex_color;
@@ -80,6 +93,24 @@ void foreground(inout vec4 col) {
 
     // More subtle fog so player is visible
     col.rgb = mix(col.rgb, fog_color, fogFactor * 0.4);
+
+    float skyFade = smoothstep(0.15, 0.72, fragTexCoord.y);
+    float skyBand = 1.0 - smoothstep(0.02, 0.42, fragTexCoord.y);
+    float cloudLeft = cloudMask(fragTexCoord + vec2(cam_scroll.x * 0.00018, cam_scroll.y * 0.00010), itime * 0.018);
+    float cloudRight = cloudMask(fragTexCoord + vec2(0.35, 0.04) + vec2(-itime * 0.012, itime * 0.004), 0.0);
+    float clouds = clamp(cloudLeft * 0.78 + cloudRight * 0.55, 0.0, 1.0);
+
+    vec3 nightSky = vec3(0.03, 0.05, 0.10);
+    vec3 cloudLight = vec3(0.32, 0.32, 0.32);
+    vec3 cloudDark = vec3(0.10, 0.10, 0.10);
+    vec3 skyTint = mix(nightSky, cloudLight, skyBand * 0.12);
+
+    col.rgb = mix(col.rgb, skyTint, skyFade * 0.12);
+    col.rgb = mix(col.rgb, cloudDark, clouds * 0.22);
+    col.rgb = mix(col.rgb, cloudLight, clouds * 0.10);
+
+    float moonGlow = smoothstep(0.55, 0.0, distance(fragTexCoord, vec2(0.83, 0.18)));
+    col.rgb += vec3(0.05, 0.06, 0.08) * moonGlow * (0.5 + 0.5 * clouds);
 
     // Darkness overlay as before
     col = mix(col, vec4(0.0, 0.0, 0.0, 1.0), darkness);
